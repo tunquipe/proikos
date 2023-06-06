@@ -9,4 +9,4 @@
 
 require_once __DIR__.'/config.php';
 
-Proikos::create()->uninstall();
+ProikosPlugin::create()->uninstall();

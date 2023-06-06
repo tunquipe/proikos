@@ -8,4 +8,4 @@
  * @package chamilo.plugin.proikos
  */
 
-Proikos::create()->install();
+ProikosPlugin::create()->install();

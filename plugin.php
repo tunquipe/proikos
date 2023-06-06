@@ -7,4 +7,4 @@
  * @package chamilo.plugin.proikos
  */
 
-$plugin_info = Proikos::create()->get_info();
+$plugin_info = ProikosPlugin::create()->get_info();
