@@ -1,5 +1,7 @@
 <?php
 
+use ChamiloSession as Session;
+
 if (!empty($_POST['language'])) {
     $_GET['language'] = $_POST['language'];
 }
@@ -147,8 +149,28 @@ if ($form->validate()) {
         $plugin->saveInfoUserProikos($values);
     }
 
-    var_dump($values);
+    /* SESSION REGISTERING */
+    /* @todo move this in a function */
+    $_user['firstName'] = stripslashes($values['firstname']);
+    $_user['lastName'] = stripslashes($values['lastname']);
+    $_user['mail'] = $values['email'];
+    $_user['language'] = $values['language'];
+    $_user['user_id'] = $user_id;
+    $_user['status'] = $values['status'] ?? STUDENT;
+    Session::write('_user', $_user);
+
+    // Stats
+    Event::eventLogin($user_id);
+
+    // last user login date is now
+    $user_last_login_datetime = 0; // used as a unix timestamp it will correspond to : 1 1 1970
+    Session::write('user_last_login_datetime', $user_last_login_datetime);
+
+    $recipient_name = api_get_person_name($values['firstname'], $values['lastname']);
+    
+    header('Location: '.api_get_path(WEB_PATH).'user_portal.php');
     exit;
+
 }
 
 
@@ -161,14 +183,6 @@ if (CustomPages::enabled() && CustomPages::exists(CustomPages::REGISTRATION)) {
         ['form' => $form, 'content' => $content]
     );
 } else {
-    if (!api_is_anonymous()) {
-        // Saving user to course if it was set.
-        if (!empty($course_code_redirect)) {
-            $course_info = api_get_course_info($course_code_redirect);
-        }
-        CourseManager::redirectToCourse([]);
-    }
-
     $tpl = new Template($tool_name);
 
     $tpl->assign('inscription_header', Display::page_header($tool_name));
