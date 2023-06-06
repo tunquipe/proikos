@@ -51,7 +51,7 @@ class ProikosPlugin extends Plugin
             type_document INT NULL,
             number_document INT NULL,
             age INT NULL,
-            sex VARCHAR(1) NULL,
+            gender VARCHAR(1) NULL,
             instruction VARCHAR(250) NULL,
             name_company VARCHAR(250) NULL,
             contact_manager VARCHAR(250) NULL,

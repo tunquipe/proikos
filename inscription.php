@@ -167,7 +167,7 @@ if ($form->validate()) {
     Session::write('user_last_login_datetime', $user_last_login_datetime);
 
     $recipient_name = api_get_person_name($values['firstname'], $values['lastname']);
-    
+
     header('Location: '.api_get_path(WEB_PATH).'user_portal.php');
     exit;
 
