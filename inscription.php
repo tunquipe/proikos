@@ -17,10 +17,16 @@ $form->addHtml('<div class="panel panel-default">
                         <h3 class="panel-title">' . $plugin->get_lang('PersonalInformation') . '</h3>
                     </div>
                     <div class="panel-body">');
-$form->addText('lastname', [get_lang('LastName'), $plugin->get_lang('LastNameHelp')], true, ['size' => 40]);
-$form->addText('firstname', [get_lang('FirstName'), $plugin->get_lang('FirstNameHelp')], true, ['size' => 40]);
-$form->addText('email', [get_lang('Email'), $plugin->get_lang('EmailHelp')], true, ['size' => 40]);
-$form->addText('phone', [$plugin->get_lang('Phone'), $plugin->get_lang('PhoneHelp')], true, ['size' => 20]);
+$form->addHtml('<div class="row"><div class="col-md-6">');
+$form->addText('lastname', [get_lang('LastName'), $plugin->get_lang('LastNameHelp')], true);
+$form->addHtml('</div><div class="col-md-6">');
+$form->addText('firstname', [get_lang('FirstName'), $plugin->get_lang('FirstNameHelp')], true);
+$form->addHtml('</div></div>');
+$form->addHtml('<div class="row"><div class="col-md-6">');
+$form->addText('email', [get_lang('Email'), $plugin->get_lang('EmailHelp')], true);
+$form->addHtml('</div><div class="col-md-6">');
+$form->addText('phone', [$plugin->get_lang('Phone'), $plugin->get_lang('PhoneHelp')], true);
+$form->addHtml('</div></div>');
 $typesDocuments = [
     '1' => 'DNI',
     '2' => 'Carnet de Extranjeria',
@@ -28,14 +34,20 @@ $typesDocuments = [
     '4' => 'RUC',
     '5' => 'Otros',
 ];
+$form->addHtml('<div class="row"><div class="col-md-6">');
 $form->addSelect('type_document', $plugin->get_lang('TypeDocument'), $typesDocuments);
-$form->addText('number_document', [$plugin->get_lang('NumberDocument'), $plugin->get_lang('NumberDocumentHelp')], true, ['size' => 20]);
-$form->addText('age', $plugin->get_lang('Age'), true, ['size' => 20]);
+$form->addHtml('</div><div class="col-md-6">');
+$form->addText('number_document', [$plugin->get_lang('NumberDocument'), $plugin->get_lang('NumberDocumentHelp')], true);
+$form->addHtml('</div></div>');
+$form->addHtml('<div class="row"><div class="col-md-4">');
+$form->addText('age', $plugin->get_lang('Age'), true);
+$form->addHtml('</div><div class="col-md-4">');
 $genders = [
     'M' => 'Masculino',
     'F' => 'Femenino'
 ];
 $form->addSelect('sex', $plugin->get_lang('Gender'), $genders);
+$form->addHtml('</div><div class="col-md-4">');
 $instructions = [
     '1' => 'Primaria',
     '2' => 'Secundaria',
@@ -45,17 +57,23 @@ $instructions = [
 ];
 $form->addSelect('instruction', $plugin->get_lang('GradeInstructions'), $instructions);
 $form->addHtml('</div></div>');
+$form->addHtml('</div></div>');
 
 $form->addHtml('<div class="panel panel-default">
                     <div class="panel-heading panel-user">
                         <h3 class="panel-title">' . $plugin->get_lang('CompanyData') . '</h3>
                     </div>
                     <div class="panel-body">');
-
-$form->addText('company', [get_lang('CompanyName'), $plugin->get_lang('CompanyNameHelp')], true, ['size' => 40]);
-$form->addText('contact_manager', [$plugin->get_lang('ContactManager'), $plugin->get_lang('ContactManagerHelp')], true, ['size' => 40]);
-$form->addText('position', [$plugin->get_lang('Position')], false, ['size' => 40]);
-$form->addText('experience_time', [$plugin->get_lang('ExperienceTime')], false, ['size' => 40]);
+$form->addHtml('<div class="row"><div class="col-md-6">');
+$form->addText('company', [get_lang('CompanyName'), $plugin->get_lang('CompanyNameHelp')], true);
+$form->addHtml('</div><div class="col-md-6">');
+$form->addText('contact_manager', [$plugin->get_lang('ContactManager'), $plugin->get_lang('ContactManagerHelp')], true);
+$form->addHtml('</div></div>');
+$form->addHtml('<div class="row"><div class="col-md-6">');
+$form->addText('position', [$plugin->get_lang('Position')], false);
+$form->addHtml('</div><div class="col-md-6">');
+$form->addText('experience_time', [$plugin->get_lang('ExperienceTime')], false);
+$form->addHtml('</div></div>');
 $categories = [
     '1' => 'Funcionario',
     '2' => 'Empleado',
@@ -67,11 +85,14 @@ $categories = [
     '8' => 'Peón',
     '9' => 'Otros',
 ];
+$form->addHtml('<div class="row"><div class="col-md-6">');
 $form->addSelect('employment_category', $plugin->get_lang('EmploymentCategory'), $categories);
-$form->addText('stakeholder', [$plugin->get_lang('Stakeholder'), $plugin->get_lang('StakeholderHelp')], false, ['size' => 40]);
-$form->addText('area', [$plugin->get_lang('Area')], false, ['size' => 40]);
-$form->addText('department', [$plugin->get_lang('Department')], false, ['size' => 40]);
-$form->addText('headquarters', [$plugin->get_lang('Headquarters')], false, ['size' => 40]);
+$form->addHtml('</div><div class="col-md-6">');
+$form->addText('stakeholder', [$plugin->get_lang('Stakeholder'), $plugin->get_lang('StakeholderHelp')], false);
+$form->addHtml('</div></div>');
+$form->addText('area', [$plugin->get_lang('Area')], false);
+$form->addText('department', [$plugin->get_lang('Department')], false);
+$form->addText('headquarters', [$plugin->get_lang('Headquarters')], false);
 
 $form->addHtml('</div></div>');
 
