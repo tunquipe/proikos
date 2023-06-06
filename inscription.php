@@ -46,7 +46,7 @@ $genders = [
     'M' => 'Masculino',
     'F' => 'Femenino'
 ];
-$form->addSelect('sex', $plugin->get_lang('Gender'), $genders);
+$form->addSelect('gender', $plugin->get_lang('Gender'), $genders);
 $form->addHtml('</div><div class="col-md-4">');
 $instructions = [
     '1' => 'Primaria',
@@ -65,12 +65,12 @@ $form->addHtml('<div class="panel panel-default">
                     </div>
                     <div class="panel-body">');
 $form->addHtml('<div class="row"><div class="col-md-6">');
-$form->addText('company', [get_lang('CompanyName'), $plugin->get_lang('CompanyNameHelp')], true);
+$form->addText('name_company', [get_lang('CompanyName'), $plugin->get_lang('CompanyNameHelp')], true);
 $form->addHtml('</div><div class="col-md-6">');
 $form->addText('contact_manager', [$plugin->get_lang('ContactManager'), $plugin->get_lang('ContactManagerHelp')], true);
 $form->addHtml('</div></div>');
 $form->addHtml('<div class="row"><div class="col-md-6">');
-$form->addText('position', [$plugin->get_lang('Position')], false);
+$form->addText('position_company', [$plugin->get_lang('Position')], false);
 $form->addHtml('</div><div class="col-md-6">');
 $form->addText('experience_time', [$plugin->get_lang('ExperienceTime')], false);
 $form->addHtml('</div></div>');
@@ -88,7 +88,7 @@ $categories = [
 $form->addHtml('<div class="row"><div class="col-md-6">');
 $form->addSelect('employment_category', $plugin->get_lang('EmploymentCategory'), $categories);
 $form->addHtml('</div><div class="col-md-6">');
-$form->addText('stakeholder', [$plugin->get_lang('Stakeholder'), $plugin->get_lang('StakeholderHelp')], false);
+$form->addText('stakeholders', [$plugin->get_lang('Stakeholder'), $plugin->get_lang('StakeholderHelp')], false);
 $form->addHtml('</div></div>');
 $form->addText('area', [$plugin->get_lang('Area')], false);
 $form->addText('department', [$plugin->get_lang('Department')], false);
@@ -102,6 +102,53 @@ $form->applyFilter('__ALL__', 'Security::remove_XSS');
 
 if ($form->validate()) {
     $values = $form->getSubmitValues(1);
+
+    $values['username'] = api_substr($values['number_document'], 0, USERNAME_MAX_LENGTH);
+    $values['official_code'] = 'PK'.$values['number_document'];
+    if (api_get_setting('allow_registration_as_teacher') === 'false') {
+        $values['status'] = STUDENT;
+    }
+    $status = $values['status'] ?? STUDENT;
+    try {
+        $values['language'] = $values['language'] ?? api_get_interface_language();
+    } catch (Exception $e) {
+        print_r($e);
+    }
+    $values['address'] = $values['address'] ?? '';
+    $phone = $values['phone'] ?? null;
+    $password = $values['number_document'];
+
+    // Creates a new user
+    $user_id = UserManager::create_user(
+        $values['firstname'],
+        $values['lastname'],
+        $status,
+        $values['email'],
+        $values['username'],
+        $password,
+        $values['official_code'],
+        $values['language'],
+        $phone,
+        null,
+        PLATFORM_AUTH_SOURCE,
+        null,
+        1,
+        0,
+        [],
+        null,
+        true,
+        false,
+        $values['address'],
+        false,
+        $form
+    );
+    if ($user_id) {
+        $values['user_id'] = $user_id;
+        $plugin->saveInfoUserProikos($values);
+    }
+
+    var_dump($values);
+    exit;
 }
 
 
