@@ -68,14 +68,14 @@ class ProikosPlugin extends Plugin
 
     public function uninstall()
     {
-        $tablesToBeDeleted = [
+       /* $tablesToBeDeleted = [
             self::TABLE_PROIKOS_USERS
         ];
         foreach ($tablesToBeDeleted as $tableToBeDeleted) {
             $table = Database::get_main_table($tableToBeDeleted);
             $sql = "DROP TABLE IF EXISTS $table";
             Database::query($sql);
-        }
+        }*/
     }
 
     public function getInfoUserProikos($userId)
