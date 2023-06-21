@@ -15,7 +15,7 @@
         <tr>
             <th scope="row">{{ entity.id }}</th>
             <td>{{ entity.name_entity }}</td>
-            <td>{{ entity.picture }}</td>
+            <td><img width="100px" src="{{ entity.picture }}" /></td>
             <td>{{ entity.code_reference }}</td>
             <td>{{ entity.status }}</td>
             <td>{{ entity.actions }}</td>

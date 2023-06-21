@@ -61,9 +61,6 @@ if($isAdmin){
                 ]
             );
 
-           /* if (!empty($user_data['picture_uri'])) {
-                $form->addElement('checkbox', 'remove_picture', null, get_lang('DelImage'));
-            }*/
             $allowed_picture_types = api_get_supported_image_extensions(false);
             $form->addRule(
                 'picture',
@@ -84,18 +81,16 @@ if($isAdmin){
                 if (isset($_FILES['picture'])) {
                     $plugin->saveImage($res, $_FILES['picture']);
                 }
-
                 if ($res) {
                     $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/entity_management.php';
                     header('Location: ' . $url);
                 }
-
             }
-
-
             $tpl->assign('form', $form->returnForm());
             break;
-
+        case 'edit':
+            
+            break;
         default:
     }
 }

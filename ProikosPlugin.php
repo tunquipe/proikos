@@ -130,15 +130,41 @@ class ProikosPlugin extends Plugin
         $table = Database::get_main_table(self::TABLE_PROIKOS_ENTITY);
         $sql = "SELECT * FROM $table pe";
         $result = Database::query($sql);
+        $url = api_get_path(WEB_UPLOAD_PATH);
         $list = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
+
+                $action = Display::url(
+                    Display::return_icon(
+                        'edit.png',
+                        null,
+                        [],
+                        ICON_SIZE_SMALL),
+                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/entity_management.php?action=edit&id=' . $row['id']
+                );
+                $action .= Display::url(
+                    Display::return_icon(
+                        'delete.png',
+                        get_lang('Delete'),
+                        [],
+                        ICON_SIZE_SMALL
+                    ),
+                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/entity_management.php?action=delete&id=' . $row['id'],
+                    [
+                        'onclick' => 'javascript:if(!confirm(' . "'" .
+                            addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
+                            . "'" . ')) return false;',
+                    ]
+                );
+
                 $list[] = [
                     'id' => $row['id'],
                     'name_entity' => $row['name_entity'],
-                    'picture' => $row['picture'],
+                    'picture' => $url.$row['picture'],
                     'code_reference' => $row['code_reference'],
-                    'status' => $row['status']
+                    'status' => $row['status'],
+                    'actions' => $action
                 ];
             }
         }
@@ -151,8 +177,8 @@ class ProikosPlugin extends Plugin
         }
         $table = Database::get_main_table(self::TABLE_PROIKOS_ENTITY);
         $params = [
-            'id' => $values['id'],
             'name_entity' => $values['name_entity'],
+            'picture' => null,
             'code_reference' => $values['code_reference'],
             'status' => $values['status']
         ];
@@ -163,7 +189,7 @@ class ProikosPlugin extends Plugin
     }
 
     public function getEntity($idEntity){
-        if (empty($entity)) {
+        if (empty($idEntity)) {
             return false;
         }
         $table = Database::get_main_table(self::TABLE_PROIKOS_ENTITY);
@@ -180,18 +206,15 @@ class ProikosPlugin extends Plugin
                     'status' => $row['status']
                 ];
             }
-            return $item;
-        } else {
-            return false;
         }
+        return $item;
     }
 
     public function saveImage($idEntity, $fileData){
         $entity = self::getEntity($idEntity);
-        if (empty($entity)) {
+        if (empty($idEntity)) {
             return false;
         }
-
         if (!empty($fileData['error'])) {
             return false;
         }
@@ -200,7 +223,6 @@ class ProikosPlugin extends Plugin
         $dirName = 'proikos_upload/';
         $fileDir = api_get_path(SYS_UPLOAD_PATH).$dirName;
         $fileName = "proikos_$idEntity.{$extension[0]}";
-
         if (!file_exists($fileDir)) {
             mkdir($fileDir, api_get_permissions_for_new_directories(), true);
         }
