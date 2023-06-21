@@ -8,183 +8,263 @@ if (!empty($_POST['language'])) {
 require_once __DIR__ . '../../../main/inc/global.inc.php';
 
 $plugin = ProikosPlugin::create();
-
 $hideHeaders = isset($_GET['hide_headers']);
-
+$action = isset($_GET['action']);
+$tool_name = get_lang('Registration');
 $content = null;
-$form = new FormValidator('registration', 'post', '', '', [], FormValidator::LAYOUT_INLINE);
 
-$form->addHtml('<div class="panel panel-default">
+$htmlHeadXtra[] = '<link rel="stylesheet" type="text/css" href="'.api_get_path(
+        WEB_PLUGIN_PATH
+    ).'proikos/css/style.css"/>';
+
+if($action == 'second'){
+
+            $entitySelect = $_POST['entity'];
+
+            $form = new FormValidator('registration-two', 'post', '', '', [], FormValidator::LAYOUT_INLINE);
+            $form->addHtml('<div class="panel panel-default">
                     <div class="panel-heading panel-user">
                         <h3 class="panel-title">' . $plugin->get_lang('PersonalInformation') . '</h3>
                     </div>
                     <div class="panel-body">');
-$form->addHtml('<div class="row"><div class="col-md-6">');
-$form->addText('lastname', [get_lang('LastName'), $plugin->get_lang('LastNameHelp')], true);
-$form->addHtml('</div><div class="col-md-6">');
-$form->addText('firstname', [get_lang('FirstName'), $plugin->get_lang('FirstNameHelp')], true);
-$form->addHtml('</div></div>');
-$form->addHtml('<div class="row"><div class="col-md-6">');
-$form->addText('email', [get_lang('Email'), $plugin->get_lang('EmailHelp')], true);
-$form->addHtml('</div><div class="col-md-6">');
-$form->addText('phone', [$plugin->get_lang('Phone'), $plugin->get_lang('PhoneHelp')], true);
-$form->addHtml('</div></div>');
-$typesDocuments = [
-    '1' => 'DNI',
-    '2' => 'Carnet de Extranjeria',
-    '3' => 'Pasaporte',
-    '4' => 'RUC',
-    '5' => 'Otros',
-];
-$form->addHtml('<div class="row"><div class="col-md-6">');
-$form->addSelect('type_document', $plugin->get_lang('TypeDocument'), $typesDocuments);
-$form->addHtml('</div><div class="col-md-6">');
-$form->addText('number_document', [$plugin->get_lang('NumberDocument'), $plugin->get_lang('NumberDocumentHelp')], true);
-$form->addHtml('</div></div>');
-$form->addHtml('<div class="row"><div class="col-md-4">');
-$form->addText('age', $plugin->get_lang('Age'), true);
-$form->addHtml('</div><div class="col-md-4">');
-$genders = [
-    'M' => 'Masculino',
-    'F' => 'Femenino'
-];
-$form->addSelect('gender', $plugin->get_lang('Gender'), $genders);
-$form->addHtml('</div><div class="col-md-4">');
-$instructions = [
-    '1' => 'Primaria',
-    '2' => 'Secundaria',
-    '3' => 'Técnica superior',
-    '4' => 'Universitaria Bachiller',
-    '5' => 'Universitaria Titulada',
-];
-$form->addSelect('instruction', $plugin->get_lang('GradeInstructions'), $instructions);
-$form->addHtml('</div></div>');
-$form->addHtml('</div></div>');
+            $form->addHtml('<div class="row"><div class="col-md-6">');
+            $form->addText('lastname', [get_lang('LastName'), $plugin->get_lang('LastNameHelp')], true);
+            $form->addHtml('</div><div class="col-md-6">');
+            $form->addText('firstname', [get_lang('FirstName'), $plugin->get_lang('FirstNameHelp')], true);
+            $form->addHtml('</div></div>');
+            $form->addHtml('<div class="row"><div class="col-md-6">');
+            $form->addText('email', [get_lang('Email'), $plugin->get_lang('EmailHelp')], true);
+            $form->addHtml('</div><div class="col-md-6">');
+            $form->addText('phone', [$plugin->get_lang('Phone'), $plugin->get_lang('PhoneHelp')], true);
+            $form->addHtml('</div></div>');
+            $typesDocuments = [
+                '1' => 'DNI',
+                '2' => 'Carnet de Extranjeria',
+                '3' => 'Pasaporte',
+                '4' => 'RUC',
+                '5' => 'Otros',
+            ];
+            $form->addHtml('<div class="row"><div class="col-md-6">');
+            $form->addSelect('type_document', $plugin->get_lang('TypeDocument'), $typesDocuments);
+            $form->addHtml('</div><div class="col-md-6">');
+            $form->addText('number_document', [$plugin->get_lang('NumberDocument'), $plugin->get_lang('NumberDocumentHelp')], true);
+            $form->addHtml('</div></div>');
+            $form->addHtml('<div class="row"><div class="col-md-4">');
+            $form->addText('age', $plugin->get_lang('Age'), true);
+            $form->addHtml('</div><div class="col-md-4">');
+            $genders = [
+                'M' => 'Masculino',
+                'F' => 'Femenino'
+            ];
+            $form->addSelect('gender', $plugin->get_lang('Gender'), $genders);
+            $form->addHtml('</div><div class="col-md-4">');
+            $instructions = [
+                '1' => 'Primaria',
+                '2' => 'Secundaria',
+                '3' => 'Técnica superior',
+                '4' => 'Universitaria Bachiller',
+                '5' => 'Universitaria Titulada',
+            ];
+            $form->addSelect('instruction', $plugin->get_lang('GradeInstructions'), $instructions);
+            $form->addHtml('</div></div>');
+            $form->addHtml('</div></div>');
 
-$form->addHtml('<div class="panel panel-default">
+            $form->addHtml('<div class="panel panel-default">
                     <div class="panel-heading panel-user">
                         <h3 class="panel-title">' . $plugin->get_lang('CompanyData') . '</h3>
                     </div>
                     <div class="panel-body">');
-$form->addHtml('<div class="row"><div class="col-md-6">');
-$form->addText('name_company', [get_lang('CompanyName'), $plugin->get_lang('CompanyNameHelp')], true);
-$form->addHtml('</div><div class="col-md-6">');
-$form->addText('contact_manager', [$plugin->get_lang('ContactManager'), $plugin->get_lang('ContactManagerHelp')], true);
-$form->addHtml('</div></div>');
-$form->addHtml('<div class="row"><div class="col-md-6">');
-$form->addText('position_company', [$plugin->get_lang('Position')], false);
-$form->addHtml('</div><div class="col-md-6">');
-$form->addText('experience_time', [$plugin->get_lang('ExperienceTime')], false);
-$form->addHtml('</div></div>');
-$categories = [
-    '1' => 'Funcionario',
-    '2' => 'Empleado',
-    '3' => 'Jefe',
-    '4' => 'Capataz',
-    '5' => 'Técnico',
-    '6' => 'Operario',
-    '7' => 'Oficial',
-    '8' => 'Peón',
-    '9' => 'Otros',
-];
-$form->addHtml('<div class="row"><div class="col-md-6">');
-$form->addSelect('employment_category', $plugin->get_lang('EmploymentCategory'), $categories);
-$form->addHtml('</div><div class="col-md-6">');
-$form->addText('stakeholders', [$plugin->get_lang('Stakeholder'), $plugin->get_lang('StakeholderHelp')], false);
-$form->addHtml('</div></div>');
-$form->addText('area', [$plugin->get_lang('Area')], false);
-$form->addText('department', [$plugin->get_lang('Department')], false);
-$form->addText('headquarters', [$plugin->get_lang('Headquarters')], false);
+            $form->addHtml('<div class="row"><div class="col-md-6">');
+            $form->addText('name_company', [get_lang('CompanyName'), $plugin->get_lang('CompanyNameHelp')], true);
+            $form->addHtml('</div><div class="col-md-6">');
+            $form->addText('contact_manager', [$plugin->get_lang('ContactManager'), $plugin->get_lang('ContactManagerHelp')], true);
+            $form->addHtml('</div></div>');
+            $sectors = [
+                'Hidrocarburos' => 'Hidrocarburos',
+                'Minería' => 'Minería',
+                'Construcción' => 'Construcción',
+                'Industria' => 'Industria',
+                'Energía' => 'Energía',
+                'Servicios' => 'Servicios',
+                'Banca' => 'Banca',
+                'Otros' => 'Otros',
+            ];
+            $form->addHtml('<div class="row"><div class="col-md-6">');
+            $form->addSelect('sector', $plugin->get_lang('SectorSite'), $sectors);
+            $form->addHtml('</div><div class="col-md-6">');
+            $position = [];
+            $form->addSelect('position_company', $plugin->get_lang('Position'), $position);
+            $form->addHtml('</div></div>');
+            $form->addHtml('<div class="row"><div class="col-md-6">');
+            $experiences = [
+                '1' => 'Menos de 1 año',
+                '2' => '1-3 años',
+                '3' => '4-6 años',
+                '4' => '7-9 años',
+                '5' => 'Más de 10 años'
+            ];
+            $form->addSelect('experience_time', $plugin->get_lang('ExperienceTime'), $experiences);
+            $form->addHtml('</div><div class="col-md-6">');
+            $categories = [
+                '1' => 'Funcionario',
+                '2' => 'Empleado',
+                '3' => 'Jefe',
+                '4' => 'Capataz',
+                '5' => 'Técnico',
+                '6' => 'Operario',
+                '7' => 'Oficial',
+                '8' => 'Peón',
+                '9' => 'Otros',
+            ];
+            $form->addSelect('employment_category', $plugin->get_lang('EmploymentCategory'), $categories);
+            $form->addHtml('</div></div>');
 
-$form->addHtml('</div></div>');
+            $form->addHtml('<div class="row"><div class="col-md-6">');
+            $stakeholders = [
+                'Personal Propio' => 'Personal Propio',
+                'Contratista' => 'Contratista',
+                'Cliente' => 'Cliente',
+                'Otro' => 'Otro',
+            ];
+            $form->addSelect('stakeholders', $plugin->get_lang('Stakeholder'), $stakeholders);
+            $form->addHtml('</div><div class="col-md-6">');
+            $form->addText('area', [$plugin->get_lang('Area')], false);
+            $form->addHtml('</div></div>');
+            $form->addText('department', [$plugin->get_lang('Department')], false);
+            $form->addText('headquarters', [$plugin->get_lang('Headquarters')], false);
+            $form->addHtml('</div></div>');
+            $form->addHidden('entity', $entitySelect);
+            $form->addButton('register', $plugin->get_lang('RegisterUser'), null, 'primary', 'btn-block');
+            $form->applyFilter('__ALL__', 'Security::remove_XSS');
 
+            if ($form->validate()) {
+                $values = $form->getSubmitValues(1);
 
-$form->addButton('register', $plugin->get_lang('RegisterUser'), null, 'primary', 'btn-block');
-$form->applyFilter('__ALL__', 'Security::remove_XSS');
+                $values['username'] = api_substr($values['number_document'], 0, USERNAME_MAX_LENGTH);
+                $values['official_code'] = 'PK'.$values['number_document'];
+                if (api_get_setting('allow_registration_as_teacher') === 'false') {
+                    $values['status'] = STUDENT;
+                }
+                $status = $values['status'] ?? STUDENT;
+                try {
+                    $values['language'] = $values['language'] ?? api_get_interface_language();
+                } catch (Exception $e) {
+                    print_r($e);
+                }
+                $values['address'] = $values['address'] ?? '';
+                $phone = $values['phone'] ?? null;
+                $password = $values['number_document'];
 
-if ($form->validate()) {
-    $values = $form->getSubmitValues(1);
+                // Creates a new user
+                $user_id = UserManager::create_user(
+                    $values['firstname'],
+                    $values['lastname'],
+                    $status,
+                    $values['email'],
+                    $values['username'],
+                    $password,
+                    $values['official_code'],
+                    $values['language'],
+                    $phone,
+                    null,
+                    PLATFORM_AUTH_SOURCE,
+                    null,
+                    1,
+                    0,
+                    [],
+                    null,
+                    true,
+                    false,
+                    $values['address'],
+                    false,
+                    $form
+                );
+                if ($user_id) {
+                    $values['user_id'] = $user_id;
+                    $plugin->saveInfoUserProikos($values);
+                }
 
-    $values['username'] = api_substr($values['number_document'], 0, USERNAME_MAX_LENGTH);
-    $values['official_code'] = 'PK'.$values['number_document'];
-    if (api_get_setting('allow_registration_as_teacher') === 'false') {
-        $values['status'] = STUDENT;
-    }
-    $status = $values['status'] ?? STUDENT;
-    try {
-        $values['language'] = $values['language'] ?? api_get_interface_language();
-    } catch (Exception $e) {
-        print_r($e);
-    }
-    $values['address'] = $values['address'] ?? '';
-    $phone = $values['phone'] ?? null;
-    $password = $values['number_document'];
+                /* SESSION REGISTERING */
+                /* @todo move this in a function */
+                $_user['firstName'] = stripslashes($values['firstname']);
+                $_user['lastName'] = stripslashes($values['lastname']);
+                $_user['mail'] = $values['email'];
+                $_user['language'] = $values['language'];
+                $_user['user_id'] = $user_id;
+                $_user['status'] = $values['status'] ?? STUDENT;
+                Session::write('_user', $_user);
 
-    // Creates a new user
-    $user_id = UserManager::create_user(
-        $values['firstname'],
-        $values['lastname'],
-        $status,
-        $values['email'],
-        $values['username'],
-        $password,
-        $values['official_code'],
-        $values['language'],
-        $phone,
-        null,
-        PLATFORM_AUTH_SOURCE,
-        null,
-        1,
-        0,
-        [],
-        null,
-        true,
-        false,
-        $values['address'],
-        false,
-        $form
-    );
-    if ($user_id) {
-        $values['user_id'] = $user_id;
-        $plugin->saveInfoUserProikos($values);
-    }
+                // Stats
+                Event::eventLogin($user_id);
 
-    /* SESSION REGISTERING */
-    /* @todo move this in a function */
-    $_user['firstName'] = stripslashes($values['firstname']);
-    $_user['lastName'] = stripslashes($values['lastname']);
-    $_user['mail'] = $values['email'];
-    $_user['language'] = $values['language'];
-    $_user['user_id'] = $user_id;
-    $_user['status'] = $values['status'] ?? STUDENT;
-    Session::write('_user', $_user);
+                // last user login date is now
+                $user_last_login_datetime = 0; // used as a unix timestamp it will correspond to : 1 1 1970
+                Session::write('user_last_login_datetime', $user_last_login_datetime);
 
-    // Stats
-    Event::eventLogin($user_id);
+                $recipient_name = api_get_person_name($values['firstname'], $values['lastname']);
 
-    // last user login date is now
-    $user_last_login_datetime = 0; // used as a unix timestamp it will correspond to : 1 1 1970
-    Session::write('user_last_login_datetime', $user_last_login_datetime);
+                header('Location: '.api_get_path(WEB_PATH).'user_portal.php');
+                exit;
+            }
+            // Custom pages
+            if (CustomPages::enabled() && CustomPages::exists(CustomPages::REGISTRATION)) {
+                CustomPages::display(
+                    CustomPages::REGISTRATION,
+                    [
+                        'form' => $form,
+                        'content' => $content,
+                        'title' => $plugin->get_lang('TitleRegisterTwo')
+                    ]
+                );
+            } else {
+                $tpl = new Template($tool_name);
 
-    $recipient_name = api_get_person_name($values['firstname'], $values['lastname']);
+                $tpl->assign('inscription_header', Display::page_header($tool_name));
+                $tpl->assign('inscription_content', $content);
+                $tpl->assign('form', $form->returnForm());
+                $tpl->assign('hide_header', $hideHeaders);
 
-    header('Location: '.api_get_path(WEB_PATH).'user_portal.php');
-    exit;
+                $inscription = $tpl->get_template('auth/inscription.tpl');
+                $tpl->display($inscription);
+            }
 
 }
 
+$entities = $plugin->getListEntity();
+$listEntity = [];
+foreach ($entities as $entity){
+    $listEntity[] = [
+        'value' => $entity['code_reference'],
+        'display_text' => $entity['name_entity'],
+        'display_img' => '<img width="150px" src="'.$entity['picture'].'">'
+    ];
+}
 
-$tool_name = get_lang('Registration');
+$form = new FormValidator('registration-one', 'post', api_get_self().'?action='.Security::remove_XSS('second'), '', [], FormValidator::LAYOUT_INLINE);
+$group = $plugin->formGenerateElementsGroup($form, $listEntity, 'entity');
+// SearchEnabledComment
+$form->addGroup(
+    $group,
+    'entity',
+    [get_lang('ChooseTheEntity')],
+    null,
+    false
+);
 
+$form->addButton('next', $plugin->get_lang('Next'), null, 'primary', 'btn-block');
 // Custom pages
 if (CustomPages::enabled() && CustomPages::exists(CustomPages::REGISTRATION)) {
     CustomPages::display(
         CustomPages::REGISTRATION,
-        ['form' => $form, 'content' => $content]
+        [
+            'form' => $form,
+            'content' => $content,
+            'title' => $plugin->get_lang('TitleRegisterOne')
+        ]
     );
 } else {
-    $tpl = new Template($tool_name);
 
+    $tpl = new Template($tool_name);
     $tpl->assign('inscription_header', Display::page_header($tool_name));
     $tpl->assign('inscription_content', $content);
     $tpl->assign('form', $form->returnForm());
@@ -193,3 +273,6 @@ if (CustomPages::enabled() && CustomPages::exists(CustomPages::REGISTRATION)) {
     $inscription = $tpl->get_template('auth/inscription.tpl');
     $tpl->display($inscription);
 }
+
+
+

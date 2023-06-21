@@ -45,7 +45,7 @@ class ProikosPlugin extends Plugin
     {
         $sql = "CREATE TABLE IF NOT EXISTS ".self::TABLE_PROIKOS_USERS." (
             id INT unsigned NOT NULL auto_increment PRIMARY KEY,
-            user_id VARCHAR(250) NULL,
+            user_id INT NULL,
             lastname VARCHAR(250) NULL,
             firstname VARCHAR(250) NULL,
             phone VARCHAR(250) NULL,
@@ -56,6 +56,7 @@ class ProikosPlugin extends Plugin
             instruction VARCHAR(250) NULL,
             name_company VARCHAR(250) NULL,
             contact_manager VARCHAR(250) NULL,
+            sector VARCHAR(250) NULL,
             position_company VARCHAR(250) NULL,
             stakeholders VARCHAR(250) NULL,
             employment_category VARCHAR(250) NULL,
@@ -330,6 +331,27 @@ class ProikosPlugin extends Plugin
                 ],
             ]
         );
-
     }
+
+    /**
+     * Helper function to generates a form elements group.
+     *
+     * @param object $form   The form where the elements group has to be added
+     * @param array  $values Values to browse through
+     *
+     * @return array
+     */
+    function formGenerateElementsGroup($form, $values, $elementName): array
+    {
+        $group = [];
+        if (is_array($values)) {
+            foreach ($values as $key => $value) {
+                $element = &$form->createElement('radio', $elementName, '', $value['display_img'], $value['value'], ['label-class'=>'label_'.strtolower($value['value'])]);
+                $group[] = $element;
+            }
+        }
+
+        return $group;
+    }
+
 }

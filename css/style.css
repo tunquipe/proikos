@@ -1,0 +1,15 @@
+#registration-one .input-group{
+    display: inline-block;
+    width: 100%;
+}
+#registration-one .input-group label{
+    font-weight: bold;
+    font-size: 1.8rem;
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    padding: 1rem 2rem;
+}
+.width-register .form-group label{
+    padding: 1.2rem 0;
+}
