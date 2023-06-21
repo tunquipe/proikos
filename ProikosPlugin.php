@@ -3,6 +3,7 @@
 class ProikosPlugin extends Plugin
 {
     const TABLE_PROIKOS_USERS = 'plugin_proikos_users';
+    const TABLE_PROIKOS_ENTITY = 'plugin_proikos_entity';
 
     protected function __construct()
     {
@@ -64,6 +65,15 @@ class ProikosPlugin extends Plugin
             headquarters VARCHAR(250) NULL
         )";
         Database::query($sql);
+
+        $sql = "CREATE TABLE IF NOT EXISTS ".self::TABLE_PROIKOS_ENTITY." (
+            id INT unsigned NOT NULL auto_increment PRIMARY KEY,
+            name_entity VARCHAR(250) NULL,
+            picture VARCHAR(250) NULL,
+            code_reference VARCHAR(250) NULL,
+            status INT NULL
+        )";
+        Database::query($sql);
     }
 
     public function uninstall()
@@ -112,6 +122,98 @@ class ProikosPlugin extends Plugin
             }
         }
         return $list;
+    }
+
+
+    public function getListEntity(): array
+    {
+        $table = Database::get_main_table(self::TABLE_PROIKOS_ENTITY);
+        $sql = "SELECT * FROM $table pe";
+        $result = Database::query($sql);
+        $list = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $list[] = [
+                    'id' => $row['id'],
+                    'name_entity' => $row['name_entity'],
+                    'picture' => $row['picture'],
+                    'code_reference' => $row['code_reference'],
+                    'status' => $row['status']
+                ];
+            }
+        }
+        return $list;
+    }
+
+    public function createEntity($values){
+        if (!is_array($values)) {
+            return false;
+        }
+        $table = Database::get_main_table(self::TABLE_PROIKOS_ENTITY);
+        $params = [
+            'id' => $values['id'],
+            'name_entity' => $values['name_entity'],
+            'code_reference' => $values['code_reference'],
+            'status' => $values['status']
+        ];
+        $id = Database::insert($table, $params);
+        if ($id > 0) {
+            return $id;
+        }
+    }
+
+    public function getEntity($idEntity){
+        if (empty($entity)) {
+            return false;
+        }
+        $table = Database::get_main_table(self::TABLE_PROIKOS_ENTITY);
+        $sql = "SELECT * FROM $table pe WHERE id = $idEntity";
+        $result = Database::query($sql);
+        $item = null;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $item = [
+                    'id' => $row['id'],
+                    'name_entity' => $row['name_entity'],
+                    'picture' => $row['picture'],
+                    'code_reference' => $row['code_reference'],
+                    'status' => $row['status']
+                ];
+            }
+            return $item;
+        } else {
+            return false;
+        }
+    }
+
+    public function saveImage($idEntity, $fileData){
+        $entity = self::getEntity($idEntity);
+        if (empty($entity)) {
+            return false;
+        }
+
+        if (!empty($fileData['error'])) {
+            return false;
+        }
+
+        $extension = getextension($fileData['name']);
+        $dirName = 'proikos_upload/';
+        $fileDir = api_get_path(SYS_UPLOAD_PATH).$dirName;
+        $fileName = "proikos_$idEntity.{$extension[0]}";
+
+        if (!file_exists($fileDir)) {
+            mkdir($fileDir, api_get_permissions_for_new_directories(), true);
+        }
+
+        $image = new Image($fileData['tmp_name']);
+        $image->send_image($fileDir.$fileName);
+
+        $table = Database::get_main_table(self::TABLE_PROIKOS_ENTITY);
+        Database::update(
+            $table,
+            ['picture' => $dirName.$fileName],
+            ['id = ?' => $idEntity]
+        );
     }
 
     public function saveInfoUserProikos($values){
