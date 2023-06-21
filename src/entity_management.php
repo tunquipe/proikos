@@ -4,7 +4,7 @@ require_once __DIR__ . '/../config.php';
 api_block_anonymous_users();
 $action = $_GET['action'] ?? null;
 $plugin = ProikosPlugin::create();
-$tool_name = $plugin->get_lang('CreateANewAd');
+$tool_name = $plugin->get_lang('ManageEntities');
 $message = null;
 $actionLinks = null;
 $htmlHeadXtra[] = api_get_css_asset('cropper/dist/cropper.min.css');
@@ -89,7 +89,86 @@ if($isAdmin){
             $tpl->assign('form', $form->returnForm());
             break;
         case 'edit':
-            
+            $actionLinks = Display::url(
+                Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
+                api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/entity_management.php'
+            );
+            $idEntity = $_GET['id'] ?? null;
+            $entity = $plugin->getEntity($idEntity);
+
+            //edit form
+            $form = new FormValidator(
+                'edit_entity',
+                'post',
+                api_get_self() . '?action=' . Security::remove_XSS($_GET['action'])
+            );
+
+            $form->addHeader($plugin->get_lang('AddEntity'));
+            $form->addText('name_entity', $plugin->get_lang('NameEntity'));
+            $form->addText('code_reference', $plugin->get_lang('CodeReference'));
+
+            $form->addFile(
+                'picture',
+                [
+                    $plugin->get_lang('Picture'),
+                    $plugin->get_lang('PictureHelp')
+                ],
+                [
+                    'id' => 'picture',
+                    'class' => 'picture-form',
+                    'crop_image' => true,
+                    'crop_ratio' => '297 / 210',
+                    'accept' => 'image/*',
+                ]
+            );
+
+            $allowed_picture_types = api_get_supported_image_extensions(false);
+            $form->addRule(
+                'picture',
+                get_lang('OnlyImagesAllowed').' ('.implode(', ', $allowed_picture_types).')',
+                'filetype',
+                $allowed_picture_types
+            );
+
+            if (!empty($entity['picture'])) {
+                $form->addHtml('
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-8">'.
+                    Display::img(
+                        api_get_path(WEB_UPLOAD_PATH).$entity['picture'],
+                        get_lang('Image'),
+                        ['width' => 256]
+                    ).'</div>
+                </div>
+            ');
+            }
+
+            $group = [];
+            $group[] = $form->createElement('radio', 'status', null, get_lang('Active'), 1);
+            $group[] = $form->createElement('radio', 'status', null, get_lang('Inactive'), 0);
+            $form->addGroup($group, 'status', get_lang('Status'), null, false);
+            $form->addHidden('id', $entity['id']);
+            $form->addButtonSave($plugin->get_lang('SaveEntity'));
+
+            $form->setDefaults($entity);
+
+            if ($form->validate()) {
+                $values = $form->exportValues();
+                $res = $plugin->updateEntity($values);
+
+                if (isset($_FILES['picture'])) {
+                    $plugin->saveImage($values['id'], $_FILES['picture']);
+                }
+
+                if ($res) {
+                    $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/entity_management.php';
+                    header('Location: ' . $url);
+                }
+
+            }
+
+            $tpl->assign('form', $form->returnForm());
+
             break;
         default:
     }

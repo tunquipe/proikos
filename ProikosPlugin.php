@@ -188,6 +188,33 @@ class ProikosPlugin extends Plugin
         }
     }
 
+    public function updateEntity($values): bool
+    {
+        if (!is_array($values)) {
+            return false;
+        }
+        $table = Database::get_main_table(self::TABLE_PROIKOS_ENTITY);
+        $params = [
+            'name_entity' => $values['name_entity'],
+            'picture' => $values['picture'],
+            'code_reference' => $values['code_reference'],
+            'status' => $values['status']
+        ];
+
+        Database::update(
+            $table,
+            $params,
+            [
+                'id = ?' => [
+                    $values['id'],
+                ],
+            ]
+        );
+
+        return true;
+
+    }
+
     public function getEntity($idEntity){
         if (empty($idEntity)) {
             return false;
@@ -212,7 +239,7 @@ class ProikosPlugin extends Plugin
 
     public function saveImage($idEntity, $fileData){
         $entity = self::getEntity($idEntity);
-        if (empty($idEntity)) {
+        if (empty($entity)) {
             return false;
         }
         if (!empty($fileData['error'])) {

@@ -36,3 +36,4 @@ $strings['NameEntity'] = 'Nombre de le entidad';
 $strings['CodeReference'] = 'Código de referencia';
 $strings['Picture'] = 'Agregar imagen';
 $strings['PictureHelp'] = 'Agrega una imagen PNG con fondo transparente';
+$strings['ManageEntities'] = 'Gestionar entidades';
