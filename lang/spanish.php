@@ -41,3 +41,5 @@ $strings['TitleRegisterOne'] = 'Proceso de Registro - Paso 01';
 $strings['TitleRegisterTwo'] = 'Proceso de Registro - Paso 02';
 $strings['ChooseTheEntity'] = 'Escoge la entidad a la que pertenece';
 $strings['SectorSite'] = 'Sector/Site';
+$strings['MaximumUsers'] = 'Número máximo de usuarios por sesión';
+$strings['MaximumUsersHelp'] = 'Si dejas vació el campo, sera ilimitado la inscripción de estudiantes';
