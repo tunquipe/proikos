@@ -255,7 +255,7 @@ $group = $plugin->formGenerateElementsGroup($form, $listEntity, 'entity');
 $form->addGroup(
     $group,
     'entity',
-    [get_lang('ChooseTheEntity')],
+    [$plugin->get_lang('ChooseTheEntity')],
     null,
     false
 );
