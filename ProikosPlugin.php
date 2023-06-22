@@ -425,4 +425,23 @@ class ProikosPlugin extends Plugin
         return $list;
     }
 
+    //get picture entity
+    public function getPictureEntity($code){
+        if (empty($code)) {
+            return false;
+        }
+        $table = Database::get_main_table(self::TABLE_PROIKOS_ENTITY);
+        $sql = "SELECT * FROM $table pe WHERE pe.code_reference = '$code'";
+        $result = Database::query($sql);
+        $item = null;
+        $fileDir = api_get_path(WEB_UPLOAD_PATH);
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $item = [
+                    'picture' => $fileDir.$row['picture']
+                ];
+            }
+        }
+        return $item['picture'];
+    }
 }

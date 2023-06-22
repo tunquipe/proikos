@@ -11,16 +11,15 @@ $plugin = ProikosPlugin::create();
 $hideHeaders = isset($_GET['hide_headers']);
 $action = isset($_GET['action']);
 $tool_name = get_lang('Registration');
-$content = null;
+$content = $picture = null;
 $urlPlugin = api_get_path(WEB_PLUGIN_PATH).'proikos';
 $htmlHeadXtra[] = '<link rel="stylesheet" type="text/css" href="'.api_get_path(
         WEB_PLUGIN_PATH
     ).'proikos/css/style.css"/>';
 
 if($action == 'second'){
-
             $entitySelect = $_POST['entity'];
-
+            $picture = $plugin->getPictureEntity($entitySelect);
             $form = new FormValidator('registration-two', 'post', api_get_self().'?action='.Security::remove_XSS('register'), '', [], FormValidator::LAYOUT_INLINE);
             $form->addHtml('<div class="panel panel-default">
                     <div class="panel-heading panel-user">
@@ -32,6 +31,15 @@ if($action == 'second'){
             $form->addHtml('</div><div class="col-md-6">');
             $form->addText('firstname', [get_lang('FirstName'), $plugin->get_lang('FirstNameHelp')], true);
             $form->addHtml('</div></div>');
+
+            // Language
+            if (api_get_setting('registration', 'language') == 'true') {
+                $form->addSelectLanguage(
+                    'language',
+                    get_lang('Language')
+                );
+            }
+
             $form->addHtml('<div class="row"><div class="col-md-6">');
             $form->addText('email', [get_lang('Email'), $plugin->get_lang('EmailHelp')], true);
             $form->addHtml('</div><div class="col-md-6">');
@@ -133,6 +141,7 @@ if($action == 'second'){
             $form->addHtml('</div></div>');
             $form->addHidden('entity', $entitySelect);
             $form->addButton('register', $plugin->get_lang('RegisterUser'), null, 'primary', 'btn-block');
+            $form->addHtml('<div class="form-group row-back"><a href="'.api_get_self().'" class="btn btn-success btn-block">Regresar</a></div>');
             $form->applyFilter('__ALL__', 'Security::remove_XSS');
 
             if ($form->validate()) {
@@ -212,7 +221,8 @@ if($action == 'second'){
                         'form' => $form,
                         'content' => $content,
                         'title' => $plugin->get_lang('TitleRegisterTwo'),
-                        'url_plugin' => $urlPlugin
+                        'url_plugin' => $urlPlugin,
+                        'picture' => $picture
                     ]
                 );
             } else {
@@ -259,7 +269,8 @@ if (CustomPages::enabled() && CustomPages::exists(CustomPages::REGISTRATION)) {
             'form' => $form,
             'content' => $content,
             'title' => $plugin->get_lang('TitleRegisterOne'),
-            'url_plugin' => $urlPlugin
+            'url_plugin' => $urlPlugin,
+            'picture' => $picture
         ]
     );
 } else {
