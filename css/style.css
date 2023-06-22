@@ -8,7 +8,9 @@
     display: inline-block;
     width: 100%;
     text-align: center;
-    padding: 1rem 2rem;
+}
+#registration-one .label_entity{
+    margin-bottom: 2rem;
 }
 .width-register .form-group label{
     padding: 1.2rem 0;
@@ -16,4 +18,15 @@
 .row-back{
     padding-top: 2rem;
     padding-bottom: 2rem;
+}
+#registration-one .input-group .radio{
+    margin: 10px;
+    border: 1px solid #CCC;
+    border-radius: 5px;
+}
+#registration-one .input-group .radio:hover{
+    background-color: #f6e5af;
+}
+#registration-one .input-group .radio .radio-label{
+    padding: 10px;
 }
