@@ -1,4 +1,5 @@
 <?php
+use ExtraField as ExtraFieldModel;
 
 class ProikosPlugin extends Plugin
 {
@@ -432,6 +433,26 @@ class ProikosPlugin extends Plugin
         return $list;
     }
 
+    public function getCodeReferenceByUser($idUser){
+        if (empty($idUser)) {
+            return false;
+        }
+        $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $sql = "SELECT pu.code_reference FROM $table pu WHERE pu.user_id = '$idUser'";
+        $result = Database::query($sql);
+        $item = null;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $item = $row['code_reference'];
+            }
+        }
+        if(api_is_platform_admin() || api_is_teacher()){
+            $item = 'ALL';
+        }
+
+        return $item;
+    }
+
     //get picture entity
     public function getPictureEntity($code){
         if (empty($code)) {
@@ -451,4 +472,125 @@ class ProikosPlugin extends Plugin
         }
         return $item['picture'];
     }
+
+    /**
+     * @param \Doctrine\ORM\QueryBuilder $qb
+     *
+     * @return mixed
+     */
+    public static function hideFromSessionCatalogCondition($qb)
+    {
+        $em = Database::getManager();
+        $qb3 = $em->createQueryBuilder();
+
+        $extraField = new ExtraFieldModel('session');
+        $extraFieldInfo = $extraField->get_handler_field_info_by_field_variable('hide_from_catalog');
+        if (!empty($extraFieldInfo)) {
+            $qb->andWhere(
+                $qb->expr()->notIn(
+                    's',
+                    $qb3
+                        ->select('s3')
+                        ->from('ChamiloCoreBundle:ExtraFieldValues', 'fv')
+                        ->innerJoin('ChamiloCoreBundle:Session', 's3', Join::WITH, 'fv.itemId = s3.id')
+                        ->where(
+                            $qb->expr()->eq('fv.field', $extraFieldInfo['id'])
+                        )->andWhere(
+                            $qb->expr()->eq('fv.value ', 1)
+                        )
+                        ->getDQL()
+                )
+            );
+        }
+
+        return $qb;
+    }
+
+    /**
+     * List the sessions.
+     *
+     * @param string $date
+     * @param array  $limit
+     * @param bool   $returnQueryBuilder
+     * @param bool   $getCount
+     *
+     * @return array|\Doctrine\ORM\Query The session list
+     */
+    public function browseSessions($date = null, $limit = [], $returnQueryBuilder = false, $getCount = false, $code_reference = null)
+    {
+        $urlId = api_get_current_access_url_id();
+        $em = Database::getManager();
+        $qb = $em->createQueryBuilder();
+        $qb2 = $em->createQueryBuilder();
+
+        $qb = $qb
+            ->select('s')
+            ->from('ChamiloCoreBundle:Session', 's')
+            ->where(
+                $qb->expr()->in(
+                    's',
+                    $qb2
+                        ->select('s2')
+                        ->from('ChamiloCoreBundle:AccessUrlRelSession', 'url')
+                        ->join('ChamiloCoreBundle:Session', 's2')
+                        ->where(
+                            $qb->expr()->eq('url.sessionId ', 's2.id')
+                        )->andWhere(
+                            $qb->expr()->eq('url.accessUrlId ', $urlId))
+                        ->getDQL()
+                )
+            )
+            ->andWhere($qb->expr()->gt('s.nbrCourses', 0));
+
+        if($code_reference != 'ALL'){
+            $qb->andWhere($qb->expr()->eq('s.codeReference', ':codeReference'))
+                ->setParameter('codeReference', $code_reference);
+        }
+
+        if (!empty($date)) {
+            $qb->andWhere(
+                $qb->expr()->orX(
+                    $qb->expr()->isNull('s.accessEndDate'),
+                    $qb->expr()->andX(
+                        $qb->expr()->isNotNull('s.accessStartDate'),
+                        $qb->expr()->isNotNull('s.accessEndDate'),
+                        $qb->expr()->lte('s.accessStartDate', $date),
+                        $qb->expr()->gte('s.accessEndDate', $date)
+                    ),
+                    $qb->expr()->andX(
+                        $qb->expr()->isNull('s.accessStartDate'),
+                        $qb->expr()->isNotNull('s.accessEndDate'),
+                        $qb->expr()->gte('s.accessEndDate', $date)
+                    )
+                )
+            );
+        }
+
+        if ($getCount) {
+            $qb->select('count(s)');
+        }
+
+        $qb = self::hideFromSessionCatalogCondition($qb);
+
+        if (!empty($limit)) {
+            $qb
+                ->setFirstResult($limit['start'])
+                ->setMaxResults($limit['length'])
+            ;
+        }
+
+        $query = $qb->getQuery();
+
+
+        if ($returnQueryBuilder) {
+            return $query;
+        }
+
+        if ($getCount) {
+            return $query->getSingleScalarResult();
+        }
+
+        return $query->getResult();
+    }
+
 }
