@@ -141,7 +141,7 @@ if($isAdmin){
             if ($form->validate()) {
                 $values = $form->exportValues();
                 $res = $plugin->updateEntity($values);
-              
+
                 if (isset($_FILES['picture'])) {
                     $plugin->saveImage($values['id'], $_FILES['picture']);
                 }
