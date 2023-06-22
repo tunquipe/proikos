@@ -139,7 +139,7 @@ if($action == 'second'){
             $form->addText('department', [$plugin->get_lang('Department')], false);
             $form->addText('headquarters', [$plugin->get_lang('Headquarters')], false);
             $form->addHtml('</div></div>');
-            $form->addHidden('entity', $entitySelect);
+            $form->addHidden('code_reference', $entitySelect);
             $form->addButton('register', $plugin->get_lang('RegisterUser'), null, 'primary', 'btn-block');
             $form->addHtml('<div class="form-group row-back"><a href="'.api_get_self().'" class="btn btn-success btn-block">Regresar</a></div>');
             $form->applyFilter('__ALL__', 'Security::remove_XSS');

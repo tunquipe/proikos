@@ -149,13 +149,15 @@ class ProikosPlugin extends Plugin
                     'instruction' => $row['instruction'],
                     'name_company' => $row['name_company'],
                     'contact_manager' => $row['contact_manager'],
+                    'sector' => $row['sector'],
                     'position_company' => $row['position_company'],
                     'stakeholders' => $row['stakeholders'],
                     'employment_category' => $row['employment_category'],
                     'experience_time' => $row['experience_time'],
                     'area' => $row['area'],
                     'department' => $row['department'],
-                    'headquarters' => $row['headquarters']
+                    'headquarters' => $row['headquarters'],
+                    'code_reference' => $row['code_reference']
                 ];
             }
         }
@@ -309,6 +311,7 @@ class ProikosPlugin extends Plugin
         }
         $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
         $params = [
+            'id' => $values['user_id'],
             'user_id' => $values['user_id'],
             'lastname' => $values['lastname'],
             'firstname' => $values['firstname'],
@@ -320,13 +323,15 @@ class ProikosPlugin extends Plugin
             'instruction' => $values['instruction'],
             'name_company' => $values['name_company'],
             'contact_manager' => $values['contact_manager'],
+            'sector' => $values['sector'],
             'position_company' => $values['position_company'],
             'stakeholders' => $values['stakeholders'],
             'employment_category' => $values['employment_category'],
             'experience_time' => $values['experience_time'],
             'area' => $values['area'],
             'department' => $values['department'],
-            'headquarters' => $values['headquarters']
+            'headquarters' => $values['headquarters'],
+            'code_reference' => $values['code_reference']
         ];
         $id = Database::insert($table, $params);
         if ($id > 0) {
@@ -350,13 +355,15 @@ class ProikosPlugin extends Plugin
             'instruction' => $values['instruction'],
             'name_company' => $values['name_company'],
             'contact_manager' => $values['contact_manager'],
+            'sector' => $values['sector'],
             'position_company' => $values['position_company'],
             'stakeholders' => $values['stakeholders'],
             'employment_category' => $values['employment_category'],
             'experience_time' => $values['experience_time'],
             'area' => $values['area'],
             'department' => $values['department'],
-            'headquarters' => $values['headquarters']
+            'headquarters' => $values['headquarters'],
+            'code_reference' => $values['code_reference']
         ];
 
         return Database::update(
