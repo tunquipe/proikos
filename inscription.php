@@ -12,7 +12,7 @@ $hideHeaders = isset($_GET['hide_headers']);
 $action = isset($_GET['action']);
 $tool_name = get_lang('Registration');
 $content = null;
-
+$urlPlugin = api_get_path(WEB_PLUGIN_PATH).'proikos';
 $htmlHeadXtra[] = '<link rel="stylesheet" type="text/css" href="'.api_get_path(
         WEB_PLUGIN_PATH
     ).'proikos/css/style.css"/>';
@@ -21,7 +21,7 @@ if($action == 'second'){
 
             $entitySelect = $_POST['entity'];
 
-            $form = new FormValidator('registration-two', 'post', '', '', [], FormValidator::LAYOUT_INLINE);
+            $form = new FormValidator('registration-two', 'post', api_get_self().'?action='.Security::remove_XSS('register'), '', [], FormValidator::LAYOUT_INLINE);
             $form->addHtml('<div class="panel panel-default">
                     <div class="panel-heading panel-user">
                         <h3 class="panel-title">' . $plugin->get_lang('PersonalInformation') . '</h3>
@@ -45,7 +45,8 @@ if($action == 'second'){
                 '5' => 'Otros',
             ];
             $form->addHtml('<div class="row"><div class="col-md-6">');
-            $form->addSelect('type_document', $plugin->get_lang('TypeDocument'), $typesDocuments);
+            $typeInput = $form->addSelect('type_document', $plugin->get_lang('TypeDocument'), $typesDocuments);
+            $form->setRequired($typeInput);
             $form->addHtml('</div><div class="col-md-6">');
             $form->addText('number_document', [$plugin->get_lang('NumberDocument'), $plugin->get_lang('NumberDocumentHelp')], true);
             $form->addHtml('</div></div>');
@@ -56,7 +57,8 @@ if($action == 'second'){
                 'M' => 'Masculino',
                 'F' => 'Femenino'
             ];
-            $form->addSelect('gender', $plugin->get_lang('Gender'), $genders);
+            $genderInput = $form->addSelect('gender', $plugin->get_lang('Gender'), $genders);
+            $form->setRequired($genderInput);
             $form->addHtml('</div><div class="col-md-4">');
             $instructions = [
                 '1' => 'Primaria',
@@ -65,7 +67,8 @@ if($action == 'second'){
                 '4' => 'Universitaria Bachiller',
                 '5' => 'Universitaria Titulada',
             ];
-            $form->addSelect('instruction', $plugin->get_lang('GradeInstructions'), $instructions);
+            $gradeInput = $form->addSelect('instruction', $plugin->get_lang('GradeInstructions'), $instructions);
+            $form->setRequired($gradeInput);
             $form->addHtml('</div></div>');
             $form->addHtml('</div></div>');
 
@@ -79,21 +82,14 @@ if($action == 'second'){
             $form->addHtml('</div><div class="col-md-6">');
             $form->addText('contact_manager', [$plugin->get_lang('ContactManager'), $plugin->get_lang('ContactManagerHelp')], true);
             $form->addHtml('</div></div>');
-            $sectors = [
-                'Hidrocarburos' => 'Hidrocarburos',
-                'Minería' => 'Minería',
-                'Construcción' => 'Construcción',
-                'Industria' => 'Industria',
-                'Energía' => 'Energía',
-                'Servicios' => 'Servicios',
-                'Banca' => 'Banca',
-                'Otros' => 'Otros',
-            ];
+            $sectors = $plugin->getSectors();
             $form->addHtml('<div class="row"><div class="col-md-6">');
-            $form->addSelect('sector', $plugin->get_lang('SectorSite'), $sectors);
+            $sectorInput = $form->addSelect('sector', $plugin->get_lang('SectorSite'), $sectors);
+            $form->setRequired($sectorInput);
             $form->addHtml('</div><div class="col-md-6">');
             $position = [];
-            $form->addSelect('position_company', $plugin->get_lang('Position'), $position);
+            $positionInput = $form->addSelect('position_company', $plugin->get_lang('Position'), $position);
+            $form->setRequired($positionInput);
             $form->addHtml('</div></div>');
             $form->addHtml('<div class="row"><div class="col-md-6">');
             $experiences = [
@@ -103,7 +99,8 @@ if($action == 'second'){
                 '4' => '7-9 años',
                 '5' => 'Más de 10 años'
             ];
-            $form->addSelect('experience_time', $plugin->get_lang('ExperienceTime'), $experiences);
+            $timeInput = $form->addSelect('experience_time', $plugin->get_lang('ExperienceTime'), $experiences);
+            $form->setRequired($timeInput);
             $form->addHtml('</div><div class="col-md-6">');
             $categories = [
                 '1' => 'Funcionario',
@@ -116,7 +113,8 @@ if($action == 'second'){
                 '8' => 'Peón',
                 '9' => 'Otros',
             ];
-            $form->addSelect('employment_category', $plugin->get_lang('EmploymentCategory'), $categories);
+            $categoryInput = $form->addSelect('employment_category', $plugin->get_lang('EmploymentCategory'), $categories);
+            $form->setRequired($categoryInput);
             $form->addHtml('</div></div>');
 
             $form->addHtml('<div class="row"><div class="col-md-6">');
@@ -213,7 +211,8 @@ if($action == 'second'){
                     [
                         'form' => $form,
                         'content' => $content,
-                        'title' => $plugin->get_lang('TitleRegisterTwo')
+                        'title' => $plugin->get_lang('TitleRegisterTwo'),
+                        'url_plugin' => $urlPlugin
                     ]
                 );
             } else {
@@ -259,7 +258,8 @@ if (CustomPages::enabled() && CustomPages::exists(CustomPages::REGISTRATION)) {
         [
             'form' => $form,
             'content' => $content,
-            'title' => $plugin->get_lang('TitleRegisterOne')
+            'title' => $plugin->get_lang('TitleRegisterOne'),
+            'url_plugin' => $urlPlugin
         ]
     );
 } else {

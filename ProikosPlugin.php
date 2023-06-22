@@ -4,6 +4,8 @@ class ProikosPlugin extends Plugin
 {
     const TABLE_PROIKOS_USERS = 'plugin_proikos_users';
     const TABLE_PROIKOS_ENTITY = 'plugin_proikos_entity';
+    const TABLE_PROIKOS_SECTOR = 'plugin_proikos_sector';
+    const TABLE_PROIKOS_POSITION = 'plugin_proikos_position';
 
     protected function __construct()
     {
@@ -63,7 +65,8 @@ class ProikosPlugin extends Plugin
             experience_time INT NULL,
             area VARCHAR(250) NULL,
             department VARCHAR(250) NULL,
-            headquarters VARCHAR(250) NULL
+            headquarters VARCHAR(250) NULL,
+            code_reference VARCHAR(250) NULL
         )";
         Database::query($sql);
 
@@ -75,6 +78,40 @@ class ProikosPlugin extends Plugin
             status INT NULL
         )";
         Database::query($sql);
+
+        //sectoss
+        $sql = "CREATE TABLE IF NOT EXISTS ".self::TABLE_PROIKOS_SECTOR." (
+            id INT unsigned NOT NULL auto_increment PRIMARY KEY,
+            name_sector VARCHAR(250) NULL,
+            status INT NULL
+        )";
+
+        Database::query($sql);
+
+
+        //positions
+        $sql = "CREATE TABLE IF NOT EXISTS ".self::TABLE_PROIKOS_POSITION." (
+            id INT unsigned NOT NULL auto_increment PRIMARY KEY,
+            id_sector INT NULL,
+            name_position VARCHAR(250) NULL,
+            status INT NULL
+        )";
+
+        Database::query($sql);
+
+        //add sectors
+
+        $sql = "INSERT INTO ".self::TABLE_PROIKOS_SECTOR."  (`id`, `name_sector`, `status`)
+        VALUES ('1', 'Hidrocarburos', '1'),
+        ('2', 'Minería', '1'),
+        ('3','Construcción', '1'),
+        ('4', 'Industria', '1'),
+        ('5', 'Energía', '1'),
+        ('6', 'Servicios', '1'),
+        ('7', 'Banca', '1');";
+
+        Database::query($sql);
+
     }
 
     public function uninstall()
@@ -352,6 +389,40 @@ class ProikosPlugin extends Plugin
         }
 
         return $group;
+    }
+
+    //get sector table;
+
+    public function getSectors(): array
+    {
+        $table = Database::get_main_table(self::TABLE_PROIKOS_SECTOR);
+        $sql = "SELECT * FROM $table ps";
+        $result = Database::query($sql);
+        $list = [];
+        $list['-1'] = 'Selecciona una opción';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $list[$row['id']] = $row['name_sector'];
+            }
+        }
+        $list['999'] = 'Otros';
+        return $list;
+    }
+
+    //get position table;
+
+    public function getPositions($idSector): array
+    {
+        $table = Database::get_main_table(self::TABLE_PROIKOS_POSITION);
+        $sql = "SELECT * FROM $table pp WHERE pp.id_sector = $idSector";
+        $result = Database::query($sql);
+        $list = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $list[$row['id']] = $row['name_position'];
+            }
+        }
+        return $list;
     }
 
 }
