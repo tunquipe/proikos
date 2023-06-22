@@ -28,7 +28,7 @@ if($isAdmin){
         Display::return_icon('new_class.png', get_lang('Add'), [], ICON_SIZE_MEDIUM),
         api_get_path(WEB_PLUGIN_PATH).'proikos/src/entity_management.php?action=create'
     );
-    $entities = $plugin->getListEntity();
+    $entities = $plugin->getListEntity(true);
     $tpl->assign('entities', $entities);
 
     switch ($action) {
@@ -51,13 +51,6 @@ if($isAdmin){
                 [
                     $plugin->get_lang('Picture'),
                     $plugin->get_lang('PictureHelp')
-                ],
-                [
-                    'id' => 'picture',
-                    'class' => 'picture-form',
-                    'crop_image' => true,
-                    'crop_ratio' => '297 / 210',
-                    'accept' => 'image/*',
                 ]
             );
 
@@ -112,13 +105,6 @@ if($isAdmin){
                 [
                     $plugin->get_lang('Picture'),
                     $plugin->get_lang('PictureHelp')
-                ],
-                [
-                    'id' => 'picture',
-                    'class' => 'picture-form',
-                    'crop_image' => true,
-                    'crop_ratio' => '297 / 210',
-                    'accept' => 'image/*',
                 ]
             );
 
@@ -155,7 +141,7 @@ if($isAdmin){
             if ($form->validate()) {
                 $values = $form->exportValues();
                 $res = $plugin->updateEntity($values);
-
+              
                 if (isset($_FILES['picture'])) {
                     $plugin->saveImage($values['id'], $_FILES['picture']);
                 }

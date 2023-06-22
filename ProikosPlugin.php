@@ -166,10 +166,13 @@ class ProikosPlugin extends Plugin
     }
 
 
-    public function getListEntity(): array
+    public function getListEntity($all = false): array
     {
         $table = Database::get_main_table(self::TABLE_PROIKOS_ENTITY);
-        $sql = "SELECT * FROM $table pe";
+        $sql = "SELECT * FROM $table pe WHERE pe.status = 1";
+        if($all){
+            $sql = "SELECT * FROM $table pe";
+        }
         $result = Database::query($sql);
         $url = api_get_path(WEB_UPLOAD_PATH);
         $list = [];
@@ -284,6 +287,9 @@ class ProikosPlugin extends Plugin
             return false;
         }
         if (!empty($fileData['error'])) {
+            return false;
+        }
+        if(empty($fileData)){
             return false;
         }
 
