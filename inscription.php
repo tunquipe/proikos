@@ -43,7 +43,8 @@ if($action == 'second'){
             $form->addHtml('<div class="row"><div class="col-md-6">');
             $form->addText('email', [get_lang('Email'), $plugin->get_lang('EmailHelp')], true);
             $form->addHtml('</div><div class="col-md-6">');
-            $form->addText('phone', [$plugin->get_lang('Phone'), $plugin->get_lang('PhoneHelp')], true);
+            $phoneInput = $form->addNumeric('phone', [$plugin->get_lang('Phone'), $plugin->get_lang('PhoneHelp')], ['class' => 'form-control']);
+            $form->setRequired($phoneInput);
             $form->addHtml('</div></div>');
             $typesDocuments = [
                 '1' => 'DNI',
@@ -59,7 +60,8 @@ if($action == 'second'){
             $form->addText('number_document', [$plugin->get_lang('NumberDocument'), $plugin->get_lang('NumberDocumentHelp')], true);
             $form->addHtml('</div></div>');
             $form->addHtml('<div class="row"><div class="col-md-4">');
-            $form->addText('age', $plugin->get_lang('Age'), true);
+            $ageInput = $form->addNumeric('age', $plugin->get_lang('Age'), ['class' => 'form-control']);
+            $form->setRequired($ageInput);
             $form->addHtml('</div><div class="col-md-4">');
             $genders = [
                 'M' => 'Masculino',
@@ -132,12 +134,38 @@ if($action == 'second'){
                 'Cliente' => 'Cliente',
                 'Otro' => 'Otro',
             ];
-            $form->addSelect('stakeholders', $plugin->get_lang('Stakeholder'), $stakeholders);
+            $stakeholdersSelect = $form->addSelect('stakeholders', $plugin->get_lang('Stakeholder'), $stakeholders);
+            $area = [
+                '0' => 'Seleccione un área',
+                'A' => 'A',
+                'B' => 'B',
+                'C' => 'C',
+                'D' => 'D'
+            ];
+            $form->setRequired($stakeholdersSelect);
             $form->addHtml('</div><div class="col-md-6">');
-            $form->addText('area', [$plugin->get_lang('Area')], false);
+            $areaSelect = $form->addSelect('area', $plugin->get_lang('Area'), $area);
+            $form->setRequired($areaSelect);
+            //$form->addText('area', [$plugin->get_lang('Area')], false);
             $form->addHtml('</div></div>');
-            $form->addText('department', [$plugin->get_lang('Department')], false);
-            $form->addText('headquarters', [$plugin->get_lang('Headquarters')], false);
+            $departments = [
+                '0' => 'Seleccione un departamento',
+                'A' => 'A',
+                'B' => 'B',
+                'C' => 'C',
+                'D' => 'D'
+            ];
+            $departmentsSelect = $form->addSelect('department', [$plugin->get_lang('Department')], $departments);
+            $form->setRequired($departmentsSelect);
+            $headquarters = [
+                '0' => 'Seleccione una sede',
+                'A' => 'A',
+                'B' => 'B',
+                'C' => 'C',
+                'D' => 'D'
+            ];
+            $headquartersSelect = $form->addSelect('headquarters', [$plugin->get_lang('Headquarters')], $headquarters);
+            $form->setRequired($headquartersSelect);
             $form->addHtml('</div></div>');
             $form->addHidden('code_reference', $entitySelect);
             $form->addButton('register', $plugin->get_lang('RegisterUser'), null, 'primary', 'btn-block');
