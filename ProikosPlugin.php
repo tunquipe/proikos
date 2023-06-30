@@ -1,5 +1,10 @@
 <?php
 use ExtraField as ExtraFieldModel;
+use Chamilo\CoreBundle\Entity\Repository\SequenceRepository;
+use Chamilo\CoreBundle\Entity\Repository\SequenceResourceRepository;
+use Chamilo\CoreBundle\Entity\Sequence;
+use Chamilo\CoreBundle\Entity\SequenceResource;
+use ChamiloSession as Session;
 
 class ProikosPlugin extends Plugin
 {
@@ -599,4 +604,16 @@ class ProikosPlugin extends Plugin
         return $query->getResult();
     }
 
+    public function getRequirementsSessionUser($sequences, $type, $userId, $sessionId): bool
+    {
+        $em = Database::getManager();
+        /** @var SequenceRepository $sequenceRepository */
+        $sequenceRepository = $em->getRepository(Sequence::class);
+        /** @var SequenceResourceRepository $sequenceResourceRepository */
+        $sequenceResourceRepository = $em->getRepository(SequenceResource::class);
+        $sequences = $sequenceResourceRepository->getRequirements($sessionId, $type);
+        $sequenceList = $sequenceResourceRepository->checkRequirementsForUser($sequences, $type, $userId, $sessionId);
+        $allowSubscription = $sequenceResourceRepository->checkSequenceAreCompleted($sequenceList);
+        return $allowSubscription;
+    }
 }
