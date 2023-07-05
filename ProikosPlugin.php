@@ -604,7 +604,7 @@ class ProikosPlugin extends Plugin
         return $query->getResult();
     }
 
-    public function getRequirementsSessionUser($sequences, $type, $userId, $sessionId): bool
+    public function getRequirementsSessionUser($type, $userId, $sessionId): bool
     {
         $em = Database::getManager();
         /** @var SequenceRepository $sequenceRepository */
@@ -613,7 +613,6 @@ class ProikosPlugin extends Plugin
         $sequenceResourceRepository = $em->getRepository(SequenceResource::class);
         $sequences = $sequenceResourceRepository->getRequirements($sessionId, $type);
         $sequenceList = $sequenceResourceRepository->checkRequirementsForUser($sequences, $type, $userId, $sessionId);
-        $allowSubscription = $sequenceResourceRepository->checkSequenceAreCompleted($sequenceList);
-        return $allowSubscription;
+        return $sequenceResourceRepository->checkSequenceAreCompleted($sequenceList);
     }
 }
