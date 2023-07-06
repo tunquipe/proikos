@@ -47,6 +47,7 @@ if($action == 'second'){
             $form->setRequired($phoneInput);
             $form->addHtml('</div></div>');
             $typesDocuments = [
+                '0' => 'Seleccione una opción',
                 '1' => 'DNI',
                 '2' => 'Carnet de Extranjeria',
                 '3' => 'Pasaporte',
@@ -64,6 +65,7 @@ if($action == 'second'){
             $form->setRequired($ageInput);
             $form->addHtml('</div><div class="col-md-4">');
             $genders = [
+                '0' => 'Seleccione una opción',
                 'M' => 'Masculino',
                 'F' => 'Femenino'
             ];
@@ -71,6 +73,7 @@ if($action == 'second'){
             $form->setRequired($genderInput);
             $form->addHtml('</div><div class="col-md-4">');
             $instructions = [
+                '0' => 'Seleccione una opción',
                 '1' => 'Primaria',
                 '2' => 'Secundaria',
                 '3' => 'Técnica superior',
@@ -89,7 +92,7 @@ if($action == 'second'){
                     <div class="panel-body">');
             $form->addHtml('<div class="row"><div class="col-md-6">');
             $companies = [
-                '0' => 'Seleccione una empresa',
+                '0' => 'Seleccione una opción',
                 'A' => 'A',
                 'B' => 'B',
                 'C' => 'C',
@@ -111,6 +114,7 @@ if($action == 'second'){
             $form->addHtml('</div></div>');
             $form->addHtml('<div class="row"><div class="col-md-6">');
             $experiences = [
+                '0' => 'Seleccione una opción',
                 '1' => 'Menos de 1 año',
                 '2' => '1-3 años',
                 '3' => '4-6 años',
@@ -121,6 +125,7 @@ if($action == 'second'){
             $form->setRequired($timeInput);
             $form->addHtml('</div><div class="col-md-6">');
             $categories = [
+                '0' => 'Seleccione una opción',
                 '1' => 'Funcionario',
                 '2' => 'Empleado',
                 '3' => 'Jefe',
@@ -137,6 +142,7 @@ if($action == 'second'){
 
             $form->addHtml('<div class="row"><div class="col-md-6">');
             $stakeholders = [
+                '0' => 'Seleccione una opción',
                 'Personal Propio' => 'Personal Propio',
                 'Contratista' => 'Contratista',
                 'Cliente' => 'Cliente',
@@ -144,7 +150,7 @@ if($action == 'second'){
             ];
             $stakeholdersSelect = $form->addSelect('stakeholders', $plugin->get_lang('Stakeholder'), $stakeholders);
             $area = [
-                '0' => 'Seleccione un área',
+                '0' => 'Seleccione una opción',
                 'A' => 'A',
                 'B' => 'B',
                 'C' => 'C',
@@ -157,7 +163,7 @@ if($action == 'second'){
             //$form->addText('area', [$plugin->get_lang('Area')], false);
             $form->addHtml('</div></div>');
             $departments = [
-                '0' => 'Seleccione un departamento',
+                '0' => 'Seleccione una opción',
                 'A' => 'A',
                 'B' => 'B',
                 'C' => 'C',
@@ -166,7 +172,7 @@ if($action == 'second'){
             $departmentsSelect = $form->addSelect('department', [$plugin->get_lang('Department')], $departments);
             $form->setRequired($departmentsSelect);
             $headquarters = [
-                '0' => 'Seleccione una sede',
+                '0' => 'Seleccione una opción',
                 'A' => 'A',
                 'B' => 'B',
                 'C' => 'C',
