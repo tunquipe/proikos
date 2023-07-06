@@ -88,7 +88,15 @@ if($action == 'second'){
                     </div>
                     <div class="panel-body">');
             $form->addHtml('<div class="row"><div class="col-md-6">');
-            $form->addText('name_company', [get_lang('CompanyName'), $plugin->get_lang('CompanyNameHelp')], true);
+            $companies = [
+                '0' => 'Seleccione una empresa',
+                'A' => 'A',
+                'B' => 'B',
+                'C' => 'C',
+                'D' => 'D'
+            ];
+            $companiesInput = $form->addSelect('name_company', [get_lang('CompanyName'), $plugin->get_lang('CompanyNameHelp')], $companies);
+            $form->setRequired($companiesInput);
             $form->addHtml('</div><div class="col-md-6">');
             $form->addText('contact_manager', [$plugin->get_lang('ContactManager'), $plugin->get_lang('ContactManagerHelp')], true);
             $form->addHtml('</div></div>');
