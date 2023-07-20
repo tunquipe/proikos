@@ -12,6 +12,9 @@ class ProikosPlugin extends Plugin
     const TABLE_PROIKOS_ENTITY = 'plugin_proikos_entity';
     const TABLE_PROIKOS_SECTOR = 'plugin_proikos_sector';
     const TABLE_PROIKOS_POSITION = 'plugin_proikos_position';
+    const TABLE_PROIKOS_AREA = 'plugin_proikos_area';
+    const TABLE_PROIKOS_MANAGEMENT = 'plugin_proikos_management';
+    const TABLE_PROIKOS_HEADQUARTERS = 'plugin_proikos_headquarters';
 
     protected function __construct()
     {
@@ -94,16 +97,37 @@ class ProikosPlugin extends Plugin
 
         Database::query($sql);
 
-
         //positions
         $sql = "CREATE TABLE IF NOT EXISTS ".self::TABLE_PROIKOS_POSITION." (
             id INT unsigned NOT NULL auto_increment PRIMARY KEY,
-            id_sector INT NULL,
             name_position VARCHAR(250) NULL,
             status INT NULL
         )";
-
         Database::query($sql);
+
+        //area
+        $sql = "CREATE TABLE IF NOT EXISTS ".self::TABLE_PROIKOS_AREA."  (
+            id INT unsigned NOT NULL auto_increment PRIMARY KEY,
+            name_area VARCHAR(250) NULL,
+            status INT NULL
+        )";
+        Database::query($sql);
+
+        //gerencia
+        $sql = "CREATE TABLE IF NOT EXISTS ".self::TABLE_PROIKOS_MANAGEMENT."  (
+            id INT unsigned NOT NULL auto_increment PRIMARY KEY,
+            name_management VARCHAR(250) NULL,
+            status INT NULL
+        )";
+        Database::query($sql);
+        //headquarters
+        $sql = "CREATE TABLE IF NOT EXISTS ".self::TABLE_PROIKOS_HEADQUARTERS." (
+            id INT unsigned NOT NULL auto_increment PRIMARY KEY,
+            name_headquarters VARCHAR(250) NULL,
+            status INT NULL
+        )";
+        Database::query($sql);
+
 
         //add sectors
 
@@ -441,6 +465,70 @@ class ProikosPlugin extends Plugin
                 $list[$row['id']] = $row['name_position'];
             }
         }
+        return $list;
+    }
+
+    public function getPetroPositions(): array
+    {
+        $table = Database::get_main_table(self::TABLE_PROIKOS_POSITION);
+        $sql = "SELECT * FROM $table pp ";
+        $result = Database::query($sql);
+        $list = [];
+        $list['-1'] = 'Selecciona una opción';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $list[$row['id']] = $row['name_position'];
+            }
+        }
+        $list['999'] = 'Otros';
+        return $list;
+    }
+
+    public function getPetroArea(): array
+    {
+        $table = Database::get_main_table(self::TABLE_PROIKOS_AREA);
+        $sql = "SELECT * FROM $table pa ";
+        $result = Database::query($sql);
+        $list = [];
+        $list['-1'] = 'Selecciona una opción';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $list[$row['id']] = $row['name_area'];
+            }
+        }
+        $list['999'] = 'Otros';
+        return $list;
+    }
+
+    public function getPetroManagement(): array
+    {
+        $table = Database::get_main_table(self::TABLE_PROIKOS_MANAGEMENT);
+        $sql = "SELECT * FROM $table pm ";
+        $result = Database::query($sql);
+        $list = [];
+        $list['-1'] = 'Selecciona una opción';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $list[$row['id']] = $row['name_management'];
+            }
+        }
+        $list['999'] = 'Otros';
+        return $list;
+    }
+
+    public function getPetroHeadquarters(): array
+    {
+        $table = Database::get_main_table(self::TABLE_PROIKOS_HEADQUARTERS);
+        $sql = "SELECT * FROM $table ph";
+        $result = Database::query($sql);
+        $list = [];
+        $list['-1'] = 'Selecciona una opción';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $list[$row['id']] = $row['name_headquarters'];
+            }
+        }
+        $list['999'] = 'Otros';
         return $list;
     }
 

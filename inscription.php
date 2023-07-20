@@ -90,6 +90,19 @@ if($action == 'second'){
                         <h3 class="panel-title">' . $plugin->get_lang('CompanyData') . '</h3>
                     </div>
                     <div class="panel-body">');
+
+            $form->addHtml('<div class="row"><div class="col-md-12">');
+            $stakeholders = [
+                '0' => 'Seleccione una opción',
+                'Petroperu' => 'Petroperu',
+                'Contratista' => 'Contratista',
+                'Cliente' => 'Cliente',
+                'Otro' => 'Otro',
+            ];
+            $stakeholdersSelect = $form->addSelect('stakeholders', $plugin->get_lang('Stakeholder'), $stakeholders);
+            $form->setRequired($stakeholdersSelect);
+            $form->addHtml('</div></div>');
+            /*
             $form->addHtml('<div class="row"><div class="col-md-6">');
             $companies = [
                 '0' => 'Seleccione una opción',
@@ -103,15 +116,25 @@ if($action == 'second'){
             $form->addHtml('</div><div class="col-md-6">');
             $form->addText('contact_manager', [$plugin->get_lang('ContactManager'), $plugin->get_lang('ContactManagerHelp')], true);
             $form->addHtml('</div></div>');
+
+
             $sectors = $plugin->getSectors();
-            $form->addHtml('<div class="row"><div class="col-md-6">');
             $sectorInput = $form->addSelect('sector', $plugin->get_lang('SectorSite'), $sectors);
             $form->setRequired($sectorInput);
-            $form->addHtml('</div><div class="col-md-6">');
-            $position = [];
+
+            */
+
+            $form->addHtml('<div class="row"><div class="col-md-6">');
+            $position = $plugin->getPetroPositions();
             $positionInput = $form->addSelect('position_company', $plugin->get_lang('Position'), $position);
             $form->setRequired($positionInput);
+
+            $form->addHtml('</div><div class="col-md-6">');
+            $area = $plugin->getPetroArea();
+            $areaSelect = $form->addSelect('area', $plugin->get_lang('Area'), $area);
+            $form->setRequired($areaSelect);
             $form->addHtml('</div></div>');
+            /*
             $form->addHtml('<div class="row"><div class="col-md-6">');
             $experiences = [
                 '0' => 'Seleccione una opción',
@@ -139,45 +162,16 @@ if($action == 'second'){
             $categoryInput = $form->addSelect('employment_category', $plugin->get_lang('EmploymentCategory'), $categories);
             $form->setRequired($categoryInput);
             $form->addHtml('</div></div>');
+            */
 
-            $form->addHtml('<div class="row"><div class="col-md-6">');
-            $stakeholders = [
-                '0' => 'Seleccione una opción',
-                'Personal Propio' => 'Personal Propio',
-                'Contratista' => 'Contratista',
-                'Cliente' => 'Cliente',
-                'Otro' => 'Otro',
-            ];
-            $stakeholdersSelect = $form->addSelect('stakeholders', $plugin->get_lang('Stakeholder'), $stakeholders);
-            $area = [
-                '0' => 'Seleccione una opción',
-                'A' => 'A',
-                'B' => 'B',
-                'C' => 'C',
-                'D' => 'D'
-            ];
-            $form->setRequired($stakeholdersSelect);
+            /*$form->addHtml('<div class="row"><div class="col-md-6">');
             $form->addHtml('</div><div class="col-md-6">');
-            $areaSelect = $form->addSelect('area', $plugin->get_lang('Area'), $area);
-            $form->setRequired($areaSelect);
-            //$form->addText('area', [$plugin->get_lang('Area')], false);
-            $form->addHtml('</div></div>');
-            $departments = [
-                '0' => 'Seleccione una opción',
-                'A' => 'A',
-                'B' => 'B',
-                'C' => 'C',
-                'D' => 'D'
-            ];
+            $form->addHtml('</div></div>');*/
+
+            $departments = $plugin->getPetroManagement();
             $departmentsSelect = $form->addSelect('department', [$plugin->get_lang('Department')], $departments);
             $form->setRequired($departmentsSelect);
-            $headquarters = [
-                '0' => 'Seleccione una opción',
-                'A' => 'A',
-                'B' => 'B',
-                'C' => 'C',
-                'D' => 'D'
-            ];
+            $headquarters = $plugin->getPetroHeadquarters();
             $headquartersSelect = $form->addSelect('headquarters', [$plugin->get_lang('Headquarters')], $headquarters);
             $form->setRequired($headquartersSelect);
             $form->addHtml('</div></div>');
