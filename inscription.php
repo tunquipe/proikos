@@ -94,10 +94,10 @@ if($action == 'second'){
             $form->addHtml('<div class="row"><div class="col-md-12">');
             $stakeholders = [
                 '0' => 'Seleccione una opción',
-                'Petroperu' => 'Petroperu',
-                'Contratista' => 'Contratista',
-                'Cliente' => 'Cliente',
-                'Otro' => 'Otro',
+                '1' => 'Petroperu',
+                '2' => 'Contratista',
+                '3' => 'Cliente',
+                '99' => 'Otros',
             ];
             $stakeholdersSelect = $form->addSelect('stakeholders', $plugin->get_lang('Stakeholder'), $stakeholders);
             $form->setRequired($stakeholdersSelect);
