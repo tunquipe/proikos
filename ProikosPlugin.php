@@ -17,6 +17,7 @@ class ProikosPlugin extends Plugin
     const TABLE_PROIKOS_HEADQUARTERS = 'plugin_proikos_headquarters';
     const TABLE_PROIKOS_COMPANIES = 'plugin_proikos_companies';
     const TABLE_PROIKOS_MANAGERS = 'plugin_proikos_managers';
+    const TABLE_PROIKOS_AREA_REF_MANAGEMENT = 'plugin_proikos_area_ref_management';
 
     protected function __construct()
     {
@@ -122,6 +123,16 @@ class ProikosPlugin extends Plugin
             status INT NULL
         )";
         Database::query($sql);
+
+        //gerencia
+        $sql = "CREATE TABLE IF NOT EXISTS plugin_proikos_area_ref_management (
+            id INT unsigned NOT NULL auto_increment PRIMARY KEY,
+            id_area INT NULL,
+            id_management INT NULL
+        )";
+        Database::query($sql);
+
+
         //headquarters
         $sql = "CREATE TABLE IF NOT EXISTS ".self::TABLE_PROIKOS_HEADQUARTERS." (
             id INT unsigned NOT NULL auto_increment PRIMARY KEY,
@@ -471,27 +482,13 @@ class ProikosPlugin extends Plugin
 
     //get position table;
 
-    public function getPositions($idSector): array
+    public function getPositions($idStakeholders): array
     {
         $table = Database::get_main_table(self::TABLE_PROIKOS_POSITION);
-        $sql = "SELECT * FROM $table pp WHERE pp.id_sector = $idSector";
+        $sql = "SELECT * FROM $table pp WHERE pp.id_stakeholder = $idStakeholders";
         $result = Database::query($sql);
         $list = [];
-        if (Database::num_rows($result) > 0) {
-            while ($row = Database::fetch_array($result)) {
-                $list[$row['id']] = $row['name_position'];
-            }
-        }
-        return $list;
-    }
-
-    public function getPetroPositions(): array
-    {
-        $table = Database::get_main_table(self::TABLE_PROIKOS_POSITION);
-        $sql = "SELECT * FROM $table pp ";
-        $result = Database::query($sql);
-        $list = [];
-        $list['-1'] = 'Selecciona una opción';
+        $list['0'] = 'Selecciona una opción';
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
                 $list[$row['id']] = $row['name_position'];
@@ -533,13 +530,18 @@ class ProikosPlugin extends Plugin
         return $list;
     }
 
-    public function getPetroHeadquarters(): array
+    public function getHeadquarters($all, $idManagement = 0): array
     {
         $table = Database::get_main_table(self::TABLE_PROIKOS_HEADQUARTERS);
-        $sql = "SELECT * FROM $table ph";
+        if($all){
+            $sql = "SELECT * FROM $table ph";
+        } else {
+            $sql = "SELECT * FROM $table ph WHERE ph.id_management = $idManagement";
+        }
+
         $result = Database::query($sql);
         $list = [];
-        $list['-1'] = 'Selecciona una opción';
+        $list['0'] = 'Selecciona una opción';
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
                 $list[$row['id']] = $row['name_headquarters'];
@@ -565,6 +567,24 @@ class ProikosPlugin extends Plugin
         return $list;
     }
 
+    public function getCompaniesAdministrator($idCompany)
+    {
+        if(empty($idCompany)){
+            return '-';
+        }
+
+        $table = Database::get_main_table(self::TABLE_PROIKOS_COMPANIES);
+        $sql = "SELECT * FROM $table pc WHERE id = $idCompany ";
+        $result = Database::query($sql);
+        $nameAdministrator = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $nameAdministrator = $row['administrator'];
+            }
+        }
+        return $nameAdministrator;
+    }
+
     public function getManagers(): array
     {
         $table = Database::get_main_table(self::TABLE_PROIKOS_MANAGERS);
@@ -575,6 +595,27 @@ class ProikosPlugin extends Plugin
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
                 $list[$row['id']] = $row['name_managers'];
+            }
+        }
+        $list['999'] = 'Otros';
+        return $list;
+    }
+
+    public function getManagementArea($idArea): array
+    {
+        $tableManagement = Database::get_main_table(self::TABLE_PROIKOS_MANAGEMENT);
+        $tableArea = Database::get_main_table(self::TABLE_PROIKOS_AREA);
+        $tableAreaRedManagement = Database::get_main_table(self::TABLE_PROIKOS_AREA_REF_MANAGEMENT);
+
+        $sql = "SELECT pm.id, pm.name_management FROM $tableManagement pm
+                INNER JOIN $tableAreaRedManagement pam ON pam.id_management = pm.id
+                INNER JOIN $tableArea pa ON pam.id_area = pa.id WHERE pa.id = $idArea";
+        $result = Database::query($sql);
+        $list = [];
+        $list['0'] = 'Selecciona una opción';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $list[$row['id']] = $row['name_management'];
             }
         }
         $list['999'] = 'Otros';

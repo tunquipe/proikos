@@ -109,14 +109,14 @@ if($action == 'second'){
             $companiesInput = $form->addSelect('name_company', $plugin->get_lang('CompanyName'), $companies);
             $form->setRequired($companiesInput);
             $form->addHtml('</div><div class="col-md-6">');
-            $managers = $plugin->getManagers();
-            $managersInput = $form->addSelect('contact_manager', $plugin->get_lang('ContactManager'), $managers);
-            $form->setRequired($managersInput);
+
+            $managersInput = $form->addText('contact_manager', $plugin->get_lang('ContactManager'),true);
+
             $form->addHtml('</div></div>');
             $form->addHtml('</div>');
             // end contratistas
             $form->addHtml('<div class="row"><div class="col-md-6">');
-            $position = $plugin->getPetroPositions();
+            $position = $plugin->getPositions(2);
             $positionInput = $form->addSelect('position_company', $plugin->get_lang('Position'), $position);
             $form->setRequired($positionInput);
 
@@ -129,7 +129,7 @@ if($action == 'second'){
             $departments = $plugin->getPetroManagement();
             $departmentsSelect = $form->addSelect('department', [$plugin->get_lang('Department')], $departments);
             $form->setRequired($departmentsSelect);
-            $headquarters = $plugin->getPetroHeadquarters();
+            $headquarters = $plugin->getHeadquarters(true);
             $headquartersSelect = $form->addSelect('headquarters', [$plugin->get_lang('Headquarters')], $headquarters);
             $form->setRequired($headquartersSelect);
             $form->addHtml('</div></div>');
