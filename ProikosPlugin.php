@@ -70,11 +70,8 @@ class ProikosPlugin extends Plugin
             instruction VARCHAR(250) NULL,
             name_company VARCHAR(250) NULL,
             contact_manager VARCHAR(250) NULL,
-            sector VARCHAR(250) NULL,
             position_company VARCHAR(250) NULL,
             stakeholders VARCHAR(250) NULL,
-            employment_category VARCHAR(250) NULL,
-            experience_time INT NULL,
             area VARCHAR(250) NULL,
             department VARCHAR(250) NULL,
             headquarters VARCHAR(250) NULL,
@@ -207,11 +204,8 @@ class ProikosPlugin extends Plugin
                     'instruction' => $row['instruction'],
                     'name_company' => $row['name_company'],
                     'contact_manager' => $row['contact_manager'],
-                    'sector' => $row['sector'],
                     'position_company' => $row['position_company'],
                     'stakeholders' => $row['stakeholders'],
-                    'employment_category' => $row['employment_category'],
-                    'experience_time' => $row['experience_time'],
                     'area' => $row['area'],
                     'department' => $row['department'],
                     'headquarters' => $row['headquarters'],
@@ -387,11 +381,8 @@ class ProikosPlugin extends Plugin
             'instruction' => $values['instruction'],
             'name_company' => $values['name_company'],
             'contact_manager' => $values['contact_manager'],
-            'sector' => $values['sector'],
             'position_company' => $values['position_company'],
             'stakeholders' => $values['stakeholders'],
-            'employment_category' => $values['employment_category'],
-            'experience_time' => $values['experience_time'],
             'area' => $values['area'],
             'department' => $values['department'],
             'headquarters' => $values['headquarters'],
@@ -419,11 +410,8 @@ class ProikosPlugin extends Plugin
             'instruction' => $values['instruction'],
             'name_company' => $values['name_company'],
             'contact_manager' => $values['contact_manager'],
-            'sector' => $values['sector'],
             'position_company' => $values['position_company'],
             'stakeholders' => $values['stakeholders'],
-            'employment_category' => $values['employment_category'],
-            'experience_time' => $values['experience_time'],
             'area' => $values['area'],
             'department' => $values['department'],
             'headquarters' => $values['headquarters'],
@@ -484,6 +472,9 @@ class ProikosPlugin extends Plugin
 
     public function getPositions($idStakeholders): array
     {
+        if($idStakeholders!=1){
+            $idStakeholders = 2;
+        }
         $table = Database::get_main_table(self::TABLE_PROIKOS_POSITION);
         $sql = "SELECT * FROM $table pp WHERE pp.id_stakeholder = $idStakeholders";
         $result = Database::query($sql);

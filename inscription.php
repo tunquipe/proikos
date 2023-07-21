@@ -110,7 +110,7 @@ if($action == 'second'){
             $form->setRequired($companiesInput);
             $form->addHtml('</div><div class="col-md-6">');
 
-            $managersInput = $form->addText('contact_manager', $plugin->get_lang('ContactManager'),true, ['readonly']);
+            $form->addText('contact_manager', $plugin->get_lang('ContactManager'),true, ['readonly', 'value' => '-']);
 
             $form->addHtml('</div></div>');
             $form->addHtml('</div>');
