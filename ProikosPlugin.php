@@ -368,6 +368,11 @@ class ProikosPlugin extends Plugin
             return false;
         }
         $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $nameCompany =  self::getCompanyName($values['name_company']);
+        $namePosition = self::getPositionName($values['position_company']);
+        $nameArea = self::getAreaName($values['area']);
+        $nameManagement = self::getManagementName($values['department']);
+        $nameHeadquarters = self::getHeadquartersName($values['headquarters']);
         $params = [
             'id' => $values['user_id'],
             'user_id' => $values['user_id'],
@@ -379,13 +384,13 @@ class ProikosPlugin extends Plugin
             'age' => $values['age'],
             'gender' => $values['gender'],
             'instruction' => $values['instruction'],
-            'name_company' => $values['name_company'],
+            'name_company' => $nameCompany,
             'contact_manager' => $values['contact_manager'],
-            'position_company' => $values['position_company'],
+            'position_company' => $namePosition,
             'stakeholders' => $values['stakeholders'],
-            'area' => $values['area'],
-            'department' => $values['department'],
-            'headquarters' => $values['headquarters'],
+            'area' => $nameArea,
+            'department' => $nameManagement,
+            'headquarters' => $nameHeadquarters,
             'code_reference' => $values['code_reference']
         ];
         $id = Database::insert($table, $params);
@@ -541,6 +546,87 @@ class ProikosPlugin extends Plugin
         $list['999'] = 'Otros';
         return $list;
     }
+    public function getCompanyName($id){
+        $table = Database::get_main_table(self::TABLE_PROIKOS_COMPANIES);
+        $sql = "SELECT pc.name_companies FROM $table pc WHERE pc.id = $id";
+        $result = Database::query($sql);
+        $name = '-';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $name = $row['name_companies'];
+            }
+        }
+        return $name;
+    }
+
+    public function getPositionName($id){
+        if($id == 999){
+            return 'Otros';
+        } else {
+            $table = Database::get_main_table(self::TABLE_PROIKOS_POSITION);
+            $sql = "SELECT pp.name_position FROM $table pp WHERE pp.id = $id";
+            $result = Database::query($sql);
+            $name = '-';
+            if (Database::num_rows($result) > 0) {
+                while ($row = Database::fetch_array($result)) {
+                    $name = $row['name_position'];
+                }
+            }
+            return $name;
+        }
+
+    }
+
+    public function getAreaName($id){
+        if($id == 999){
+            return 'Otros';
+        } else {
+            $table = Database::get_main_table(self::TABLE_PROIKOS_AREA);
+            $sql = "SELECT pa.name_area FROM $table pa WHERE pa.id = $id";
+            $result = Database::query($sql);
+            $name = '-';
+            if (Database::num_rows($result) > 0) {
+                while ($row = Database::fetch_array($result)) {
+                    $name = $row['name_area'];
+                }
+            }
+            return $name;
+        }
+    }
+
+    public function getManagementName($id){
+        if($id == 999){
+            return 'Otros';
+        } else {
+            $table = Database::get_main_table(self::TABLE_PROIKOS_MANAGEMENT);
+            $sql = "SELECT pm.name_management FROM $table pm WHERE pm.id = $id";
+            $result = Database::query($sql);
+            $name = '-';
+            if (Database::num_rows($result) > 0) {
+                while ($row = Database::fetch_array($result)) {
+                    $name = $row['name_management'];
+                }
+            }
+            return $name;
+        }
+    }
+
+    public function getHeadquartersName($id){
+        if($id == 999){
+            return 'Otros';
+        } else {
+            $table = Database::get_main_table(self::TABLE_PROIKOS_HEADQUARTERS);
+            $sql = "SELECT ph.name_headquarters FROM $table ph WHERE ph.id = $id";
+            $result = Database::query($sql);
+            $name = '-';
+            if (Database::num_rows($result) > 0) {
+                while ($row = Database::fetch_array($result)) {
+                    $name = $row['name_headquarters'];
+                }
+            }
+            return $name;
+        }
+    }
 
     public function getCompanies(): array
     {
@@ -548,7 +634,7 @@ class ProikosPlugin extends Plugin
         $sql = "SELECT * FROM $table pc";
         $result = Database::query($sql);
         $list = [];
-        $list['-1'] = 'Selecciona una opción';
+        $list['-'] = 'Selecciona una opción';
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
                 $list[$row['id']] = $row['name_companies'];
