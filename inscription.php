@@ -102,28 +102,19 @@ if($action == 'second'){
             $stakeholdersSelect = $form->addSelect('stakeholders', $plugin->get_lang('Stakeholder'), $stakeholders);
             $form->setRequired($stakeholdersSelect);
             $form->addHtml('</div></div>');
-            /*
+            //contratistas
+            $form->addHtml('<div id="option-builder">');
             $form->addHtml('<div class="row"><div class="col-md-6">');
-            $companies = [
-                '0' => 'Seleccione una opción',
-                'A' => 'A',
-                'B' => 'B',
-                'C' => 'C',
-                'D' => 'D'
-            ];
-            $companiesInput = $form->addSelect('name_company', [get_lang('CompanyName'), $plugin->get_lang('CompanyNameHelp')], $companies);
+            $companies = $plugin->getCompanies();
+            $companiesInput = $form->addSelect('name_company', $plugin->get_lang('CompanyName'), $companies);
             $form->setRequired($companiesInput);
             $form->addHtml('</div><div class="col-md-6">');
-            $form->addText('contact_manager', [$plugin->get_lang('ContactManager'), $plugin->get_lang('ContactManagerHelp')], true);
+            $managers = $plugin->getManagers();
+            $managersInput = $form->addSelect('contact_manager', $plugin->get_lang('ContactManager'), $managers);
+            $form->setRequired($managersInput);
             $form->addHtml('</div></div>');
-
-
-            $sectors = $plugin->getSectors();
-            $sectorInput = $form->addSelect('sector', $plugin->get_lang('SectorSite'), $sectors);
-            $form->setRequired($sectorInput);
-
-            */
-
+            $form->addHtml('</div>');
+            // end contratistas
             $form->addHtml('<div class="row"><div class="col-md-6">');
             $position = $plugin->getPetroPositions();
             $positionInput = $form->addSelect('position_company', $plugin->get_lang('Position'), $position);
@@ -134,39 +125,6 @@ if($action == 'second'){
             $areaSelect = $form->addSelect('area', $plugin->get_lang('Area'), $area);
             $form->setRequired($areaSelect);
             $form->addHtml('</div></div>');
-            /*
-            $form->addHtml('<div class="row"><div class="col-md-6">');
-            $experiences = [
-                '0' => 'Seleccione una opción',
-                '1' => 'Menos de 1 año',
-                '2' => '1-3 años',
-                '3' => '4-6 años',
-                '4' => '7-9 años',
-                '5' => 'Más de 10 años'
-            ];
-            $timeInput = $form->addSelect('experience_time', $plugin->get_lang('ExperienceTime'), $experiences);
-            $form->setRequired($timeInput);
-            $form->addHtml('</div><div class="col-md-6">');
-            $categories = [
-                '0' => 'Seleccione una opción',
-                '1' => 'Funcionario',
-                '2' => 'Empleado',
-                '3' => 'Jefe',
-                '4' => 'Capataz',
-                '5' => 'Técnico',
-                '6' => 'Operario',
-                '7' => 'Oficial',
-                '8' => 'Peón',
-                '9' => 'Otros',
-            ];
-            $categoryInput = $form->addSelect('employment_category', $plugin->get_lang('EmploymentCategory'), $categories);
-            $form->setRequired($categoryInput);
-            $form->addHtml('</div></div>');
-            */
-
-            /*$form->addHtml('<div class="row"><div class="col-md-6">');
-            $form->addHtml('</div><div class="col-md-6">');
-            $form->addHtml('</div></div>');*/
 
             $departments = $plugin->getPetroManagement();
             $departmentsSelect = $form->addSelect('department', [$plugin->get_lang('Department')], $departments);

@@ -15,6 +15,8 @@ class ProikosPlugin extends Plugin
     const TABLE_PROIKOS_AREA = 'plugin_proikos_area';
     const TABLE_PROIKOS_MANAGEMENT = 'plugin_proikos_management';
     const TABLE_PROIKOS_HEADQUARTERS = 'plugin_proikos_headquarters';
+    const TABLE_PROIKOS_COMPANIES = 'plugin_proikos_companies';
+    const TABLE_PROIKOS_MANAGERS = 'plugin_proikos_managers';
 
     protected function __construct()
     {
@@ -128,6 +130,21 @@ class ProikosPlugin extends Plugin
         )";
         Database::query($sql);
 
+        // companies
+        $sql = "CREATE TABLE IF NOT EXISTS  ".self::TABLE_PROIKOS_COMPANIES."  (
+            id INT unsigned NOT NULL auto_increment PRIMARY KEY,
+            name_companies VARCHAR(250) NULL,
+            status INT NULL
+        )";
+        Database::query($sql);
+
+        // managers
+        $sql = "CREATE TABLE IF NOT EXISTS  ".self::TABLE_PROIKOS_MANAGERS." (
+            id INT unsigned NOT NULL auto_increment PRIMARY KEY,
+            name_managers VARCHAR(250) NULL,
+            status INT NULL
+        )";
+        Database::query($sql);
 
         //add sectors
 
@@ -531,6 +548,39 @@ class ProikosPlugin extends Plugin
         $list['999'] = 'Otros';
         return $list;
     }
+
+    public function getCompanies(): array
+    {
+        $table = Database::get_main_table(self::TABLE_PROIKOS_COMPANIES);
+        $sql = "SELECT * FROM $table pc";
+        $result = Database::query($sql);
+        $list = [];
+        $list['-1'] = 'Selecciona una opción';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $list[$row['id']] = $row['name_companies'];
+            }
+        }
+        $list['999'] = 'Otros';
+        return $list;
+    }
+
+    public function getManagers(): array
+    {
+        $table = Database::get_main_table(self::TABLE_PROIKOS_MANAGERS);
+        $sql = "SELECT * FROM $table pm";
+        $result = Database::query($sql);
+        $list = [];
+        $list['-1'] = 'Selecciona una opción';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $list[$row['id']] = $row['name_managers'];
+            }
+        }
+        $list['999'] = 'Otros';
+        return $list;
+    }
+
 
     public function getCodeReferenceByUser($idUser){
         if (empty($idUser)) {
