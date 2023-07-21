@@ -547,6 +547,9 @@ class ProikosPlugin extends Plugin
         return $list;
     }
     public function getCompanyName($id){
+        if($id == '-'){
+            return '-';
+        }
         $table = Database::get_main_table(self::TABLE_PROIKOS_COMPANIES);
         $sql = "SELECT pc.name_companies FROM $table pc WHERE pc.id = $id";
         $result = Database::query($sql);
