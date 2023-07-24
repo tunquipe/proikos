@@ -43,3 +43,4 @@ $strings['ChooseTheEntity'] = 'Escoge la entidad a la que pertenece';
 $strings['SectorSite'] = 'Sector';
 $strings['MaximumUsers'] = 'Número máximo de usuarios por sesión';
 $strings['MaximumUsersHelp'] = 'Si dejas vació el campo, sera ilimitado la inscripción de estudiantes';
+$strings['RecordNumber'] = 'Número de Ficha';

@@ -102,6 +102,7 @@ if($action == 'second'){
             $stakeholdersSelect = $form->addSelect('stakeholders', $plugin->get_lang('Stakeholder'), $stakeholders);
             $form->setRequired($stakeholdersSelect);
             $form->addHtml('</div></div>');
+
             //contratistas
             $form->addHtml('<div id="option-builder">');
             $form->addHtml('<div class="row"><div class="col-md-6">');
@@ -109,12 +110,15 @@ if($action == 'second'){
             $companiesInput = $form->addSelect('name_company', $plugin->get_lang('CompanyName'), $companies);
             $form->setRequired($companiesInput);
             $form->addHtml('</div><div class="col-md-6">');
-
             $form->addText('contact_manager', $plugin->get_lang('ContactManager'),true, ['readonly', 'value' => '-']);
-
             $form->addHtml('</div></div>');
             $form->addHtml('</div>');
             // end contratistas
+
+            $form->addHtml('<div id="option-number" style="display: none" class="row"><div class="col-md-12">');
+            $form->addNumeric('record_number',$plugin->get_lang('RecordNumber'),['value'=>'0'],true);
+            $form->addHtml('</div></div>');
+
             $form->addHtml('<div class="row"><div class="col-md-6">');
             $position = $plugin->getPositions(2);
             $positionInput = $form->addSelect('position_company', $plugin->get_lang('Position'), $position);
@@ -153,6 +157,7 @@ if($action == 'second'){
                     print_r($e);
                 }
                 $values['address'] = $values['address'] ?? '';
+                $values['record_number'] = $values['record_number'] ?? '-';
                 $phone = $values['phone'] ?? null;
                 $password = $values['number_document'];
 
