@@ -30,3 +30,14 @@
 #registration-one .input-group .radio .radio-label{
     padding: 10px;
 }
+#options-column{
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+}
+#options-column .form-group {
+    padding: 0 0.5rem;
+}
+#option-number{
+    width: 100%;
+}

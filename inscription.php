@@ -115,20 +115,17 @@ if($action == 'second'){
             $form->addHtml('</div>');
             // end contratistas
 
-            $form->addHtml('<div id="option-number" style="display: none" class="row"><div class="col-md-12">');
+            $form->addHtml('<div id="options-column">');
+            $form->addHtml('<div id="option-number" style="display: none;">');
             $form->addNumeric('record_number',$plugin->get_lang('RecordNumber'),['value'=>'0'],true);
-            $form->addHtml('</div></div>');
-
-            $form->addHtml('<div class="row"><div class="col-md-6">');
+            $form->addHtml('</div>');
             $position = $plugin->getPositions(2);
             $positionInput = $form->addSelect('position_company', $plugin->get_lang('Position'), $position);
             $form->setRequired($positionInput);
-
-            $form->addHtml('</div><div class="col-md-6">');
             $area = $plugin->getPetroArea();
             $areaSelect = $form->addSelect('area', $plugin->get_lang('Area'), $area);
             $form->setRequired($areaSelect);
-            $form->addHtml('</div></div>');
+            $form->addHtml('</div>');
 
             $departments = $plugin->getPetroManagement();
             $departmentsSelect = $form->addSelect('department', [$plugin->get_lang('Department')], $departments);
