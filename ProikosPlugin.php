@@ -1,4 +1,6 @@
 <?php
+
+use Chamilo\CoreBundle\Entity\SessionCategory;
 use ExtraField as ExtraFieldModel;
 use Chamilo\CoreBundle\Entity\Repository\SequenceRepository;
 use Chamilo\CoreBundle\Entity\Repository\SequenceResourceRepository;
@@ -652,7 +654,7 @@ class ProikosPlugin extends Plugin
 
     public function getCompaniesAdministrator($idCompany)
     {
-        if(empty($idCompany)){
+        if(empty($idCompany) || $idCompany=='999'){
             return '-';
         }
 
@@ -782,14 +784,17 @@ class ProikosPlugin extends Plugin
     /**
      * List the sessions.
      *
-     * @param string $date
-     * @param array  $limit
-     * @param bool   $returnQueryBuilder
-     * @param bool   $getCount
-     *
+     * @param null $date
+     * @param array $limit
+     * @param bool $returnQueryBuilder
+     * @param bool $getCount
+     * @param null $code_reference
+     * @param int $categoryID
      * @return array|\Doctrine\ORM\Query The session list
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function browseSessions($date = null, $limit = [], $returnQueryBuilder = false, $getCount = false, $code_reference = null)
+    public function browseSessions($date = null, $limit = [], $returnQueryBuilder = false, $getCount = false, $code_reference = null, int $categoryID)
     {
         $urlId = api_get_current_access_url_id();
         $em = Database::getManager();
@@ -809,16 +814,19 @@ class ProikosPlugin extends Plugin
                         ->where(
                             $qb->expr()->eq('url.sessionId ', 's2.id')
                         )->andWhere(
-                            $qb->expr()->eq('url.accessUrlId ', $urlId))
-                        ->getDQL()
+                            $qb->expr()->eq('url.accessUrlId ', $urlId)
+                        )
                 )
             )
             ->andWhere($qb->expr()->gt('s.nbrCourses', 0));
 
         if($code_reference != 'ALL'){
-            $qb->andWhere($qb->expr()->eq('s.codeReference', ':codeReference'))
+           $qb->andWhere($qb->expr()->eq('s.codeReference', ':codeReference'))
                 ->setParameter('codeReference', $code_reference);
         }
+
+        $qb->andWhere($qb->expr()->eq('s.category', ':categoryID'))
+            ->setParameter('categoryID', $categoryID);
 
         if (!empty($date)) {
             $qb->andWhere(
