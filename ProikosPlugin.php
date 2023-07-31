@@ -815,7 +815,7 @@ class ProikosPlugin extends Plugin
                             $qb->expr()->eq('url.sessionId ', 's2.id')
                         )->andWhere(
                             $qb->expr()->eq('url.accessUrlId ', $urlId)
-                        )
+                        )->getDQL()
                 )
             )
             ->andWhere($qb->expr()->gt('s.nbrCourses', 0));
