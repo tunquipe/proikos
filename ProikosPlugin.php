@@ -883,6 +883,30 @@ class ProikosPlugin extends Plugin
         $sequenceResourceRepository = $em->getRepository(SequenceResource::class);
         $sequences = $sequenceResourceRepository->getRequirements($sessionId, $type);
         $sequenceList = $sequenceResourceRepository->checkRequirementsForUser($sequences, $type, $userId, $sessionId);
-        return $sequenceResourceRepository->checkSequenceAreCompleted($sequenceList);
+        return self::checkSequenceAreCompleted($sequenceList);
     }
+
+    /**
+     * Check if at least one sequence are completed.
+     */
+    public function checkSequenceAreCompleted(array $sequences, $itemType = SequenceResourceRepository::VERTICES_TYPE_REQ): bool
+    {
+        if(empty($sequences)){
+            return true;
+        }
+        foreach ($sequences as $sequence) {
+            $status = false;
+
+            foreach ($sequence[$itemType] as $item) {
+                $status = $status || $item['status'];
+            }
+
+            if ($status) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 }
