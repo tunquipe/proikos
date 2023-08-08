@@ -724,7 +724,17 @@ class ProikosPlugin extends Plugin
         if(api_is_platform_admin() || api_is_teacher()){
             $item = 'ALL';
         }
-
+        if(is_null($item)){
+            $tableUser = Database::get_main_table(TABLE_MAIN_USER);
+            $sql = "SELECT u.code_reference FROM $tableUser u WHERE u.user_id = '$idUser'";
+            $result = Database::query($sql);
+            if (Database::num_rows($result) > 0) {
+                while ($row = Database::fetch_array($result)) {
+                    $item = $row['code_reference'];
+                }
+            }
+        }
+        //var_dump($item);
         return $item;
     }
 
