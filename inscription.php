@@ -157,7 +157,7 @@ if($action == 'second'){
                 $values['record_number'] = $values['record_number'] ?? '-';
                 $phone = $values['phone'] ?? null;
                 $password = $values['number_document'];
-
+                $codeReference = $values['code_reference'];
                 // Creates a new user
                 $user_id = UserManager::create_user(
                     $values['firstname'],
@@ -180,7 +180,10 @@ if($action == 'second'){
                     false,
                     $values['address'],
                     false,
-                    $form
+                    $form,
+                    0,[],
+                    '',
+                    $codeReference
                 );
                 if ($user_id) {
                     $values['user_id'] = $user_id;
