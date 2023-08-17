@@ -919,4 +919,27 @@ class ProikosPlugin extends Plugin
         return false;
     }
 
+    public function getStudentsSession($idSession): array
+    {
+        $users = SessionManager::get_users_by_session($idSession);
+        $list = [];
+        foreach ($users as $row) {
+            $list[] = [
+                'user_id' => $row['user_id'],
+                'firstname' => $row['firstname'],
+                'lastname' => $row['lastname'],
+                'email' => $row['username']
+            ];
+        }
+        return $list;
+    }
+
+    public function exportListForaPDF($idSession){
+        $studentsList = self::getStudentsSession($idSession);
+        $html = null;
+        foreach ($studentsList as $student){
+            $html.= '';
+        }
+        var_dump($studentsList);
+    }
 }
