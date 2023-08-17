@@ -25,16 +25,54 @@ if ($isAdmin) {
 
 if($action == 'export_pdf'){
     $idSession = $_REQUEST['keyword'] ?? null;
+    $idCompany = $_REQUEST['company'] ?? null;
+    $url = api_get_path(WEB_UPLOAD_PATH);
     $filename = 'list-fora-';
-    $plugin->exportListForaPDF($idSession);
+
+    $marginLeft = '1cm';
+    $marginRight = '1cm';
+    $marginTop = '1cm';
+    $marginBottom = '1cm';
+    $margin = $marginTop . ' ' . $marginRight . ' ' . $marginBottom . ' ' . $marginLeft;
+    $infoCompany = $plugin->getEntity($idCompany);
+    $logoCompany = $url.$infoCompany['picture'];
+
+    $params = [
+        'filename' => api_replace_dangerous_char(
+            $filename.' '.
+            api_get_local_time()
+        ),
+        'orientation' => 'P',
+        'format' => 'A4',
+        'left' => 0,
+        'top' => 0,
+        'bottom' => 0,
+        'right' => 0
+    ];
+
+    $students = $plugin->getStudentsSession($idSession);
+    $tplPDF =  new Template($tool_name,false,false,false,false,false,false);
+    $tpl->assign('students', $students);
+    $tpl->assign('margin', $margin);
+    $tpl->assign('logo_company', $logoCompany);
+    $content = $tpl->fetch('proikos/view/proikos_pdf_fora.tpl');
+    $pdf = new PDF($params['format'], $params['orientation'], $params);
+    $pdf->content_to_pdf($content, false, $filename, null,'D',false,null,false,false,false);
+    exit;
 }
 
+$company = $plugin->getListEntity();
+$listCompanies = [];
+foreach ($company as $row){
+    $listCompanies[$row['id']] = $row['name_entity'];
+}
 
 $form = new FormValidator(
     'export',
     'post',
     api_get_self() . '?action=export_pdf'
 );
+$form->addSelect('company',$plugin->get_lang('NameEntity'), $listCompanies);
 try {
     $form->addSelectAjax(
         'keyword',

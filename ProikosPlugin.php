@@ -923,23 +923,18 @@ class ProikosPlugin extends Plugin
     {
         $users = SessionManager::get_users_by_session($idSession);
         $list = [];
+        $count = 1;
         foreach ($users as $row) {
             $list[] = [
+                'number' => $count,
                 'user_id' => $row['user_id'],
                 'firstname' => $row['firstname'],
                 'lastname' => $row['lastname'],
                 'email' => $row['username']
             ];
+            $count++;
         }
         return $list;
     }
 
-    public function exportListForaPDF($idSession){
-        $studentsList = self::getStudentsSession($idSession);
-        $html = null;
-        foreach ($studentsList as $student){
-            $html.= '';
-        }
-        var_dump($studentsList);
-    }
 }
