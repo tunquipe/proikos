@@ -31,11 +31,94 @@ if($action == 'export_pdf'){
 
     $marginLeft = '1cm';
     $marginRight = '1cm';
-    $marginTop = '1cm';
-    $marginBottom = '1cm';
+    $marginTop = '0.5cm';
+    $marginBottom = '0.5cm';
     $margin = $marginTop . ' ' . $marginRight . ' ' . $marginBottom . ' ' . $marginLeft;
     $infoCompany = $plugin->getEntity($idCompany);
     $logoCompany = $url.$infoCompany['picture'];
+
+    $tplPDFHeader = new Template();
+    $tplPDFFooter = new Template();
+
+    $tplPDFHeader->assign('logo_company', $logoCompany);
+    $tplPDFHeader->assign('margin', $margin);
+
+    $html =  '
+        <!DOCTYPE html>
+        <body style="margin: 0; padding: 0;">
+        <div style="font-family: Arial, Helvetica, sans-serif; padding:'.$margin.'">
+    ';
+    $employerHeader = true;
+    $employerFooter = false;
+
+    $students = $plugin->getStudentsSession($idSession);
+    $recordPerPage = 15;
+    $onePage = 10;
+    $pages = ceil(count($students) / $recordPerPage);
+
+    for ($page = 1; $page <= $pages; $page++) {
+        //$html .= 'Página ' . $page;
+
+        if($page <= 1){
+            $recordPerPage = $onePage;
+        } else {
+            $start = ($page - 2) * $recordPerPage + $onePage;
+            $recordPerPage = 15;
+            $employerHeader = false;
+            $employerFooter = true;
+        }
+        $tplPDFHeader->assign('employer_header', $employerHeader);
+        $tplPDFFooter->assign('employer_footer', $employerFooter);
+        $contentHeader = $tplPDFHeader->fetch('proikos/view/proikos_pdf_fora_header.tpl');
+        $contentFooter = $tplPDFFooter->fetch('proikos/view/proikos_pdf_fora_footer.tpl');
+
+        $html.= $contentHeader;
+        $html.= '
+                <table style="border: 2px solid #000; width: 850px; border-collapse: collapse;">
+                <tr>
+                    <td style="border-right: 1px solid #000; text-align: center; font-weight: bold; width: 50px; height: 40px;">
+                        Nº
+                    </td>
+                    <td style="border-right: 1px solid #000; text-align: center; text-transform: uppercase; width: 40%; font-weight: bold;">
+                        Apellidos y Nombres
+                    </td>
+                    <td style="border-right: 1px solid #000; text-align: center; text-transform: uppercase;  width: 10%; font-weight: bold;">
+                        DNI Nº
+                    </td>
+                    <td style="border-right: 1px solid #000; text-align: center; text-transform: uppercase; width: 10%; font-weight: bold;">
+                        Ficha Nº
+                    </td>
+                    <td style="border-right: 1px solid #000; text-align: center; text-transform: uppercase; width: 10%; font-weight: bold;">
+                        Dependencia
+                    </td>
+                    <td style="border-right: 1px solid #000; text-align: center; text-transform: uppercase; width: 10%; font-weight: bold;">
+                        Firma
+                    </td>
+                    <td style="border-right: 1px solid #000; text-align: center; text-transform: uppercase; width: 15%; font-weight: bold;">
+                        Observaciones
+                    </td>
+                </tr>
+                </table>';
+        $html.= '<table  style="border: 1px solid #000; width: 850px; border-collapse: collapse;">';
+        foreach (array_slice($students, $start, $recordPerPage) as $student) {
+            $html.= '
+                <tr style="text-align: center; border: 1px solid #000;">
+                    <td style="border-right: 1px solid #000; width: 50px; height: 40px;">'.$student['number'].'</td>
+                    <td style="border-right: 1px solid #000; width: 20%; font-size: 12px; text-transform: uppercase;">'.$student['lastname'].','.$student['firstname'].'</td>
+                    <td style="border-right: 1px solid #000; width: 10%; text-align: center">'.$student['email'].'</td>
+                    <td style="border-right: 1px solid #000; width: 10%; ">&nbsp; </td>
+                    <td style="border-right: 1px solid #000; width: 10%; ">&nbsp; </td>
+                    <td style="border-right: 1px solid #000; width: 10%; ">&nbsp; </td>
+                    <td style="width: 10%;"></td>
+                </tr>
+            ';
+        }
+        $html.= '</table>';
+        $html.= $contentFooter;
+        if($page < $pages){
+            $html.="<p style='page-break-after: always'></p>";
+        }
+    }
 
     $params = [
         'filename' => api_replace_dangerous_char(
@@ -50,12 +133,14 @@ if($action == 'export_pdf'){
         'right' => 0
     ];
 
-    $students = $plugin->getStudentsSession($idSession);
+
+
+    $html.= '</div></body></html>';
+    $content = $html;
+
     $tplPDF =  new Template($tool_name,false,false,false,false,false,false);
     $tpl->assign('students', $students);
-    $tpl->assign('margin', $margin);
-    $tpl->assign('logo_company', $logoCompany);
-    $content = $tpl->fetch('proikos/view/proikos_pdf_fora.tpl');
+    //$content = $tpl->fetch('proikos/view/proikos_pdf_fora.tpl');
     $pdf = new PDF($params['format'], $params['orientation'], $params);
     $pdf->content_to_pdf($content, false, $filename, null,'D',false,null,false,false,false);
     exit;
