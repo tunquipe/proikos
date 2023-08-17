@@ -34,7 +34,7 @@
                         <td style="text-align: center; font-weight: bold;">
                             <span style="text-transform: uppercase;">Formato</span><br>
                             Versión: v.2<br>
-                            Página: 1 de 3
+                            Página: {{ number_page }} de {{ total_pages }}
                         </td>
                     </tr>
                 </table>

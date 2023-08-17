@@ -67,6 +67,8 @@ if($action == 'export_pdf'){
             $employerHeader = false;
             $employerFooter = true;
         }
+        $tplPDFHeader->assign('number_page', $page);
+        $tplPDFHeader->assign('total_pages', $pages);
         $tplPDFHeader->assign('employer_header', $employerHeader);
         $tplPDFFooter->assign('employer_footer', $employerFooter);
         $contentHeader = $tplPDFHeader->fetch('proikos/view/proikos_pdf_fora_header.tpl');
@@ -98,8 +100,7 @@ if($action == 'export_pdf'){
                         Observaciones
                     </td>
                 </tr>
-                </table>';
-        $html.= '<table  style="border: 1px solid #000; width: 850px; border-collapse: collapse;">';
+                ';
         foreach (array_slice($students, $start, $recordPerPage) as $student) {
             $html.= '
                 <tr style="text-align: center; border: 1px solid #000;">
@@ -133,14 +134,11 @@ if($action == 'export_pdf'){
         'right' => 0
     ];
 
-
-
     $html.= '</div></body></html>';
     $content = $html;
 
     $tplPDF =  new Template($tool_name,false,false,false,false,false,false);
     $tpl->assign('students', $students);
-    //$content = $tpl->fetch('proikos/view/proikos_pdf_fora.tpl');
     $pdf = new PDF($params['format'], $params['orientation'], $params);
     $pdf->content_to_pdf($content, false, $filename, null,'D',false,null,false,false,false);
     exit;
