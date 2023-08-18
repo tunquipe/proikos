@@ -4,7 +4,7 @@ api_block_anonymous_users();
 $action = $_GET['action'] ?? null;
 
 $plugin = ProikosPlugin::create();
-$tool_name = $plugin->get_lang('ManageEntities');
+$tool_name = $plugin->get_lang('GenerateListOfParticipants');
 $actionLinks = null;
 $tpl = new Template($tool_name);
 $isAdmin = api_is_platform_admin();
@@ -149,7 +149,9 @@ if($action == 'export_pdf'){
 }
 
 $company = $plugin->getListEntity();
-$listCompanies = [];
+$listCompanies = [
+    '-1' => get_lang('SelectAnOption')
+];
 foreach ($company as $row){
     $listCompanies[$row['id']] = $row['name_entity'];
 }
@@ -171,8 +173,7 @@ try {
     print_r($e);
 }
 $form->addButtonExport($plugin->get_lang('Export'));
-
-$form->addHeader($plugin->get_lang('ExportList'));
+$form->addHeader($plugin->get_lang('GenerateListOfParticipants'));
 $tpl->assign('form', $form->returnForm());
 
 

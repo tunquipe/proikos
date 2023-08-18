@@ -52,3 +52,5 @@ $strings['EconomicActivity'] = 'Actividad Económica';
 $strings['NumberOfWorkers'] = 'Nº de trabajadores';
 $strings['Logo'] = 'Logotipo';
 $strings['DashboardProikos'] = 'Panel Proikos Academy';
+$strings['GenerateListOfParticipants'] = 'Generar lista de participantes FORA';
+$strings['ParticipantReport'] = 'Reporte de participantes';
