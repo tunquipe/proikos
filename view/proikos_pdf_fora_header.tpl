@@ -80,8 +80,7 @@
             </td>
         </tr>
     </table>
-    <div style="text-transform: uppercase; font-weight: bold; display: inline-block; font-size: 14px;">Momento de
-        seguridad, salud y ambiente:
+    <div style="text-transform: uppercase; font-weight: bold; display: inline-block; font-size: 14px;">Momento de seguridad, salud y ambiente:
     </div>
     <table style="border: 2px solid #000; width: 850px; border-collapse: collapse;">
         <tr style="border: 1px solid #000;">
@@ -109,14 +108,11 @@
                         </td>
                     </tr>
                     <tr>
-                        <td style="border-right: 1px solid #000; padding: 10px;">Petróleos del Perú – PETROPERÚ S.A.
-                        </td>
-                        <td style="border-right: 1px solid #000; padding: 10px;">20100128218</td>
-                        <td style="border-right: 1px solid #000; padding: 10px;">Prolongación Av-G2 zona Refinería
-                            Talara
-                        </td>
-                        <td style="border-right: 1px solid #000; padding: 10px;">Energía / Hidrocarburos</td>
-                        <td style="padding: 10px;">1085</td>
+                        <td style="border-right: 1px solid #000; padding: 10px;">{{ company.business_name }}</td>
+                        <td style="border-right: 1px solid #000; padding: 10px;">{{ company.ruc }}</td>
+                        <td style="border-right: 1px solid #000; padding: 10px;">{{ company.tax_residence }}</td>
+                        <td style="border-right: 1px solid #000; padding: 10px;">{{ company.economic_activity }}</td>
+                        <td style="padding: 10px;">{{ company.number_of_workers }}</td>
                     </tr>
                 </table>
             </td>

@@ -27,7 +27,6 @@ if($action == 'export_pdf'){
     $idSession = $_REQUEST['keyword'] ?? null;
     $idCompany = $_REQUEST['company'] ?? null;
     $url = api_get_path(WEB_UPLOAD_PATH);
-
     $nameSession = api_get_session_name($idSession);
 
     $filename = 'FORA_'.$nameSession;
@@ -38,12 +37,14 @@ if($action == 'export_pdf'){
     $marginBottom = '0.5cm';
     $margin = $marginTop . ' ' . $marginRight . ' ' . $marginBottom . ' ' . $marginLeft;
     $infoCompany = $plugin->getEntity($idCompany);
+
     $logoCompany = $url.$infoCompany['picture'];
 
     $tplPDFHeader = new Template();
     $tplPDFFooter = new Template();
 
     $tplPDFHeader->assign('logo_company', $logoCompany);
+    $tplPDFHeader->assign('company', $infoCompany);
     $tplPDFHeader->assign('margin', $margin);
 
     $html =  '
