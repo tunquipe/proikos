@@ -51,3 +51,4 @@ $strings['TaxResidence'] = 'Domicilio (Dirección,Distrito, Departamento,Provinc
 $strings['EconomicActivity'] = 'Actividad Económica';
 $strings['NumberOfWorkers'] = 'Nº de trabajadores';
 $strings['Logo'] = 'Logotipo';
+$strings['DashboardProikos'] = 'Panel Proikos Academy';
