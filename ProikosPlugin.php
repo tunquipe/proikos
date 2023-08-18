@@ -84,6 +84,11 @@ class ProikosPlugin extends Plugin
         $sql = "CREATE TABLE IF NOT EXISTS ".self::TABLE_PROIKOS_ENTITY." (
             id INT unsigned NOT NULL auto_increment PRIMARY KEY,
             name_entity VARCHAR(250) NULL,
+            business_name VARCHAR(250) NULL,
+            ruc VARCHAR(20) NULL,
+            tax_residence VARCHAR(250) NULL,
+            economic_activity VARCHAR(250) NULL,
+            number_of_workers INT NULL,
             picture VARCHAR(250) NULL,
             code_reference VARCHAR(250) NULL,
             status INT NULL
@@ -259,6 +264,11 @@ class ProikosPlugin extends Plugin
                 $list[] = [
                     'id' => $row['id'],
                     'name_entity' => $row['name_entity'],
+                    'business_name' => $row['business_name'],
+                    'ruc' => $row['ruc'],
+                    'tax_residence' => $row['tax_residence'],
+                    'economic_activity' => $row['economic_activity'],
+                    'number_of_workers' => $row['number_of_workers'],
                     'picture' => $url.$row['picture'],
                     'code_reference' => $row['code_reference'],
                     'status' => $row['status'],
@@ -277,6 +287,11 @@ class ProikosPlugin extends Plugin
         $params = [
             'name_entity' => $values['name_entity'],
             'picture' => null,
+            'business_name' => $values['business_name'],
+            'ruc' => $values['ruc'],
+            'tax_residence' => $values['tax_residence'],
+            'economic_activity' => $values['economic_activity'],
+            'number_of_workers' => $values['number_of_workers'],
             'code_reference' => $values['code_reference'],
             'status' => $values['status']
         ];
@@ -294,6 +309,11 @@ class ProikosPlugin extends Plugin
         $table = Database::get_main_table(self::TABLE_PROIKOS_ENTITY);
         $params = [
             'name_entity' => $values['name_entity'],
+            'business_name' => $values['business_name'],
+            'ruc' => $values['ruc'],
+            'tax_residence' => $values['tax_residence'],
+            'economic_activity' => $values['economic_activity'],
+            'number_of_workers' => $values['number_of_workers'],
             'picture' => $values['picture'],
             'code_reference' => $values['code_reference'],
             'status' => $values['status']
@@ -326,6 +346,11 @@ class ProikosPlugin extends Plugin
                 $item = [
                     'id' => $row['id'],
                     'name_entity' => $row['name_entity'],
+                    'business_name' => $row['business_name'],
+                    'ruc' => $row['ruc'],
+                    'tax_residence' => $row['tax_residence'],
+                    'economic_activity' => $row['economic_activity'],
+                    'number_of_workers' => $row['number_of_workers'],
                     'picture' => $row['picture'],
                     'code_reference' => $row['code_reference'],
                     'status' => $row['status']

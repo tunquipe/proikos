@@ -44,6 +44,11 @@ if($isAdmin){
             );
             $form->addHeader($plugin->get_lang('AddEntity'));
             $form->addText('name_entity', $plugin->get_lang('NameEntity'));
+            $form->addText('business_name', $plugin->get_lang('NameBusiness'),false);
+            $form->addText('ruc', $plugin->get_lang('RUC'),false);
+            $form->addText('tax_residence', $plugin->get_lang('TaxResidence'), false);
+            $form->addText('economic_activity', $plugin->get_lang('EconomicActivity'),false);
+            $form->addNumeric('number_of_workers', $plugin->get_lang('NumberOfWorkers'));
             $form->addText('code_reference', $plugin->get_lang('CodeReference'));
 
             $form->addFile(
@@ -98,6 +103,11 @@ if($isAdmin){
 
             $form->addHeader($plugin->get_lang('AddEntity'));
             $form->addText('name_entity', $plugin->get_lang('NameEntity'));
+            $form->addText('business_name', $plugin->get_lang('NameBusiness'),false);
+            $form->addText('ruc', $plugin->get_lang('RUC'),false);
+            $form->addText('tax_residence', $plugin->get_lang('TaxResidence'), false);
+            $form->addText('economic_activity', $plugin->get_lang('EconomicActivity'),false);
+            $form->addNumeric('number_of_workers', $plugin->get_lang('NumberOfWorkers'));
             $form->addText('code_reference', $plugin->get_lang('CodeReference'));
 
             $form->addFile(

@@ -100,7 +100,7 @@
                             RUC
                         </td>
                         <td style="width: 20%; border-bottom: 1px solid #000; border-right: 1px solid #000; font-weight: bold;">
-                            Domicilio (Dirección, Distrito, Departamento, Provincia)
+                            Domicilio <span style="font-weight: normal; font-size: 12px;"> (Dirección, Distrito, Departamento, Provincia)</span>
                         </td>
                         <td style="width: 20%; border-bottom: 1px solid #000; border-right: 1px solid #000; font-weight: bold;">
                             Actividad Economica

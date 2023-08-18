@@ -27,7 +27,10 @@ if($action == 'export_pdf'){
     $idSession = $_REQUEST['keyword'] ?? null;
     $idCompany = $_REQUEST['company'] ?? null;
     $url = api_get_path(WEB_UPLOAD_PATH);
-    $filename = 'list-fora-';
+
+    $nameSession = api_get_session_name($idSession);
+
+    $filename = 'FORA_'.$nameSession;
 
     $marginLeft = '1cm';
     $marginRight = '1cm';
