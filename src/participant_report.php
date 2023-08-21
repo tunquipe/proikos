@@ -45,7 +45,8 @@ if ($isAdmin) {
                 $mergedStudents = array_merge($mergedStudents, $students[$session['id']]);
             }
         }
-        $cant = count($mergedStudents);
+        $plugin->exportReportXLS($mergedStudents);
+
     }
 
     $tpl->assign('form', $form->returnForm());

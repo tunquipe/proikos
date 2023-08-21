@@ -1,14 +1,13 @@
 <?php
 
-use Chamilo\CoreBundle\Entity\SessionCategory;
 use ExtraField as ExtraFieldModel;
 use Chamilo\CoreBundle\Entity\Repository\SequenceRepository;
 use Chamilo\CoreBundle\Entity\Repository\SequenceResourceRepository;
 use Chamilo\CoreBundle\Entity\Sequence;
 use Chamilo\CoreBundle\Entity\SequenceResource;
 use Chamilo\CoreBundle\Entity\Session;
-use Chamilo\CoreBundle\Entity\SessionRelCourseRelUser;
-use Chamilo\CoreBundle\Entity\Course;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ProikosPlugin extends Plugin
 {
@@ -1108,5 +1107,53 @@ class ProikosPlugin extends Plugin
             }
             return $users;
         }
+    }
+
+    /**
+     * @throws PHPExcel_Exception
+     * @throws PHPExcel_Writer_Exception
+     */
+    public function exportReportXLS($students = []){
+        $date = date('d-m-Y H:i:s', time());
+        $date_format = api_convert_and_format_date($date, "%d-%m-%Y %H:%M");
+        $nameFile = 'participants_report';
+        $headers = [
+            get_plugin_lang('LastName', 'ProikosPlugin'),
+            get_plugin_lang('FirstName', 'ProikosPlugin'),
+            get_plugin_lang('TypeDocument', 'ProikosPlugin'),
+            get_plugin_lang('NumberDocument', 'ProikosPlugin'),
+            get_plugin_lang('AgeYear', 'ProikosPlugin'),
+            get_plugin_lang('Gender', 'ProikosPlugin'),
+            get_plugin_lang('GradeInstructions', 'ProikosPlugin'),
+            get_plugin_lang('Email', 'ProikosPlugin'),
+            get_plugin_lang('CompanyName', 'ProikosPlugin'),
+            get_plugin_lang('ContactManager', 'ProikosPlugin'),
+            get_plugin_lang('Position', 'ProikosPlugin'),
+            get_plugin_lang('Stakeholder', 'ProikosPlugin'),
+            get_plugin_lang('RecordNumber', 'ProikosPlugin'),
+            get_plugin_lang('Area', 'ProikosPlugin'),
+            get_plugin_lang('Department', 'ProikosPlugin'),
+            get_plugin_lang('Headquarters', 'ProikosPlugin'),
+            get_plugin_lang('CodeReference', 'ProikosPlugin'),
+            get_plugin_lang('SessionId', 'ProikosPlugin'),
+            get_plugin_lang('SessionName', 'ProikosPlugin')
+        ];
+
+        $spreadsheet = new Spreadsheet();
+        //$activeWorksheet = $spreadsheet->getActiveSheet();
+        $worksheet = $spreadsheet->getActiveSheet();
+
+        for ($i = 0; $i < count($headers); $i++) {
+            $worksheet->setCellValueByColumnAndRow($i, 1, $headers[$i]);
+        }
+        //$line = 2;
+
+        $fileName = $nameFile . $date_format . '.xlsx';
+        $file = api_get_path(SYS_ARCHIVE_PATH) . api_replace_dangerous_char($fileName);
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($file);
+        DocumentManager::file_send_for_download($file, true, $fileName);
+        exit;
+
     }
 }
