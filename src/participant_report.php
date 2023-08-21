@@ -23,12 +23,21 @@ if ($isAdmin) {
     $firstDate = date('Y-m-01').' 00:00:00';
     $lastDate = date('Y-m-t').' 00:00:00';
 
+    $company = $plugin->getListEntity();
+    $listCompanies = [
+        '-1' => get_lang('SelectAnOption')
+    ];
+    foreach ($company as $row){
+        $listCompanies[$row['id']] = $row['name_entity'];
+    }
+
     $form = new FormValidator(
         'report',
         'post',
         api_get_self() . '?action=report'
     );
     $form->addHeader($plugin->get_lang('GenerateParticipantReport'));
+    $form->addSelect('company',$plugin->get_lang('NameEntity'), $listCompanies);
     $form->addDatePicker('star_date',get_lang('DateStart'), ['value'=> $firstDate, 'id' => 'star_date']);
     $form->addDatePicker('end_date',get_lang('DateEnd'),['value'=> $lastDate, 'id' => 'end_date']);
     $form->addButton('generate',get_lang('Generate'));
@@ -37,6 +46,9 @@ if ($isAdmin) {
         $values = $form->getSubmitValues();
         $starDate = $values['star_date'];
         $endDate = $values['end_date'];
+        $idCompany = $_REQUEST['company'] ?? null;
+        $infoCompany = $plugin->getEntity($idCompany);
+        $logoCompany = api_get_path(SYS_UPLOAD_PATH).$infoCompany['picture'];
         $sessions = $plugin->getSessionForDate($starDate, $endDate);
         $mergedStudents = [];
         foreach ($sessions as $session){
@@ -45,7 +57,11 @@ if ($isAdmin) {
                 $mergedStudents = array_merge($mergedStudents, $students[$session['id']]);
             }
         }
-        $plugin->exportReportXLS($mergedStudents);
+        try {
+            $plugin->exportReportXLS($mergedStudents, $logoCompany);
+        } catch (\PhpOffice\PhpSpreadsheet\Exception $e) {
+            print_r($e);
+        }
     }
     $tpl->assign('form', $form->returnForm());
 }

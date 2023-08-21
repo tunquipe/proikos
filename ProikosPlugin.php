@@ -9,9 +9,9 @@ use Chamilo\CoreBundle\Entity\Session;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Font;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
 class ProikosPlugin extends Plugin
 {
@@ -1114,9 +1114,57 @@ class ProikosPlugin extends Plugin
         }
     }
 
+    function  getInstructionTypeText($valor): string
+    {
+        $instructions = [
+            '1' => 'Primaria',
+            '2' => 'Secundaria',
+            '3' => 'Técnica superior',
+            '4' => 'Universitaria Bachiller',
+            '5' => 'Universitaria Titulada',
+        ];
+        if (array_key_exists($valor, $instructions)) {
+            return $instructions[$valor];
+        } else {
+            return '-';
+        }
+    }
+
+    function  getStakeholderTypeText($valor): string
+    {
+        $stakeholders = [
+            '1' => 'Petroperu',
+            '2' => 'Contratista',
+            '3' => 'Cliente',
+            '99' => 'Otros',
+        ];
+        if (array_key_exists($valor, $stakeholders)) {
+            return $stakeholders[$valor];
+        } else {
+            return '-';
+        }
+    }
+
+    function getDocumentTypeText($valor): string
+    {
+        $typesDocuments = [
+            '1' => 'DNI',
+            '2' => 'Carnet de Extranjeria',
+            '3' => 'Pasaporte',
+            '4' => 'RUC',
+            '5' => 'Otros',
+        ];
+        if (array_key_exists($valor, $typesDocuments)) {
+            return $typesDocuments[$valor];
+        } else {
+            return '-';
+        }
+    }
+
     /**
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
      */
-    public function exportReportXLS($students){
+    public function exportReportXLS($students, $logo){
         $date = date('d-m-Y H:i:s', time());
         $date_format = api_convert_and_format_date($date, "%d-%m-%Y %H:%M");
         $nameFile = 'participants_report_';
@@ -1146,7 +1194,37 @@ class ProikosPlugin extends Plugin
         $spreadsheet = new Spreadsheet();
         $worksheet = $spreadsheet->getActiveSheet();
 
-        $row = 1;
+        $row = 5;
+        $rowDimension = $worksheet->getRowDimension($row);
+        $rowDimension->setRowHeight(30);
+
+        $drawing = new Drawing();
+        $drawing->setName('Logo');
+        $drawing->setDescription('Logo');
+        $drawing->setPath($logo);
+        $drawing->setWidth(200); // Altura de la imagen en puntos
+        $drawing->setCoordinates('A2'); // Coordenadas de la celda donde se insertará la imagen
+        $drawing->setOffsetX(0);
+        $drawing->setOffsetY(-30);
+        $drawing->setWorksheet($worksheet);
+
+        $worksheet->getRowDimension(1)->setRowHeight(20);
+        $worksheet->getRowDimension(2)->setRowHeight(30); // Ajustar la altura de la fila si es necesario
+        $worksheet->getRowDimension(3)->setRowHeight(30);
+        $worksheet->getColumnDimension('A')->setWidth(15); // Ajustar el ancho de la columna si es necesario
+        $worksheet->getCell('A2')->setValue('');
+        //activar autofiltro a las cabeceras
+        $range = 'A5:T5';
+        $worksheet->setAutoFilter($range);
+        $borderStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['argb' => '00000000'],
+                ],
+            ],
+        ];
+
         for ($col = 'A', $i = 0; $i < count($headers); $col++, $i++) {
             $worksheet->setCellValue($col . $row, $headers[$i]);
 
@@ -1154,25 +1232,19 @@ class ProikosPlugin extends Plugin
             $style = $worksheet->getStyle($col . $row);
             // Alinear el texto al centro
             $style->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $style->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
             // Aplicar negrita al texto
             $font = $style->getFont();
             $font->setBold(true);
+            $font->getColor()->setRGB('FFFFFF');
             // Ajustar el ancho de la columna para adaptarse al contenido
             $worksheet->getColumnDimension($col)->setAutoSize(true);
             // Aplicar borde a las celdas
-            $borderStyle = [
-                'borders' => [
-                    'outline' => [
-                        'borderStyle' => Border::BORDER_THIN,
-                        'color' => ['argb' => '00000000'],
-                    ],
-                ],
-            ];
+
             $style->applyFromArray($borderStyle);
-            // Aplicar color de fondo a las celdas
-            $style->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('CDCDCD');
+            $style->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('00b26e');
         }
-        $line = 2;
+        $line = 6;
         $count = 1;
         foreach ($students as $student){
             //var_dump($student);
@@ -1180,24 +1252,33 @@ class ProikosPlugin extends Plugin
             $worksheet->setCellValueByColumnAndRow(1, $line, $count);
             $worksheet->setCellValueByColumnAndRow(2, $line, strtoupper($student['firstname']));
             $worksheet->setCellValueByColumnAndRow(3, $line, strtoupper($student['lastname']));
-            $worksheet->setCellValueByColumnAndRow(4, $line, $student['type_document']);
+
+            $documentTypeText = self::getDocumentTypeText($student['type_document']);
+            $worksheet->setCellValueByColumnAndRow(4, $line, $documentTypeText);
             $worksheet->setCellValueByColumnAndRow(5, $line, $student['number_document']);
             $worksheet->getStyleByColumnAndRow(5, $line)->getNumberFormat()->setFormatCode("@");
             $worksheet->setCellValueByColumnAndRow(6, $line, $student['age']);
             $worksheet->setCellValueByColumnAndRow(7, $line, $student['gender']);
-            $worksheet->setCellValueByColumnAndRow(8, $line, $student['instruction']);
-            $worksheet->setCellValueByColumnAndRow(9, $line, $student['email']);
+
+            $instructionTypeText = self::getInstructionTypeText($student['instruction']);
+            $worksheet->setCellValueByColumnAndRow(8, $line, $instructionTypeText);
+            $worksheet->setCellValueByColumnAndRow(9, $line, strtolower($student['email']));
             $worksheet->setCellValueByColumnAndRow(10, $line, $student['name_company']);
             $worksheet->setCellValueByColumnAndRow(11, $line, $student['contact_manager']);
             $worksheet->setCellValueByColumnAndRow(12, $line, $student['position_company']);
-            $worksheet->setCellValueByColumnAndRow(13, $line, $student['stakeholders']);
+
+            $stakeholdersTypeText = self::getStakeholderTypeText($student['stakeholders']);
+            $worksheet->setCellValueByColumnAndRow(13, $line, $stakeholdersTypeText);
             $worksheet->setCellValueByColumnAndRow(14, $line, $student['record_number']);
             $worksheet->setCellValueByColumnAndRow(15, $line, $student['area']);
             $worksheet->setCellValueByColumnAndRow(16, $line, $student['department']);
             $worksheet->setCellValueByColumnAndRow(17, $line, $student['headquarters']);
+            //$worksheet->getColumnDimensionByColumn(17)->setAutoSize(true);
             $worksheet->setCellValueByColumnAndRow(18, $line, 'PETROPERU');
             $worksheet->setCellValueByColumnAndRow(19, $line, $student['session_id']);
             $worksheet->setCellValueByColumnAndRow(20, $line, $student['session_name']);
+
+            $worksheet->getStyle("A$line:T$line")->applyFromArray($borderStyle);
             $line++;
             $count++;
         }
