@@ -46,11 +46,8 @@ if ($isAdmin) {
             }
         }
         $plugin->exportReportXLS($mergedStudents);
-
     }
-
     $tpl->assign('form', $form->returnForm());
-
 }
 
 $content = $tpl->fetch('proikos/view/proikos_fora.tpl');
