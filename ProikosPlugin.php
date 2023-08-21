@@ -6,7 +6,9 @@ use Chamilo\CoreBundle\Entity\Repository\SequenceRepository;
 use Chamilo\CoreBundle\Entity\Repository\SequenceResourceRepository;
 use Chamilo\CoreBundle\Entity\Sequence;
 use Chamilo\CoreBundle\Entity\SequenceResource;
-use ChamiloSession as Session;
+use Chamilo\CoreBundle\Entity\Session;
+use Chamilo\CoreBundle\Entity\SessionRelCourseRelUser;
+use Chamilo\CoreBundle\Entity\Course;
 
 class ProikosPlugin extends Plugin
 {
@@ -59,6 +61,27 @@ class ProikosPlugin extends Plugin
 
     public function install()
     {
+        $schemaManager = Database::getManager()->getConnection()->getSchemaManager();
+
+        $tablesExists = $schemaManager->tablesExist(
+            [
+                'plugin_proikos_area',
+                'plugin_proikos_area_ref_management	',
+                'plugin_proikos_companies',
+                'plugin_proikos_entity',
+                'plugin_proikos_headquarters',
+                'plugin_proikos_management',
+                'plugin_proikos_managers',
+                'plugin_proikos_position',
+                'plugin_proikos_sector',
+                'plugin_proikos_users'
+            ]
+        );
+
+        if ($tablesExists) {
+            return;
+        }
+
         $sql = "CREATE TABLE IF NOT EXISTS ".self::TABLE_PROIKOS_USERS." (
             id INT unsigned NOT NULL auto_increment PRIMARY KEY,
             user_id INT NULL,
@@ -163,7 +186,7 @@ class ProikosPlugin extends Plugin
 
         //add sectors
 
-        $sql = "INSERT INTO ".self::TABLE_PROIKOS_SECTOR."  (`id`, `name_sector`, `status`)
+        /*$sql = "INSERT INTO ".self::TABLE_PROIKOS_SECTOR."  (`id`, `name_sector`, `status`)
         VALUES ('1', 'Hidrocarburos', '1'),
         ('2', 'Minería', '1'),
         ('3','Construcción', '1'),
@@ -172,7 +195,7 @@ class ProikosPlugin extends Plugin
         ('6', 'Servicios', '1'),
         ('7', 'Banca', '1');";
 
-        Database::query($sql);
+        Database::query($sql);*/
 
     }
 
@@ -194,12 +217,12 @@ class ProikosPlugin extends Plugin
             return false;
         }
         $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
-        $sql = "SELECT * FROM $table up WHERE $userId";
+        $sql = "SELECT * FROM $table up WHERE user_id = $userId";
         $result = Database::query($sql);
         $list = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
-                $list[] = [
+                $list = [
                     'user_id' => $row['user_id'],
                     'lastname' => $row['lastname'],
                     'firstname' => $row['firstname'],
@@ -944,7 +967,7 @@ class ProikosPlugin extends Plugin
         return false;
     }
 
-    public function getStudentsSession($idSession): array
+    public function getStudentsSessionForFora($idSession): array
     {
         $users = SessionManager::get_users_by_session($idSession);
         $list = [];
@@ -962,4 +985,128 @@ class ProikosPlugin extends Plugin
         return $list;
     }
 
+    public function getCoursesSessionID($idSession, $idUser): array
+    {
+        $tbl_session_course = Database::get_main_table(TABLE_MAIN_SESSION_COURSE);
+        $tbl_course = Database::get_main_table(TABLE_MAIN_COURSE);
+        $sql = "SELECT src.c_id, src.session_id, c.title, c.code FROM $tbl_session_course src INNER JOIN $tbl_course c ON src.c_id = c.id WHERE src.session_id = $idSession;";
+        $result = Database::query($sql);
+        $courses = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $evaluations =  self::getScoreEvaluationStudent($row['code'],$idUser);
+                $courses[] = [
+                    'c_id' => $row['c_id'],
+                    'session_id' => $row['session_id'],
+                    'title' => $row['title'],
+                    'code' => $row['code'],
+                    'evaluations' => $evaluations
+                ];
+            }
+        }
+        return $courses;
+    }
+
+    public function getScoreEvaluationStudent($codeCourse, $idStudent): array
+    {
+        $tbl_gradebook_evaluation = Database::get_main_table(TABLE_MAIN_GRADEBOOK_EVALUATION);
+        $tbl_gradebook_result = Database::get_main_table(TABLE_MAIN_GRADEBOOK_RESULT);
+        $sql = "SELECT ge.id as id_evaluation, gr.user_id, ge.name, ge.course_code, gr.score FROM $tbl_gradebook_evaluation ge
+                INNER JOIN $tbl_gradebook_result gr ON gr.evaluation_id = ge.id WHERE ge.course_code = '$codeCourse' AND gr.user_id = $idStudent;";
+        $result = Database::query($sql);
+        $list = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $list[] = [
+                    'id_evaluation' => $row['id_evaluation'],
+                    'id_user' => $row['user_id'],
+                    'name' => $row['name'],
+                    'code_course' => $row['course_code'],
+                    'score' => $row['score']
+                ];
+            }
+        }
+        return $list;
+    }
+
+    public function getSessionForDate($starDate, $endDate): array
+    {
+        $tbl_session = Database::get_main_table(TABLE_MAIN_SESSION);
+        $d_start = (string)$starDate;
+        $d_end = (string)$endDate;
+        $sql = "SELECT * FROM $tbl_session s WHERE s.display_start_date BETWEEN '".$d_start."' AND '".$d_end."'";
+        $result = Database::query($sql);
+        $list = [];
+        $em = Database::getManager();
+        /** @var \Chamilo\CoreBundle\Entity\Repository\SessionRepository $sessionRepository */
+        $sessionRepository = $em->getRepository('ChamiloCoreBundle:Session');
+        /** @var Session $session */
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $sessionInfo = api_get_session_info($row['id']);
+                $session = $sessionRepository->find($row['id']);
+                $sessionCategory = $session->getCategory();
+                $categoryName = $sessionCategory->getName();
+                $list[] = [
+                    'id' => $sessionInfo['id'],
+                    'id_coach' => $sessionInfo['id_coach'],
+                    'session_category_id' => $sessionInfo['session_category_id'],
+                    'session_category_name' => $categoryName,
+                    'name' => $sessionInfo['name'],
+                    'description' => $sessionInfo['description'],
+                    'nbr_courses' => $sessionInfo['nbr_courses'],
+                    'nbr_users' => $sessionInfo['nbr_users'],
+                    'session_admin_id' => $sessionInfo['session_admin_id'],
+                    'code_reference' => $sessionInfo['code_reference'],
+                    'display_start_date' => $sessionInfo['display_start_date'],
+                    'display_end_date' => $sessionInfo['display_end_date'],
+                    'access_start_date' => $sessionInfo['access_start_date'],
+                    'access_end_date' => $sessionInfo['access_end_date']
+                ];
+            }
+        }
+        return $list;
+    }
+
+    public function getStudentForSession($session = [])
+    {
+        $userList = SessionManager::get_users_by_session($session['id']);
+        $users = [];
+        if (!empty($userList)) {
+            foreach ($userList as $user) {
+                $userId = $user['user_id'];
+                $infoProikos = self::getInfoUserProikos($userId);
+                $userInfo = api_get_user_info($userId);
+                $courses = self::getCoursesSessionID($session['id'], $userId);
+                $users[] = [
+                    'id' => $userId,
+                    'firstname' => $userInfo['firstname'],
+                    'lastname' => $userInfo['lastname'],
+                    'username' => $userInfo['username'],
+                    'official_code' => $userInfo['official_code'],
+                    'has_certificates' => $userInfo['has_certificates'],
+                    'status' => $userInfo['status'],
+                    'active' => $userInfo['active'],
+                    'phone' => $infoProikos['phone'] ?? '-',
+                    'type_document' => $infoProikos['type_document'] ?? '-',
+                    'number_document' => $infoProikos['number_document'] ?? '-',
+                    'age' => $infoProikos['age'] ?? '-',
+                    'gender' => $infoProikos['gender'] ?? '-',
+                    'instruction' => $infoProikos['instruction'] ?? '-',
+                    'name_company' => $infoProikos['name_company'] ?? '-',
+                    'contact_manager' => $infoProikos['contact_manager'] ?? '-',
+                    'position_company' => $infoProikos['position_company'] ?? '-',
+                    'stakeholders' => $infoProikos['stakeholders'] ?? '-',
+                    'record_number' => $infoProikos['record_number'] ?? '-',
+                    'area' => $infoProikos['area'] ?? '-',
+                    'department' => $infoProikos['department'] ?? '-',
+                    'headquarters' => $infoProikos['headquarters'] ?? '-',
+                    'session_id' => $session['id'],
+                    'session_name' => $session['name'],
+                    'courses' => $courses
+                ];
+            }
+            return $users;
+        }
+    }
 }

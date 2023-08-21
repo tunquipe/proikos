@@ -55,7 +55,7 @@ if($action == 'export_pdf'){
     $employerHeader = true;
     $employerFooter = false;
 
-    $students = $plugin->getStudentsSession($idSession);
+    $students = $plugin->getStudentsSessionForFora($idSession);
     $recordPerPage = 15;
     $onePage = 10;
     $pages = ceil(count($students) / $recordPerPage);

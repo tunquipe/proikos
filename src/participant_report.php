@@ -20,6 +20,36 @@ if ($isAdmin) {
         'actions',
         Display::toolbarAction('toolbar', [$actionLinks])
     );
+    $firstDate = date('Y-m-01').' 00:00:00';
+    $lastDate = date('Y-m-t').' 00:00:00';
+
+    $form = new FormValidator(
+        'report',
+        'post',
+        api_get_self() . '?action=report'
+    );
+    $form->addHeader($plugin->get_lang('GenerateParticipantReport'));
+    $form->addDatePicker('star_date',get_lang('DateStart'), ['value'=> $firstDate, 'id' => 'star_date']);
+    $form->addDatePicker('end_date',get_lang('DateEnd'),['value'=> $lastDate, 'id' => 'end_date']);
+    $form->addButton('generate',get_lang('Generate'));
+
+    if ($form->validate()) {
+        $values = $form->getSubmitValues();
+        $starDate = $values['star_date'];
+        $endDate = $values['end_date'];
+        $sessions = $plugin->getSessionForDate($starDate, $endDate);
+        $mergedStudents = [];
+        foreach ($sessions as $session){
+            $students[$session['id']] = $plugin->getStudentForSession($session);
+            if ($students[$session['id']] !== null) {
+                $mergedStudents = array_merge($mergedStudents, $students[$session['id']]);
+            }
+        }
+        $cant = count($mergedStudents);
+    }
+
+    $tpl->assign('form', $form->returnForm());
+
 }
 
 $content = $tpl->fetch('proikos/view/proikos_fora.tpl');

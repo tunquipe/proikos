@@ -54,3 +54,4 @@ $strings['Logo'] = 'Logotipo';
 $strings['DashboardProikos'] = 'Panel Proikos Academy';
 $strings['GenerateListOfParticipants'] = 'Generar lista de participantes FORA';
 $strings['ParticipantReport'] = 'Reporte de participantes';
+$strings['GenerateParticipantReport'] = 'Generar reporte de participantes';
