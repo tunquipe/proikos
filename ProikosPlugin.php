@@ -1107,6 +1107,8 @@ class ProikosPlugin extends Plugin
                     'headquarters' => $infoProikos['headquarters'] ?? '-',
                     'session_id' => $session['id'],
                     'session_name' => $session['name'],
+                    'display_start_date' => $session['display_start_date'],
+                    'display_end_date' => $session['display_end_date'],
                     'courses' => $courses
                 ];
             }
@@ -1188,7 +1190,10 @@ class ProikosPlugin extends Plugin
             get_plugin_lang('Headquarters', 'ProikosPlugin'),
             get_plugin_lang('CodeReference', 'ProikosPlugin'),
             get_plugin_lang('SessionId', 'ProikosPlugin'),
-            get_plugin_lang('SessionName', 'ProikosPlugin')
+            get_plugin_lang('SessionName', 'ProikosPlugin'),
+            get_plugin_lang('SessionStarDate', 'ProikosPlugin'),
+            get_lang('Code'),
+            get_lang('CourseName')
         ];
 
         $spreadsheet = new Spreadsheet();
@@ -1277,8 +1282,22 @@ class ProikosPlugin extends Plugin
             $worksheet->setCellValueByColumnAndRow(18, $line, 'PETROPERU');
             $worksheet->setCellValueByColumnAndRow(19, $line, $student['session_id']);
             $worksheet->setCellValueByColumnAndRow(20, $line, $student['session_name']);
+            $worksheet->setCellValueByColumnAndRow(21, $line, $student['display_start_date']);
 
-            $worksheet->getStyle("A$line:T$line")->applyFromArray($borderStyle);
+            foreach ($student['courses'] as $course) {
+                $worksheet->setCellValueByColumnAndRow(22, $line, $course['code']);
+                $worksheet->setCellValueByColumnAndRow(23, $line, $course['title']);
+                foreach ($course['evaluations'] as $evaluation) {
+                    $worksheet->setCellValueByColumnAndRow(24, $line, $evaluation['name']);
+                    $worksheet->setCellValueByColumnAndRow(25, $line, $evaluation['score']);
+                }
+            }
+
+
+            //$worksheet->setCellValueByColumnAndRow(22, $line, $student['courses'][0]['code']);
+            //$worksheet->setCellValueByColumnAndRow(23, $line, $student['courses'][0]['title']);
+
+            $worksheet->getStyle("A$line:W$line")->applyFromArray($borderStyle);
             $line++;
             $count++;
         }

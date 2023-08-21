@@ -59,3 +59,4 @@ $strings['GenerateParticipantReport'] = 'Generar reporte de participantes';
 $strings['SessionId'] = 'ID de sesión';
 $strings['SessionName'] = 'Nombre de la sesión';
 $strings['CourseCode'] = 'Codigo del curso';
+$strings['SessionStarDate'] = 'Fecha de inicio';
