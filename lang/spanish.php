@@ -60,3 +60,5 @@ $strings['SessionId'] = 'ID de sesión';
 $strings['SessionName'] = 'Nombre de la sesión';
 $strings['CourseCode'] = 'Codigo del curso';
 $strings['SessionStarDate'] = 'Fecha de inicio';
+$strings['CongratulationsYouPassedTheCourse'] = 'Felicidades, aprobaste el curso';
+$strings['SorryYouReachTheProperScore'] = 'Lamentable, no alcanzaste el puntaje adecuado';

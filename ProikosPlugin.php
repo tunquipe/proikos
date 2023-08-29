@@ -1310,4 +1310,50 @@ class ProikosPlugin extends Plugin
         exit;
 
     }
+
+    public function getScoreCertificate($idUser, $codeCourse, $idSession): array
+    {
+        $icon = api_get_path(WEB_PLUGIN_PATH) . 'proikos/images/happy.png';
+        $tbl_gradebook_category = Database::get_main_table(TABLE_MAIN_GRADEBOOK_CATEGORY);
+        $tbl_gradebook_score_log = Database::get_main_table(TABLE_MAIN_GRADEBOOK_SCORE_LOG);
+        $tbl_gradebook_certificate= Database::get_main_table(TABLE_MAIN_GRADEBOOK_CERTIFICATE);
+        $sql = "SELECT
+                    gsl.id,
+                    gc.course_code,
+                    gc.certif_min_score,
+                    gc.weight,
+                    gc.session_id,
+                    gsl.category_id,
+                    gsl.score,
+                    gsl.user_id,
+                    CASE WHEN gcf.user_id IS NOT NULL THEN 1 ELSE 0 END AS has_certificate
+                FROM $tbl_gradebook_category gc
+                INNER JOIN $tbl_gradebook_score_log gsl ON gsl.category_id = gc.id
+                LEFT JOIN $tbl_gradebook_certificate gcf ON gcf.user_id = gsl.user_id
+                WHERE gc.course_code = '$codeCourse' AND gc.session_id = $idSession AND gsl.user_id = $idUser
+                ORDER BY gsl.id DESC LIMIT 1;";
+        $result = Database::query($sql);
+        $list = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                if(!$row['has_certificate']){
+                    $icon = api_get_path(WEB_PLUGIN_PATH) . 'proikos/images/sad.png';
+                }
+                $list = [
+                    'id' => $row['id'],
+                    'course_code' => $row['course_code'],
+                    'certif_min_score' => (int)$row['certif_min_score'],
+                    'weight' => (double)$row['weight'],
+                    'session_id' => $row['session_id'],
+                    'category_id' => $row['category_id'],
+                    'score' => (double)$row['score'],
+                    'user_id' => $row['user_id'],
+                    'has_certificate' => boolval($row['has_certificate']),
+                    'icon' => $icon
+                ];
+            }
+        }
+        return $list;
+    }
+
 }
