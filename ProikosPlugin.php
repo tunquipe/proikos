@@ -1332,6 +1332,7 @@ class ProikosPlugin extends Plugin
                 LEFT JOIN $tbl_gradebook_certificate gcf ON gcf.user_id = gsl.user_id
                 WHERE gc.course_code = '$codeCourse' AND gc.session_id = $idSession AND gsl.user_id = $idUser
                 ORDER BY gsl.id DESC LIMIT 1;";
+
         $result = Database::query($sql);
         $list = [];
         if (Database::num_rows($result) > 0) {
@@ -1356,4 +1357,21 @@ class ProikosPlugin extends Plugin
         return $list;
     }
 
+    public function getStakeholdersUser($idUser):int
+    {
+        $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $sql = "SELECT ppu.stakeholders FROM $table ppu WHERE ppu.user_id = $idUser;";
+        $result = Database::query($sql);
+        $idStakeholders = 0;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                if(!is_null($row['stakeholders'])){
+                    $idStakeholders = $row['stakeholders'];
+                } else {
+                    $idStakeholders = 0;
+                }
+            }
+        }
+        return $idStakeholders;
+    }
 }
