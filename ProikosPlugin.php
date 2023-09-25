@@ -1313,7 +1313,7 @@ class ProikosPlugin extends Plugin
 
     public function getScoreCertificate($idUser, $codeCourse, $idSession): array
     {
-        $icon = api_get_path(WEB_PLUGIN_PATH) . 'proikos/images/happy.png';
+
         $tbl_gradebook_category = Database::get_main_table(TABLE_MAIN_GRADEBOOK_CATEGORY);
         $tbl_gradebook_score_log = Database::get_main_table(TABLE_MAIN_GRADEBOOK_SCORE_LOG);
         $tbl_gradebook_certificate= Database::get_main_table(TABLE_MAIN_GRADEBOOK_CERTIFICATE);
@@ -1332,14 +1332,11 @@ class ProikosPlugin extends Plugin
                 LEFT JOIN $tbl_gradebook_certificate gcf ON gcf.user_id = gsl.user_id
                 WHERE gc.course_code = '$codeCourse' AND gc.session_id = $idSession AND gsl.user_id = $idUser
                 ORDER BY gsl.id DESC LIMIT 1;";
-
         $result = Database::query($sql);
         $list = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
-                if(!$row['has_certificate']){
-                    $icon = api_get_path(WEB_PLUGIN_PATH) . 'proikos/images/sad.png';
-                }
+
                 $list = [
                     'id' => $row['id'],
                     'course_code' => $row['course_code'],
@@ -1349,12 +1346,24 @@ class ProikosPlugin extends Plugin
                     'category_id' => $row['category_id'],
                     'score' => (double)$row['score'],
                     'user_id' => $row['user_id'],
-                    'has_certificate' => boolval($row['has_certificate']),
-                    'icon' => $icon
                 ];
             }
         }
-        return $list;
+
+        $sql = "SELECT * FROM $tbl_gradebook_certificate gc WHERE gc.user_id = ".$list['user_id']." AND gc.cat_id = ".$list['category_id'].";";
+        $result = Database::query($sql);
+        $total = boolval(Database::num_rows($result));
+        $has_certificate = false;
+        $icon = api_get_path(WEB_PLUGIN_PATH) . 'proikos/images/sad.png';
+        if (Database::num_rows($result) > 0) {
+            $has_certificate = true;
+            $icon = api_get_path(WEB_PLUGIN_PATH) . 'proikos/images/happy.png';
+        }
+
+        return [
+            'icon' => $icon,
+            'has_certificate' =>  $has_certificate
+        ];
     }
 
     public function getStakeholdersUser($idUser):int
@@ -1373,5 +1382,42 @@ class ProikosPlugin extends Plugin
             }
         }
         return $idStakeholders;
+    }
+
+    public function getIdCourseSession($idSession){
+        $table = Database::get_main_table(TABLE_MAIN_SESSION_COURSE);
+        $sql = "SELECT src.c_id FROM $table src WHERE src.session_id=$idSession;";
+        $result = Database::query($sql);
+        $courses = null;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $courses = $row['c_id'];
+            }
+        }
+        return $courses;
+    }
+
+    public function getRequirementsSessionCourseUser($idSession){
+        $table = Database::get_main_table(TABLE_MAIN_SESSION_COURSE);
+        $sql = "SELECT src.c_id FROM $table src WHERE src.session_id=$idSession;";
+        $result = Database::query($sql);
+        $courses = [];
+        $checks = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $courses[]= $row['c_id'];
+            }
+        }
+        $userId = api_get_user_id();
+        $em = Database::getManager();
+        /** @var SequenceResourceRepository $sequenceResourceRepository */
+        $sequenceResourceRepository = $em->getRepository(SequenceResource::class);
+
+        foreach ($courses as $course){
+            $sequences = $sequenceResourceRepository->getRequirements($course, 1);
+            $sequenceList = $sequenceResourceRepository->checkRequirementsForUser($sequences, 1, $userId, $course);
+            $checks = self::checkSequenceAreCompleted($sequenceList);
+        }
+        return $checks;
     }
 }
