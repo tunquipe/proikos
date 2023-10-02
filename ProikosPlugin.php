@@ -1420,4 +1420,17 @@ class ProikosPlugin extends Plugin
         }
         return $checks;
     }
+    public function getSessionDatesNext(): array
+    {
+        $table = Database::get_main_table(TABLE_MAIN_SESSION);
+        $sql = "SELECT name, display_start_date FROM $table WHERE display_start_date >= CURDATE();";
+        $result = Database::query($sql);
+        $list = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $list[]= $row['name'];
+            }
+        }
+        return $list;
+    }
 }
