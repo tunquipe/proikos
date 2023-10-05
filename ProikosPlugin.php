@@ -1420,10 +1420,11 @@ class ProikosPlugin extends Plugin
         }
         return $checks;
     }
-    public function getSessionDatesNext(): array
+    public function getSessionDatesNext($categoryID=0): array
     {
-        $table = Database::get_main_table(TABLE_MAIN_SESSION);
-        $sql = "SELECT name, display_start_date FROM $table WHERE display_start_date >= CURDATE();";
+        $tableSession = Database::get_main_table(TABLE_MAIN_SESSION);
+        $sql = "SELECT s.name, s.display_start_date FROM $tableSession s JOIN session_category sc
+        ON sc.id = s.session_category_id WHERE display_start_date >= CURDATE() AND s.session_category_id = $categoryID";
         $result = Database::query($sql);
         $list = [];
         if (Database::num_rows($result) > 0) {
