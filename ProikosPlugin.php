@@ -997,7 +997,13 @@ class ProikosPlugin extends Plugin
         $courses = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
-                $evaluations =  self::getScoreEvaluationStudent($row['code'],$idUser);
+                $evaluations = self::getResultExerciseStudent(
+                    $idUser,
+                    $row['c_id'],
+                    $idSession
+                );
+                //var_dump($user_results);
+                //$evaluations =  self::getScoreEvaluationStudent($row['code'],$idUser);
                 $courses[] = [
                     'c_id' => $row['c_id'],
                     'session_id' => $row['session_id'],
@@ -1008,6 +1014,185 @@ class ProikosPlugin extends Plugin
             }
         }
         return $courses;
+    }
+    public function getCourseCode($courseId)
+    {
+        $tableCourse = Database::get_main_table(TABLE_MAIN_COURSE);
+        $sql = "SELECT code FROM $tableCourse WHERE id = $courseId";
+        $rs = Database::query($sql);
+        $aux = Database::fetch_assoc($rs);
+
+        return $aux['code'];
+    }
+
+    public function get_all_exercises(
+        $course_id,
+        $session_id = 0,
+        $check_publication_dates = false,
+        $search = '',
+        $search_all_sessions = false,
+        $active = 2,
+        $idUser
+    )
+    {
+        $scoretotal_display = '0';
+        if ($session_id == -1) {
+            $session_id = 0;
+        }
+        $courseCode = self::getCourseCode($course_id);
+
+        $now = api_get_utc_datetime();
+        $timeConditions = '';
+        if ($check_publication_dates) {
+            // Start and end are set
+            $timeConditions = " AND ((start_time <> '' AND start_time < '$now' AND end_time <> '' AND end_time > '$now' )  OR ";
+            // only start is set
+            $timeConditions .= " (start_time <> '' AND start_time < '$now' AND end_time is NULL) OR ";
+            // only end is set
+            $timeConditions .= " (start_time IS NULL AND end_time <> '' AND end_time > '$now') OR ";
+            // nothing is set
+            $timeConditions .= ' (start_time IS NULL AND end_time IS NULL)) ';
+        }
+
+        $needle_where = !empty($search) ? " AND title LIKE '?' " : '';
+        $needle = !empty($search) ? "%" . $search . "%" : '';
+
+        // Show courses by active status
+        $active_sql = '';
+        if ($active == 3) {
+            $active_sql = ' active <> -1 AND';
+        } else {
+            if ($active != 2) {
+                $active_sql = sprintf(' active = %d AND', $active);
+            }
+        }
+
+        if ($search_all_sessions == true) {
+            $conditions = [
+                'where' => [
+                    $active_sql . ' c_id = ? ' . $needle_where . $timeConditions => [
+                        $course_id,
+                        $needle,
+                    ],
+                ],
+                'order' => 'title',
+            ];
+        } else {
+            if (empty($session_id)) {
+                $conditions = [
+                    'where' => [
+                        $active_sql . ' (session_id = 0 OR session_id IS NULL) AND c_id = ? ' . $needle_where . $timeConditions => [
+                            $course_id,
+                            $needle,
+                        ],
+                    ],
+                    'order' => 'title',
+                ];
+            } else {
+                $conditions = [
+                    'where' => [
+                        $active_sql . ' (session_id = 0 OR session_id IS NULL OR session_id = ? ) AND c_id = ? ' . $needle_where . $timeConditions => [
+                            $session_id,
+                            $course_id,
+                            $needle,
+                        ],
+                    ],
+                    'order' => 'title',
+                ];
+            }
+        }
+
+        $table = Database::get_course_table(TABLE_QUIZ_TEST);
+        /*$cats = Category::load(
+            null,
+            null,
+            $courseCode,
+            null,
+            null,
+            $session_id
+        );
+        $scoretotal = [];
+        if (isset($cats) && isset($cats[0])) {
+            if (!empty($session_id)) {
+                $scoretotal = $cats[0]->calc_score($idUser, null, $courseCode, $session_id);
+            }
+        }
+
+        if (!empty($scoretotal) && !empty($scoretotal[1])) {
+            $scoretotal_display = round(($scoretotal[0] / $scoretotal[1]) * 100, 2);
+        }
+        var_dump($scoretotal_display);*/
+        $exercises = Database::select('*', $table, $conditions);
+        foreach ($exercises as $exercise){
+            echo ($exercise['title']).'<br>';
+        }
+
+        return 0;
+    }
+
+    public function getFormatResultStudent($list): array
+    {
+        ksort($list);
+        $defaults =[
+            'Examen de entrada' => 0,
+            'Examen de salida' => 0,
+            'Taller' => 0
+        ];
+        ksort($defaults);
+        if(empty($list)){
+            return $defaults;
+        }
+        $result = array_merge($defaults, $list);
+        $result = array_change_key_case($result, CASE_LOWER);
+        ksort($result);
+        return $result;
+    }
+
+    public function getResultExerciseStudent($user_id, $courseId, $session_id = 0, $format = true): array
+    {
+        $table_track_exercises = Database::get_main_table(TABLE_STATISTIC_TRACK_E_EXERCISES);
+        $courseId = (int) $courseId;
+        $session_id = (int) $session_id;
+        $user_id = (int) $user_id;
+
+        $sql = "SELECT * FROM $table_track_exercises
+                WHERE
+                    status = '' AND
+                    exe_user_id = $user_id AND
+                    c_id = $courseId AND
+                    session_id = $session_id AND
+                    orig_lp_id = 0 AND
+                    orig_lp_item_id = 0
+                ORDER by exe_id";
+
+        $res = Database::query($sql);
+        $tmp = [];
+        $list = [];
+        while ($row = Database::fetch_array($res, 'ASSOC')) {
+            $name = self::getNameExercise($row['exe_exo_id']);
+            if($format){
+                $tmp[$name] = doubleval($row['exe_result']);
+                $list = self::getFormatResultStudent($tmp);
+            } else {
+                $list[] = [
+                    'exe_id' => $row['exe_exo_id'],
+                    'name' => $name,
+                    'score' => doubleval($row['exe_result'])
+                ];
+            }
+        }
+        return $list;
+    }
+
+    public function getNameExercise($id_exercise){
+        $tbl_quiz = Database::get_course_table(TABLE_QUIZ_TEST);
+        $sql = "SELECT cq.title FROM $tbl_quiz cq WHERE cq.id = $id_exercise";
+        $res = Database::query($sql);
+        $name = null;
+        while ($row = Database::fetch_array($res, 'ASSOC')) {
+            $name = $row['title'];
+        }
+        return $name;
     }
 
     public function getScoreEvaluationStudent($codeCourse, $idStudent): array
@@ -1251,6 +1436,9 @@ class ProikosPlugin extends Plugin
         }
         $line = 6;
         $count = 1;
+        $column = 24;
+        $rowCell = 6;
+
         foreach ($students as $student){
             //var_dump($student);
             $worksheet->setCellValueByColumnAndRow(0, $line, '');
@@ -1283,14 +1471,21 @@ class ProikosPlugin extends Plugin
             $worksheet->setCellValueByColumnAndRow(19, $line, $student['session_id']);
             $worksheet->setCellValueByColumnAndRow(20, $line, $student['session_name']);
             $worksheet->setCellValueByColumnAndRow(21, $line, $student['display_start_date']);
-
             foreach ($student['courses'] as $course) {
                 $worksheet->setCellValueByColumnAndRow(22, $line, $course['code']);
                 $worksheet->setCellValueByColumnAndRow(23, $line, $course['title']);
-                foreach ($course['evaluations'] as $evaluation) {
-                    $worksheet->setCellValueByColumnAndRow(24, $line, $evaluation['name']);
-                    $worksheet->setCellValueByColumnAndRow(25, $line, $evaluation['score']);
+
+                foreach ($course['evaluations'] as $key => $value) {
+                    $worksheet->setCellValueByColumnAndRow($column, $rowCell, $key);
+                    $column++;
+                   $worksheet->setCellValueByColumnAndRow($column, $rowCell, $value);
+                   $column++;
+                    if($column>=29){
+                        $column=24;
+                    };
                 }
+
+                $rowCell++;
             }
 
 

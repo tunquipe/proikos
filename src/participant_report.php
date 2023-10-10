@@ -57,6 +57,7 @@ if ($isAdmin) {
                 $mergedStudents = array_merge($mergedStudents, $students[$session['id']]);
             }
         }
+
         try {
             $plugin->exportReportXLS($mergedStudents, $logoCompany);
         } catch (\PhpOffice\PhpSpreadsheet\Exception $e) {
