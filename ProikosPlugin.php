@@ -1058,7 +1058,6 @@ class ProikosPlugin extends Plugin
         $sql = "SELECT code FROM $tableCourse WHERE id = $courseId";
         $rs = Database::query($sql);
         $aux = Database::fetch_assoc($rs);
-
         return $aux['code'];
     }
 
@@ -1095,15 +1094,27 @@ class ProikosPlugin extends Plugin
                         break;
                     case 'ExerciseLink':
                         /** @var ExerciseLink $item */
-                        //hjvar_dump($item->getBestScore());
                         $name = strtolower($item->get_name());
-                        $score = self::getFormatScore($item,$user_id);
+                        $score = self::getScoreExercise($item->get_ref_id(),$session_id,$user_id);
                         $defaultData[$name] = $score;
                         break;
                 }
             }
             return $defaultData;
         }
+    }
+
+    public function getScoreExercise($id_exercise, $session_id, $user_id){
+        $table_exercise_log = Database::get_main_table(TABLE_STATISTIC_TRACK_E_EXERCISES);
+        $sql = "SELECT * FROM $table_exercise_log tee WHERE tee.exe_exo_id = $id_exercise AND tee.session_id = $session_id AND tee.exe_user_id = $user_id;";
+        $result = Database::query($sql);
+        $score = 0;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $score = doubleval($row['exe_result']);
+            }
+        }
+        return $score;
     }
 
     public function getFormatScore(GradebookItem $item, $user_id): float
