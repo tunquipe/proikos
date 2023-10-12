@@ -81,7 +81,7 @@ if ($isAdmin) {
         //var_dump($combinedArray);
         $uniqueKeys = array_unique(array_keys($combinedArray));
         $numUniqueKeys = count($uniqueKeys);
-        exit;
+        //exit;
         try {
             $plugin->exportReportXLS($mergedStudents, $logoCompany, $numUniqueKeys, $combinedArray);
         } catch (\PhpOffice\PhpSpreadsheet\Exception $e) {

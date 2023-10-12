@@ -1027,21 +1027,26 @@ class ProikosPlugin extends Plugin
         $evaluations = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
-                    $evaluations = self::getResultExerciseStudent(
-                        $idUser,
-                        $row['c_id'],
-                        $idSession
-                    );
+                $evaluations = self::getResultExerciseStudent(
+                    $idUser,
+                    $row['c_id'],
+                    $idSession
+                );
+                foreach ($evaluations as $key => $value) {
+                    if ($value > 0) {
+                        $evaluations_empty[$key] = $value;
+                    }
+                }
                 $courses[] = [
                     'c_id' => $row['c_id'],
                     'session_id' => $row['session_id'],
                     'title' => $row['title'],
                     'code' => $row['code'],
-                    'evaluations' => $evaluations,
+                    'evaluations' => $evaluations_empty,
                 ];
+                //var_dump($evaluations_empty);
             }
         }
-
         return $courses;
     }
     public function getCourseCode($courseId)
@@ -1093,6 +1098,7 @@ class ProikosPlugin extends Plugin
                         break;
                 }
             }
+            //var_dump($defaultData);
             return $defaultData;
         }
     }
@@ -1411,9 +1417,6 @@ class ProikosPlugin extends Plugin
                 $worksheet->setCellValueByColumnAndRow(23, $line, $course['title']);
 
                 foreach ($course['evaluations'] as $key => $value) {
-                    //$worksheet->setCellValueByColumnAndRow($column, $rowCell, $key);
-                    //$worksheet->getColumnDimensionByColumn($column)->setAutoSize(true);
-                    //$column++;
                     $worksheet->setCellValueByColumnAndRow($column, $rowCell, round($value, 0));
                     $worksheet->getColumnDimensionByColumn($column)->setAutoSize(true);
                     $column++;
@@ -1428,7 +1431,7 @@ class ProikosPlugin extends Plugin
             //$worksheet->setCellValueByColumnAndRow(22, $line, $student['courses'][0]['code']);
             //$worksheet->setCellValueByColumnAndRow(23, $line, $student['courses'][0]['title']);
 
-            $worksheet->getStyle("A$line:W$line")->applyFromArray($borderStyle);
+            $worksheet->getStyle("A$line:AA$line")->applyFromArray($borderStyle);
             $line++;
             $count++;
         }
