@@ -988,31 +988,60 @@ class ProikosPlugin extends Plugin
         return $list;
     }
 
-    public function getCoursesSessionID($idSession, $idUser): array
+    public function getGradebookEvaluation($courseId, $session_id = 0){
+        $course_code = self::getCourseCode($courseId);
+        $cats = Category::load(
+            null,
+            null,
+            $course_code,
+            null,
+            null,
+            $session_id,
+            false
+        );
+        foreach ($cats as $cat) {
+            $cats = $cat->get_subcategories(null, $course_code, $session_id);
+            $evals = $cat->get_evaluations(null, false, $course_code, $session_id);
+            $links = $cat->get_links(null, true, $course_code, $session_id);
+            $evals_links = array_merge($evals, $links);
+            $all_items = new GradebookDataGenerator($cats, $evals, $links);
+            usort($all_items->items, ['GradebookDataGenerator', 'sort_by_name']);
+            $visibleItems = array_merge($all_items->items, $evals_links);
+            $defaultData = [];
+            $combinedArray = [];
+            /** @var GradebookItem $item */
+            foreach ($visibleItems as $item) {
+                $name = $item->get_name();
+                $defaultData[$name] = 0;
+            }
+            return $defaultData;
+        }
+    }
+    public function getCoursesSessionID($idSession, $idUser, $evaluations_empty): array
     {
         $tbl_session_course = Database::get_main_table(TABLE_MAIN_SESSION_COURSE);
         $tbl_course = Database::get_main_table(TABLE_MAIN_COURSE);
         $sql = "SELECT src.c_id, src.session_id, c.title, c.code FROM $tbl_session_course src INNER JOIN $tbl_course c ON src.c_id = c.id WHERE src.session_id = $idSession;";
         $result = Database::query($sql);
         $courses = [];
+        $evaluations = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
-                $evaluations = self::getResultExerciseStudent(
-                    $idUser,
-                    $row['c_id'],
-                    $idSession
-                );
-                //var_dump($user_results);
-                //$evaluations =  self::getScoreEvaluationStudent($row['code'],$idUser);
+                    $evaluations = self::getResultExerciseStudent(
+                        $idUser,
+                        $row['c_id'],
+                        $idSession
+                    );
                 $courses[] = [
                     'c_id' => $row['c_id'],
                     'session_id' => $row['session_id'],
                     'title' => $row['title'],
                     'code' => $row['code'],
-                    'evaluations' => $evaluations
+                    'evaluations' => $evaluations,
                 ];
             }
         }
+
         return $courses;
     }
     public function getCourseCode($courseId)
@@ -1025,163 +1054,58 @@ class ProikosPlugin extends Plugin
         return $aux['code'];
     }
 
-    public function get_all_exercises(
-        $course_id,
-        $session_id = 0,
-        $check_publication_dates = false,
-        $search = '',
-        $search_all_sessions = false,
-        $active = 2,
-        $idUser
-    )
+    public function getResultExerciseStudent($user_id, $courseId, $session_id = 0)
     {
-        $scoretotal_display = '0';
-        if ($session_id == -1) {
-            $session_id = 0;
-        }
-        $courseCode = self::getCourseCode($course_id);
-
-        $now = api_get_utc_datetime();
-        $timeConditions = '';
-        if ($check_publication_dates) {
-            // Start and end are set
-            $timeConditions = " AND ((start_time <> '' AND start_time < '$now' AND end_time <> '' AND end_time > '$now' )  OR ";
-            // only start is set
-            $timeConditions .= " (start_time <> '' AND start_time < '$now' AND end_time is NULL) OR ";
-            // only end is set
-            $timeConditions .= " (start_time IS NULL AND end_time <> '' AND end_time > '$now') OR ";
-            // nothing is set
-            $timeConditions .= ' (start_time IS NULL AND end_time IS NULL)) ';
-        }
-
-        $needle_where = !empty($search) ? " AND title LIKE '?' " : '';
-        $needle = !empty($search) ? "%" . $search . "%" : '';
-
-        // Show courses by active status
-        $active_sql = '';
-        if ($active == 3) {
-            $active_sql = ' active <> -1 AND';
-        } else {
-            if ($active != 2) {
-                $active_sql = sprintf(' active = %d AND', $active);
-            }
-        }
-
-        if ($search_all_sessions == true) {
-            $conditions = [
-                'where' => [
-                    $active_sql . ' c_id = ? ' . $needle_where . $timeConditions => [
-                        $course_id,
-                        $needle,
-                    ],
-                ],
-                'order' => 'title',
-            ];
-        } else {
-            if (empty($session_id)) {
-                $conditions = [
-                    'where' => [
-                        $active_sql . ' (session_id = 0 OR session_id IS NULL) AND c_id = ? ' . $needle_where . $timeConditions => [
-                            $course_id,
-                            $needle,
-                        ],
-                    ],
-                    'order' => 'title',
-                ];
-            } else {
-                $conditions = [
-                    'where' => [
-                        $active_sql . ' (session_id = 0 OR session_id IS NULL OR session_id = ? ) AND c_id = ? ' . $needle_where . $timeConditions => [
-                            $session_id,
-                            $course_id,
-                            $needle,
-                        ],
-                    ],
-                    'order' => 'title',
-                ];
-            }
-        }
-
-        $table = Database::get_course_table(TABLE_QUIZ_TEST);
-        /*$cats = Category::load(
+        $course_code = self::getCourseCode($courseId);
+        $cats = Category::load(
             null,
             null,
-            $courseCode,
+            $course_code,
             null,
             null,
-            $session_id
+            $session_id,
+            false
         );
-        $scoretotal = [];
-        if (isset($cats) && isset($cats[0])) {
-            if (!empty($session_id)) {
-                $scoretotal = $cats[0]->calc_score($idUser, null, $courseCode, $session_id);
+        foreach ($cats as $cat){
+            $cats = $cat->get_subcategories($user_id, $course_code, $session_id);
+            $evals = $cat->get_evaluations($user_id, false, $course_code, $session_id);
+            $links = $cat->get_links($user_id, true, $course_code, $session_id);
+
+            $evals_links = array_merge($evals, $links);
+            $all_items = new GradebookDataGenerator($cats, $evals, $links);
+            usort($all_items->items, ['GradebookDataGenerator', 'sort_by_name']);
+            $visibleItems = array_merge($all_items->items, $evals_links);
+            $defaultData = [];
+            /** @var GradebookItem $item */
+            foreach ($visibleItems as $item) {
+                $itemType = get_class($item);
+                switch ($itemType) {
+                    case 'Evaluation':
+                        $name = $item->get_name();
+                        $score = self::getFormatScore($item,$user_id);
+                        $defaultData[$name] = $score;
+                        break;
+                    case 'ExerciseLink':
+                        /** @var ExerciseLink $item */
+                        $name = $item->get_name();
+                        $score = self::getFormatScore($item,$user_id);
+                        $defaultData[$name] = $score;
+                        break;
+                }
             }
+            return $defaultData;
         }
-
-        if (!empty($scoretotal) && !empty($scoretotal[1])) {
-            $scoretotal_display = round(($scoretotal[0] / $scoretotal[1]) * 100, 2);
-        }
-        var_dump($scoretotal_display);*/
-        $exercises = Database::select('*', $table, $conditions);
-        foreach ($exercises as $exercise){
-            echo ($exercise['title']).'<br>';
-        }
-
-        return 0;
     }
 
-    public function getFormatResultStudent($list): array
-    {
-        ksort($list);
-        $defaults =[
-            'Examen de entrada' => 0,
-            'Examen de salida' => 0,
-            'Taller' => 0
-        ];
-        ksort($defaults);
-        if(empty($list)){
-            return $defaults;
+    public function getFormatScore(GradebookItem $item, $user_id){
+
+        $score = $item->calc_score($user_id);
+        if(is_null($score)){
+            return floatval(0);
+        } else {
+            return floatval($score[0]);
         }
-        $result = array_merge($defaults, $list);
-        $result = array_change_key_case($result, CASE_LOWER);
-        ksort($result);
-        return $result;
-    }
 
-    public function getResultExerciseStudent($user_id, $courseId, $session_id = 0, $format = true): array
-    {
-        $table_track_exercises = Database::get_main_table(TABLE_STATISTIC_TRACK_E_EXERCISES);
-        $courseId = (int) $courseId;
-        $session_id = (int) $session_id;
-        $user_id = (int) $user_id;
-
-        $sql = "SELECT * FROM $table_track_exercises
-                WHERE
-                    status = '' AND
-                    exe_user_id = $user_id AND
-                    c_id = $courseId AND
-                    session_id = $session_id AND
-                    orig_lp_id = 0 AND
-                    orig_lp_item_id = 0
-                ORDER by exe_id";
-
-        $res = Database::query($sql);
-        $tmp = [];
-        $list = [];
-        while ($row = Database::fetch_array($res, 'ASSOC')) {
-            $name = self::getNameExercise($row['exe_exo_id']);
-            if($format){
-                $tmp[$name] = doubleval($row['exe_result']);
-                $list = self::getFormatResultStudent($tmp);
-            } else {
-                $list[] = [
-                    'exe_id' => $row['exe_exo_id'],
-                    'name' => $name,
-                    'score' => doubleval($row['exe_result'])
-                ];
-            }
-        }
-        return $list;
     }
 
     public function getNameExercise($id_exercise){
@@ -1256,7 +1180,8 @@ class ProikosPlugin extends Plugin
         return $list;
     }
 
-    public function getStudentForSession($session = [])
+
+    public function getStudentForSession($session = [], $tmpEvals)
     {
         $userList = SessionManager::get_users_by_session($session['id']);
         $users = [];
@@ -1265,7 +1190,7 @@ class ProikosPlugin extends Plugin
                 $userId = $user['user_id'];
                 $infoProikos = self::getInfoUserProikos($userId);
                 $userInfo = api_get_user_info($userId);
-                $courses = self::getCoursesSessionID($session['id'], $userId);
+                $courses = self::getCoursesSessionID($session['id'], $userId, $tmpEvals);
                 $users[] = [
                     'id' => $userId,
                     'firstname' => $userInfo['firstname'],
@@ -1351,10 +1276,17 @@ class ProikosPlugin extends Plugin
     /**
      * @throws \PhpOffice\PhpSpreadsheet\Exception
      */
-    public function exportReportXLS($students, $logo){
+    public function exportReportXLS($students, $logo, $extraColumns, $extraHeaders){
         $date = date('d-m-Y H:i:s', time());
         $date_format = api_convert_and_format_date($date, "%d-%m-%Y %H:%M");
         $nameFile = 'participants_report_';
+        $newHeaders = [];
+        if(!empty($extraHeaders)){
+            foreach ($extraHeaders as $key => $value) {
+                $newHeaders[] = $key;
+            }
+        }
+
         $headers = [
             '#',
             get_lang('LastName'),
@@ -1380,6 +1312,8 @@ class ProikosPlugin extends Plugin
             get_lang('Code'),
             get_lang('CourseName')
         ];
+
+        $headers = array_merge($headers, $newHeaders);
 
         $spreadsheet = new Spreadsheet();
         $worksheet = $spreadsheet->getActiveSheet();
@@ -1437,6 +1371,7 @@ class ProikosPlugin extends Plugin
         $line = 6;
         $count = 1;
         $column = 24;
+        $totalExtra = $column + $extraColumns;
         $rowCell = 6;
 
         foreach ($students as $student){
@@ -1476,15 +1411,16 @@ class ProikosPlugin extends Plugin
                 $worksheet->setCellValueByColumnAndRow(23, $line, $course['title']);
 
                 foreach ($course['evaluations'] as $key => $value) {
-                    $worksheet->setCellValueByColumnAndRow($column, $rowCell, $key);
+                    //$worksheet->setCellValueByColumnAndRow($column, $rowCell, $key);
+                    //$worksheet->getColumnDimensionByColumn($column)->setAutoSize(true);
+                    //$column++;
+                    $worksheet->setCellValueByColumnAndRow($column, $rowCell, round($value, 0));
+                    $worksheet->getColumnDimensionByColumn($column)->setAutoSize(true);
                     $column++;
-                   $worksheet->setCellValueByColumnAndRow($column, $rowCell, $value);
-                   $column++;
-                    if($column>=29){
-                        $column=24;
+                    if ($column >= $totalExtra) {
+                        $column = 24;
                     };
                 }
-
                 $rowCell++;
             }
 
@@ -1578,15 +1514,29 @@ class ProikosPlugin extends Plugin
         }
         return $idStakeholders;
     }
-
-    public function getIdCourseSession($idSession){
-        $table = Database::get_main_table(TABLE_MAIN_SESSION_COURSE);
-        $sql = "SELECT src.c_id FROM $table src WHERE src.session_id=$idSession;";
+    public function getCountUser($idSession){
+        $table = Database::get_main_table(TABLE_MAIN_SESSION_USER);
+        $sql = "SELECT count(*) as total FROM $table src WHERE src.session_id=$idSession;";
         $result = Database::query($sql);
         $courses = null;
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
-                $courses = $row['c_id'];
+                $courses = $row['total'];
+            }
+        }
+        return $courses;
+    }
+    public function getIdCourseSession($idSession, $total){
+        $table = Database::get_main_table(TABLE_MAIN_SESSION_COURSE);
+        $sql = "SELECT src.c_id FROM $table src WHERE src.session_id=$idSession;";
+        $result = Database::query($sql);
+        $courses = null;
+
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                if($total>=1){
+                    $courses = $row['c_id'];
+                }
             }
         }
         return $courses;

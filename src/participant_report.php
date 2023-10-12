@@ -51,15 +51,39 @@ if ($isAdmin) {
         $logoCompany = api_get_path(SYS_UPLOAD_PATH).$infoCompany['picture'];
         $sessions = $plugin->getSessionForDate($starDate, $endDate);
         $mergedStudents = [];
+        $combinedArray = $emptyEval = $tmpEvals = [];
+        $idCourse = null;
         foreach ($sessions as $session){
-            $students[$session['id']] = $plugin->getStudentForSession($session);
+            $totalUsers = $plugin->getCountUser($session['id']);
+            $idCourse = $plugin->getIdCourseSession($session['id'], $totalUsers);
+            if(!is_null($idCourse)){
+                $emptyEval[] = $plugin->getGradebookEvaluation($idCourse,$session['id']);
+            }
+        }
+        foreach ($emptyEval as $subArray) {
+            $tmpEvals = array_merge($tmpEvals, $subArray);
+        }
+
+        foreach ($sessions as $session){
+            $students[$session['id']] = $plugin->getStudentForSession($session, $tmpEvals);
             if ($students[$session['id']] !== null) {
                 $mergedStudents = array_merge($mergedStudents, $students[$session['id']]);
             }
         }
 
+        foreach ($mergedStudents as $row){
+            //var_dump( $row['courses'][0]['evaluations']);
+            $combinedArray = array_merge($combinedArray, $row['courses'][0]['evaluations']);
+        }
+        foreach ($combinedArray as $key => $value) {
+            $combinedArray[$key] = 0;
+        }
+        //var_dump($combinedArray);
+        $uniqueKeys = array_unique(array_keys($combinedArray));
+        $numUniqueKeys = count($uniqueKeys);
+        exit;
         try {
-            $plugin->exportReportXLS($mergedStudents, $logoCompany);
+            $plugin->exportReportXLS($mergedStudents, $logoCompany, $numUniqueKeys, $combinedArray);
         } catch (\PhpOffice\PhpSpreadsheet\Exception $e) {
             print_r($e);
         }
