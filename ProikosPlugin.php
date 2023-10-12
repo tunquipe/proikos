@@ -1032,11 +1032,14 @@ class ProikosPlugin extends Plugin
                     $row['c_id'],
                     $idSession
                 );
-                foreach ($evaluations as $key => $value) {
-                    if ($value > 0) {
-                        $evaluations_empty[$key] = $value;
+                if(is_array($evaluations)){
+                    foreach ($evaluations as $key => $value) {
+                        if ($value > 0) {
+                            $evaluations_empty[$key] = $value;
+                        }
                     }
                 }
+
                 $courses[] = [
                     'c_id' => $row['c_id'],
                     'session_id' => $row['session_id'],
@@ -1092,20 +1095,22 @@ class ProikosPlugin extends Plugin
                         break;
                     case 'ExerciseLink':
                         /** @var ExerciseLink $item */
+                        //hjvar_dump($item->getBestScore());
                         $name = strtolower($item->get_name());
                         $score = self::getFormatScore($item,$user_id);
                         $defaultData[$name] = $score;
                         break;
                 }
             }
-            //var_dump($defaultData);
             return $defaultData;
         }
     }
 
-    public function getFormatScore(GradebookItem $item, $user_id){
+    public function getFormatScore(GradebookItem $item, $user_id): float
+    {
 
         $score = $item->calc_score($user_id);
+
         if(is_null($score)){
             return floatval(0);
         } else {
@@ -1529,12 +1534,26 @@ class ProikosPlugin extends Plugin
         }
         return $courses;
     }
-    public function getIdCourseSession($idSession, $total){
+
+    public function getIdCourseSession($idSession)
+    {
+        $table = Database::get_main_table(TABLE_MAIN_SESSION_USER);
+        $sql = "SELECT count(*) as total FROM $table src WHERE src.session_id=$idSession;";
+        $result = Database::query($sql);
+        $courses = null;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $courses = $row['total'];
+            }
+        }
+        return $courses;
+    }
+
+    public function getTotalCourseSession($idSession, $total){
         $table = Database::get_main_table(TABLE_MAIN_SESSION_COURSE);
         $sql = "SELECT src.c_id FROM $table src WHERE src.session_id=$idSession;";
         $result = Database::query($sql);
         $courses = null;
-
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
                 if($total>=1){
