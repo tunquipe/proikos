@@ -72,7 +72,6 @@ if ($isAdmin) {
         }
 
         foreach ($mergedStudents as $row){
-            //var_dump( $row['courses'][0]['evaluations']);
             $combinedArray = array_merge($combinedArray, $row['courses'][0]['evaluations']);
         }
         foreach ($combinedArray as $key => $value) {
@@ -81,7 +80,7 @@ if ($isAdmin) {
         //var_dump($combinedArray);
         $uniqueKeys = array_unique(array_keys($combinedArray));
         $numUniqueKeys = count($uniqueKeys);
-        //exit;
+
         try {
             $plugin->exportReportXLS($mergedStudents, $logoCompany, $numUniqueKeys, $combinedArray);
         } catch (\PhpOffice\PhpSpreadsheet\Exception $e) {

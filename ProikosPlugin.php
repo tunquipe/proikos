@@ -1011,7 +1011,7 @@ class ProikosPlugin extends Plugin
             $combinedArray = [];
             /** @var GradebookItem $item */
             foreach ($visibleItems as $item) {
-                $name = $item->get_name();
+                $name = strtolower($item->get_name());
                 $defaultData[$name] = 0;
             }
             return $defaultData;
@@ -1086,13 +1086,13 @@ class ProikosPlugin extends Plugin
                 $itemType = get_class($item);
                 switch ($itemType) {
                     case 'Evaluation':
-                        $name = $item->get_name();
+                        $name = strtolower($item->get_name());
                         $score = self::getFormatScore($item,$user_id);
                         $defaultData[$name] = $score;
                         break;
                     case 'ExerciseLink':
                         /** @var ExerciseLink $item */
-                        $name = $item->get_name();
+                        $name = strtolower($item->get_name());
                         $score = self::getFormatScore($item,$user_id);
                         $defaultData[$name] = $score;
                         break;
@@ -1356,7 +1356,7 @@ class ProikosPlugin extends Plugin
         ];
 
         for ($col = 'A', $i = 0; $i < count($headers); $col++, $i++) {
-            $worksheet->setCellValue($col . $row, $headers[$i]);
+            $worksheet->setCellValue($col . $row, ucfirst($headers[$i]));
 
             // Aplicar formato a la celda
             $style = $worksheet->getStyle($col . $row);
