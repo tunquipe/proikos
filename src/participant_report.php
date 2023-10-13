@@ -66,7 +66,7 @@ if ($isAdmin) {
                 $tmpEvals = array_merge($tmpEvals, $subArray);
             }
         }
-        //var_dump($tmpEvals);
+
         foreach ($sessions as $session){
             $students[$session['id']] = $plugin->getStudentForSession($session, $tmpEvals);
             if ($students[$session['id']] !== null) {
@@ -81,10 +81,10 @@ if ($isAdmin) {
         foreach ($combinedArray as $key => $value) {
             $combinedArray[$key] = 0;
         }
-        //var_dump($combinedArray);
+
         $uniqueKeys = array_unique(array_keys($combinedArray));
         $numUniqueKeys = count($uniqueKeys);
-        
+
         try {
             $plugin->exportReportXLS($mergedStudents, $logoCompany, $numUniqueKeys, $combinedArray);
         } catch (\PhpOffice\PhpSpreadsheet\Exception $e) {

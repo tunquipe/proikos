@@ -1008,7 +1008,6 @@ class ProikosPlugin extends Plugin
             usort($all_items->items, ['GradebookDataGenerator', 'sort_by_name']);
             $visibleItems = array_merge($all_items->items, $evals_links);
             $defaultData = [];
-            $combinedArray = [];
             /** @var GradebookItem $item */
             foreach ($visibleItems as $item) {
                 $name = strtolower($item->get_name());
@@ -1336,6 +1335,14 @@ class ProikosPlugin extends Plugin
         ];
 
         $headers = array_merge($headers, $newHeaders);
+        $resultHeaders =[
+            get_plugin_lang('MinCertScore', 'ProikosPlugin'),
+            get_plugin_lang('Score', 'ProikosPlugin'),
+            get_plugin_lang('Certificate', 'ProikosPlugin'),
+            get_plugin_lang('Status', 'ProikosPlugin')
+        ];
+        $headers = array_merge($headers, $resultHeaders);
+        //$totalColumns = count($headers);
 
         $spreadsheet = new Spreadsheet();
         $worksheet = $spreadsheet->getActiveSheet();
@@ -1392,8 +1399,9 @@ class ProikosPlugin extends Plugin
         }
         $line = 6;
         $count = 1;
-        $column = 24;
-        $totalExtra = $column + $extraColumns;
+        $initialColumn = 24;
+        $untilWhichColumn = $initialColumn + $extraColumns;
+        $continueColumn = $untilWhichColumn;
         $rowCell = 6;
 
         foreach ($students as $student){
@@ -1433,21 +1441,49 @@ class ProikosPlugin extends Plugin
                 $worksheet->setCellValueByColumnAndRow(23, $line, $course['title']);
 
                 foreach ($course['evaluations'] as $key => $value) {
-                    $worksheet->setCellValueByColumnAndRow($column, $rowCell, round($value, 0));
-                    $worksheet->getColumnDimensionByColumn($column)->setAutoSize(true);
-                    $column++;
-                    if ($column >= $totalExtra) {
-                        $column = 24;
+                    $worksheet->setCellValueByColumnAndRow($initialColumn, $rowCell, round($value, 0));
+                    $worksheet->getColumnDimensionByColumn($initialColumn)->setAutoSize(true);
+                    $initialColumn++;
+                    if ($initialColumn >= $untilWhichColumn) {
+                        $initialColumn = 24;
                     };
                 }
                 $rowCell++;
+                //columns finales certificado, puntaje y estado del alumno
+                $certificate = $this->getScoreCertificate($student['id'],$course['code'],$student['session_id'],true);
+                $status = 'Desaprobado';
+                $has_certificate = 'No';
+                if(empty($certificate)){
+                    $score = 0;
+                } else {
+                    $score_min = $certificate['certif_min_score'];
+                    $score = $certificate['score'];
+                    if(intval(round($score,0)) >= $score_min){
+                        $status = 'Aprobado';
+                        $has_certificate = 'Si';
+                    }
+                }
+
+                $worksheet->setCellValueByColumnAndRow($continueColumn, $line, $score_min);
+                $worksheet->getColumnDimensionByColumn($continueColumn)->setAutoSize(true);
+                $continueColumn++;
+
+                $worksheet->setCellValueByColumnAndRow($continueColumn, $line, $score);
+                $worksheet->getColumnDimensionByColumn($continueColumn)->setAutoSize(true);
+                $continueColumn++;
+
+                $worksheet->setCellValueByColumnAndRow($continueColumn, $line, $has_certificate);
+                $worksheet->getColumnDimensionByColumn($continueColumn)->setAutoSize(true);
+                $continueColumn++;
+
+                $worksheet->setCellValueByColumnAndRow($continueColumn, $line, $status);
+                $worksheet->getColumnDimensionByColumn($continueColumn)->setAutoSize(true);
+                if ($continueColumn >= $untilWhichColumn) {
+                    $continueColumn = $untilWhichColumn;
+                };
             }
 
-
-            //$worksheet->setCellValueByColumnAndRow(22, $line, $student['courses'][0]['code']);
-            //$worksheet->setCellValueByColumnAndRow(23, $line, $student['courses'][0]['title']);
-
-            $worksheet->getStyle("A$line:AA$line")->applyFromArray($borderStyle);
+            $worksheet->getStyle("A$line:AD$line")->applyFromArray($borderStyle);
             $line++;
             $count++;
         }
@@ -1461,7 +1497,7 @@ class ProikosPlugin extends Plugin
 
     }
 
-    public function getScoreCertificate($idUser, $codeCourse, $idSession): array
+    public function getScoreCertificate($idUser, $codeCourse, $idSession, $stop = false): array
     {
 
         $tbl_gradebook_category = Database::get_main_table(TABLE_MAIN_GRADEBOOK_CATEGORY);
@@ -1499,21 +1535,24 @@ class ProikosPlugin extends Plugin
                 ];
             }
         }
+        if($stop){
+            return $list;
+        } else {
+            $sql = "SELECT * FROM $tbl_gradebook_certificate gc WHERE gc.user_id = ".$list['user_id']." AND gc.cat_id = ".$list['category_id'].";";
+            $result = Database::query($sql);
+            $total = boolval(Database::num_rows($result));
+            $has_certificate = false;
+            $icon = api_get_path(WEB_PLUGIN_PATH) . 'proikos/images/sad.png';
+            if (Database::num_rows($result) > 0) {
+                $has_certificate = true;
+                $icon = api_get_path(WEB_PLUGIN_PATH) . 'proikos/images/happy.png';
+            }
 
-        $sql = "SELECT * FROM $tbl_gradebook_certificate gc WHERE gc.user_id = ".$list['user_id']." AND gc.cat_id = ".$list['category_id'].";";
-        $result = Database::query($sql);
-        $total = boolval(Database::num_rows($result));
-        $has_certificate = false;
-        $icon = api_get_path(WEB_PLUGIN_PATH) . 'proikos/images/sad.png';
-        if (Database::num_rows($result) > 0) {
-            $has_certificate = true;
-            $icon = api_get_path(WEB_PLUGIN_PATH) . 'proikos/images/happy.png';
+            return [
+                'icon' => $icon,
+                'has_certificate' =>  $has_certificate
+            ];
         }
-
-        return [
-            'icon' => $icon,
-            'has_certificate' =>  $has_certificate
-        ];
     }
 
     public function getStakeholdersUser($idUser):int
