@@ -1411,6 +1411,20 @@ class ProikosPlugin extends Plugin
         $continueColumn = $untilWhichColumn;
         $rowCell = 6;
 
+        $greenStyle = [
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '7EF796'],
+            ],
+        ];
+
+        $redStyle = [
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'FF6B61'],
+            ],
+        ];
+
         foreach ($students as $student){
             //var_dump($student);
             $worksheet->setCellValueByColumnAndRow(0, $line, '');
@@ -1475,7 +1489,15 @@ class ProikosPlugin extends Plugin
                 $worksheet->getColumnDimensionByColumn($continueColumn)->setAutoSize(true);
                 $continueColumn++;
 
-                $worksheet->setCellValueByColumnAndRow($continueColumn, $line, $score);
+                $worksheet->setCellValueByColumnAndRow($continueColumn, $line, round($score,0));
+                $cellScore = $worksheet->getCellByColumnAndRow($continueColumn, $line)->getValue();
+                $cellScoreStyle = $worksheet->getCellByColumnAndRow($continueColumn, $line)->getStyle();
+                if ($cellScore >= $score_min) {
+                    $cellScoreStyle->applyFromArray($greenStyle);
+                } else {
+                    $cellScoreStyle->applyFromArray($redStyle);
+                }
+
                 $worksheet->getColumnDimensionByColumn($continueColumn)->setAutoSize(true);
                 $continueColumn++;
 
@@ -1485,6 +1507,14 @@ class ProikosPlugin extends Plugin
 
                 $worksheet->setCellValueByColumnAndRow($continueColumn, $line, $status);
                 $worksheet->getColumnDimensionByColumn($continueColumn)->setAutoSize(true);
+                $cellStatus = $worksheet->getCellByColumnAndRow($continueColumn, $line)->getValue();
+                $cellStatusStyle = $worksheet->getCellByColumnAndRow($continueColumn, $line)->getStyle();
+                if ($cellStatus == 'Aprobado') {
+                    $cellStatusStyle->applyFromArray($greenStyle);
+                } else {
+                    $cellStatusStyle->applyFromArray($redStyle);
+                }
+
                 if ($continueColumn >= $untilWhichColumn) {
                     $continueColumn = $untilWhichColumn;
                 };
