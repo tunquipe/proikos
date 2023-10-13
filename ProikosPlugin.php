@@ -1179,7 +1179,13 @@ class ProikosPlugin extends Plugin
                 $sessionInfo = api_get_session_info($row['id']);
                 $session = $sessionRepository->find($row['id']);
                 $sessionCategory = $session->getCategory();
-                $categoryName = $sessionCategory->getName();
+
+                if(is_null($sessionCategory)){
+                    $categoryName = 'Ninguno';
+                } else {
+                    $categoryName = $sessionCategory->getName();
+                }
+
                 $list[] = [
                     'id' => $sessionInfo['id'],
                     'id_coach' => $sessionInfo['id_coach'],
@@ -1198,6 +1204,7 @@ class ProikosPlugin extends Plugin
                 ];
             }
         }
+
         return $list;
     }
 
