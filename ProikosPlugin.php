@@ -498,12 +498,32 @@ class ProikosPlugin extends Plugin
      *
      * @return array
      */
-    function formGenerateElementsGroup($form, $values, $elementName): array
+    function formGenerateElementsGroup($form, $values, $elementName, $required = false): array
     {
         $group = [];
+        $count = 0;
         if (is_array($values)) {
             foreach ($values as $key => $value) {
-                $element = &$form->createElement('radio', $elementName, '', $value['display_img'], $value['value'], ['label-class'=>'label_'.strtolower($value['value'])]);
+                $count++;
+                $attrib =  [
+                    'label-class'=>'label_'.strtolower($value['value'])
+                ];
+                if($required){
+                    if($count>=1){
+                        $attrib =  [
+                            'label-class'=>'label_'.strtolower($value['value']),
+                            'required' => 'required'
+                        ];
+                    }
+                }
+                $element = &$form->createElement(
+                    'radio',
+                    $elementName,
+                    '',
+                    $value['display_img'],
+                    $value['value'],
+                    $attrib
+                );
                 $group[] = $element;
             }
         }
@@ -1016,14 +1036,13 @@ class ProikosPlugin extends Plugin
             return $defaultData;
         }
     }
-    public function getCoursesSessionID($idSession, $idUser, $evaluations_empty): array
+    public function getCoursesSessionID($idSession, $idUser, $evaluations_empty = []): array
     {
         $tbl_session_course = Database::get_main_table(TABLE_MAIN_SESSION_COURSE);
         $tbl_course = Database::get_main_table(TABLE_MAIN_COURSE);
         $sql = "SELECT src.c_id, src.session_id, c.title, c.code FROM $tbl_session_course src INNER JOIN $tbl_course c ON src.c_id = c.id WHERE src.session_id = $idSession;";
         $result = Database::query($sql);
         $courses = [];
-        $evaluations = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
                 $evaluations = self::getResultExerciseStudent(
@@ -1038,7 +1057,6 @@ class ProikosPlugin extends Plugin
                         }
                     }
                 }
-
                 $courses[] = [
                     'c_id' => $row['c_id'],
                     'session_id' => $row['session_id'],
@@ -1046,7 +1064,6 @@ class ProikosPlugin extends Plugin
                     'code' => $row['code'],
                     'evaluations' => $evaluations_empty,
                 ];
-                //var_dump($evaluations_empty);
             }
         }
         return $courses;
@@ -1162,6 +1179,37 @@ class ProikosPlugin extends Plugin
         return $list;
     }
 
+    public function getUserStatusSessionForDate($starDate, $endDate, $total = false){
+        $tbl_session = Database::get_main_table(TABLE_MAIN_SESSION);
+        $tbl_session_user = Database::get_main_table(TABLE_MAIN_SESSION_USER);
+        $d_start = (string)$starDate;
+        $d_end = (string)$endDate;
+        $list = [];
+        $sql = "SELECT sru.user_id ";
+        if($total){
+            $sql = "SELECT count(sru.user_id) ";
+        }
+        $sql.= "FROM $tbl_session s INNER JOIN $tbl_session_user sru ON s.id = sru.session_id
+                WHERE s.display_start_date BETWEEN '$d_start' AND '$d_end';";
+        $result = Database::query($sql);
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+
+            }
+        }
+    }
+    public function getTotalStudentsPlatform(){
+        $tbl_user = Database::get_main_table(TABLE_MAIN_USER);
+        $sql = "SELECT count(*) as total FROM $tbl_user u WHERE u.status = 5;";
+        $result = Database::query($sql);
+        $total = 0;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $total =  $row['total'];
+            }
+        }
+        return $total;
+    }
     public function getSessionForDate($starDate, $endDate): array
     {
         $tbl_session = Database::get_main_table(TABLE_MAIN_SESSION);
@@ -1209,7 +1257,7 @@ class ProikosPlugin extends Plugin
     }
 
 
-    public function getStudentForSession($session = [], $tmpEvals)
+    public function getStudentForSession($session = [], $tmpEvals = [])
     {
         $userList = SessionManager::get_users_by_session($session['id']);
         $users = [];

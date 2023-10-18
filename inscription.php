@@ -249,9 +249,9 @@ foreach ($entities as $entity){
 }
 
 $form = new FormValidator('registration-one', 'post', api_get_self().'?action='.Security::remove_XSS('second'), '', [], FormValidator::LAYOUT_INLINE);
-$group = $plugin->formGenerateElementsGroup($form, $listEntity, 'entity');
+$group = $plugin->formGenerateElementsGroup($form, $listEntity, 'entity',true);
 // SearchEnabledComment
-$form->addGroup(
+$groupEntity = $form->addGroup(
     $group,
     'entity',
     [$plugin->get_lang('ChooseTheEntity')],
