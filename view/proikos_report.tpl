@@ -4,11 +4,10 @@
     <div class="col-md-4">
         <h3 class="title">Trabajadores entrenados</h3>
 
+        <div id="counter" class="counter" data-count="0">0</div>
+
         <div id="progress_bar" class="ui-progress-bar">
             <div class="ui-progress" style="width: 0;">
-                <span class="ui-label" style="display: none;">
-                    <b class="value">0%</b>
-                </span>
             </div>
         </div>
 
@@ -54,13 +53,8 @@
                 </div>
             </div>
         </div>
-
-
-
     </div>
 </div>
-
-
 
 
 
@@ -71,7 +65,7 @@
         let endDate = $("#end_date").val();
         let urlCampus = '{{_p.web}}';
         let url = urlCampus + '/plugin/proikos/src/ajax.php?action=get_status_of_students&star_date='+starDate+'&end_date='+endDate;
-
+        let counterText = $("#counter");
         $.getJSON(url, function(response) {
             console.log(response)
             new CircleProgress('#circle_approved', {
@@ -98,14 +92,15 @@
                 textFormat: 'percent'
             });
 
+
             // Hide the label at start
             $('#progress_bar .ui-progress .ui-label').hide();
             // Set initial value
             $('#progress_bar .ui-progress').css('width', '0%');
 
             // Simulate some progress
-            $('#progress_bar .ui-progress').animateProgress(50, function() {
-                $(this).animateProgress(50, function() {
+            $('#progress_bar .ui-progress').animateProgress(response.percentage_total_current, function() {
+                $(this).animateProgress(response.percentage_total_current, function() {
                     setTimeout(function() {
                         $('#progress_bar .ui-progress').animateProgress(100, function() {
                             $('.content_success').slideDown();
@@ -113,6 +108,26 @@
                     }, 3000);
                 });
             });
+
+            $('.counter').each(function () {
+                let $this = $(this),
+                    countTo = Math.round(response.percentage_total_current);
+                $({countNum: $this.text()}).animate({
+                        countNum: countTo
+                    },
+                    {
+                        duration: 3000,
+                        easing: 'linear',
+                        step: function () {
+                            $this.text(Math.round(this.countNum)+'%');
+                        },
+                        complete: function () {
+                            $this.text(Math.round(this.countNum)+'%');
+                            //alert('finished');
+                        }
+                    });
+            });
+
 
         });
     });

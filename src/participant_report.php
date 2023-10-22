@@ -117,6 +117,29 @@ switch ($action){
         //$form->addSelect('company',$plugin->get_lang('NameEntity'), $listCompanies);
         $form->addDatePicker('star_date',get_lang('DateStart'), ['value'=> $firstDate, 'id' => 'star_date']);
         $form->addDatePicker('end_date',get_lang('DateEnd'),['value'=> $lastDate, 'id' => 'end_date']);
+        $genders = [
+            '0' => 'Seleccione una opción',
+            'M' => 'Masculino',
+            'F' => 'Femenino'
+        ];
+        $genderInput = $form->addSelect('gender', $plugin->get_lang('Gender'), $genders);
+        $stakeholders = [
+            '0' => 'Seleccione una opción',
+            '1' => 'Petroperu',
+            '2' => 'Contratista',
+            '3' => 'Cliente',
+            '99' => 'Otros',
+        ];
+        $stakeholdersSelect = $form->addSelect('stakeholders', $plugin->get_lang('Stakeholder'), $stakeholders);
+
+        $companies = $plugin->getCompanies();
+        $companiesInput = $form->addSelect('name_company', $plugin->get_lang('CompanyName'), $companies);
+
+        $position = $plugin->getPositions(2);
+        $positionInput = $form->addSelect('position_company', $plugin->get_lang('Position'), $position);
+        $departments = $plugin->getPetroManagement();
+        $departmentsSelect = $form->addSelect('department', [$plugin->get_lang('Department')], $departments);
+
         $form->addButton('generate',$plugin->get_lang('ViewReport'),'refresh','primary');
         $tpl->assign('form', $form->returnForm());
         $urlPluginImages = api_get_path(WEB_PLUGIN_PATH).'proikos/images';

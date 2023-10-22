@@ -185,3 +185,10 @@
     text-shadow: rgba(255,255,255, 0.45) 0 1px 0px;
     white-space: nowrap;
 }
+.counter {
+    display: table-cell;
+    margin:1.5%;
+    font-size:50px;
+    border-radius: 50%;
+    vertical-align: middle;
+}
