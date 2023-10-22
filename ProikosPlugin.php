@@ -1255,11 +1255,41 @@ class ProikosPlugin extends Plugin
 
         return $list;
     }
+    public function  getStudentForSessionData($id, $data = []): array
+    {
+        if (empty($id)) {
+            return [];
+        }
+        $id = (int) $id;
+        $tbl_proikos_user = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $tbl_user = Database::get_main_table(TABLE_MAIN_USER);
+        $tbl_session_rel_user = Database::get_main_table(TABLE_MAIN_SESSION_USER);
+        $table_access_url_user = Database::get_main_table(TABLE_MAIN_ACCESS_URL_REL_USER);
 
+        $sql = "SELECT u.id as user_id, u.lastname, u.firstname, u.username, su.relation_type, au.access_url_id,
+                su.moved_to, su.moved_status, su.moved_at, su.registered_at, ppu.*
+                FROM $tbl_user u
+                INNER JOIN $tbl_session_rel_user su
+                ON u.user_id = su.user_id AND
+                su.session_id = $id
+                LEFT OUTER JOIN $table_access_url_user au
+                ON (au.user_id = u.user_id)
+                INNER JOIN $tbl_proikos_user ppu
+                ON u.user_id = ppu.user_id
+                WHERE (au.access_url_id = 1 OR au.access_url_id is null ) ";
+        $sql.= " ORDER BY su.relation_type,   u.lastname, u.firstname ";
+        $users = [];
+        $result = Database::query($sql);
+        while ($row = Database::fetch_array($result, 'ASSOC')) {
+            $users[] = $row;
+        }
+
+        return $users;
+    }
 
     public function getStudentForSession($session = [], $tmpEvals = [])
     {
-        $userList = SessionManager::get_users_by_session($session['id']);
+        $userList = SessionManager::get_users_by_seiossion($session['id']);
         $users = [];
         if (!empty($userList)) {
             foreach ($userList as $user) {

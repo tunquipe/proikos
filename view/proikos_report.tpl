@@ -59,12 +59,58 @@
 
 
 <script type="text/javascript">
+    $("#report_stakeholders").change(function (){
+        let idSelector = $("#report_stakeholders").val();
+        console.log(idSelector);
+        if(idSelector == 1 ){
+            $('#option-builder').hide();
+        } else {
+            $('#option-builder').show();
+        }
+    });
+
+    $(document).ready(function() {
+        // Esperar a que el documento se cargue completamente
+        let urlCampus = '{{_p.web}}';
+
+        // Seleccionar el botón con el ID "report_generate" y agregar un controlador de eventos
+        $("#report_generate").click(function() {
+            event.preventDefault();
+            // Acción que se realiza al hacer clic en el botón
+            let data = {
+                gender: $("#report_gender").val(),
+                stakeholders: $("#report_stakeholders").val(),
+                name_company: $("#report_name_company").val(),
+                position_company: $("#report_position_company").val(),
+                department: $("#report_department").val(),
+                start_date: $("#star_date").val(),
+                end_date: $("#end_date").val()
+            };
+
+            console.log(data);
+            let url = urlCampus + 'plugin/proikos/src/ajax.php?action=get_report_students';
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: data,
+                dataType: "json",
+                success: function(response) {
+                    console.log(response); // Aquí puedes manejar la respuesta del servidor
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log("Error: " + errorThrown);
+                }
+            });
+
+        });
+    });
 
     document.addEventListener("DOMContentLoaded", function() {
         let starDate = $("#star_date").val();
         let endDate = $("#end_date").val();
         let urlCampus = '{{_p.web}}';
-        let url = urlCampus + '/plugin/proikos/src/ajax.php?action=get_status_of_students&star_date='+starDate+'&end_date='+endDate;
+        let url = urlCampus + 'plugin/proikos/src/ajax.php?action=get_status_of_students&star_date='+starDate+'&end_date='+endDate;
         let counterText = $("#counter");
         $.getJSON(url, function(response) {
             console.log(response)

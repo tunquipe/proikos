@@ -131,9 +131,10 @@ switch ($action){
             '99' => 'Otros',
         ];
         $stakeholdersSelect = $form->addSelect('stakeholders', $plugin->get_lang('Stakeholder'), $stakeholders);
-
+        $form->addHtml('<div id="option-builder" style="display: none;">');
         $companies = $plugin->getCompanies();
         $companiesInput = $form->addSelect('name_company', $plugin->get_lang('CompanyName'), $companies);
+        $form->addHtml('</div>');
 
         $position = $plugin->getPositions(2);
         $positionInput = $form->addSelect('position_company', $plugin->get_lang('Position'), $position);
