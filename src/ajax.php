@@ -32,50 +32,17 @@ if ($action) {
             header('Content-Type: application/json');
             echo json_encode($res);
             break;
-        case 'get_status_of_students':
-            $start_date = $_GET['star_date'] ?? null;
-            $end_date = $_GET['end_date'] ?? null;
-            $totalStudents = $plugin->getTotalStudentsPlatform();
-            $sessions = $plugin->getSessionForDate($start_date, $end_date);
-            $mergedStudents = [];
-            foreach ($sessions as $session) {
-                $students[$session['id']] = $plugin->getStudentForSession($session);
-                if ($students[$session['id']] !== null) {
-                    $mergedStudents = array_merge($mergedStudents, $students[$session['id']]);
-                }
+        case 'get_report_session':
+            if (isset($_POST)) {
+                $start_date = $_POST['start_date'] ?? null;
+                $end_date = $_POST['end_date'] ?? null;
+                $sessions = $plugin->getSessionRelCourseUsers($start_date, $end_date);
+                echo json_encode($sessions);
             }
-            $totalCurrent = 0;
-            $totalGlobal = 0;
-            $approved = 0;
-            $disapproved = 0;
-            foreach ($mergedStudents as $student) {
-                //var_dump($student['has_certificates']);
-                if ($student['has_certificates'] == 1) {
-                    $approved++;
-                }
-                if ($student['has_certificates'] == 0) {
-                    $disapproved++;
-                }
-            }
-            $totalCurrent = $approved + $disapproved;
-            $percentageTotalCurrent = ($totalCurrent / $totalStudents) * 100;
-            $percentageApproved = ($approved / $totalCurrent) * 100;
-            $percentageDisapproved = ($disapproved / $totalCurrent) * 100;
-            $result = [
-                'total_global' => intval($totalStudents),
-                'total_current' => $totalCurrent,
-                'approved' => $approved,
-                'disapproved' => $disapproved,
-                'percentage_total_current' => round($percentageTotalCurrent, 2),
-                'percentage_approved' => round($percentageApproved, 2),
-                'percentage_disapproved' => round($percentageDisapproved, 2)
-            ];
-            //echo json_encode($mergedStudents);
-            echo json_encode($result);
             break;
         case 'get_report_students':
             if (isset($_POST)) {
-                $start_date = $_POST['star_date'] ?? null;
+                $start_date = $_POST['start_date'] ?? null;
                 $end_date = $_POST['end_date'] ?? null;
                 $gender = $_POST['gender'] ?? null;
                 $stakeholders = $_POST['stakeholders'] ?? null;
@@ -85,7 +52,6 @@ if ($action) {
 
                 $nameCompany =   $plugin->getCompanyName($name_company);
                 $namePosition = $plugin->getPositionName($position_company);
-                //$nameArea = self::getAreaName($values['area']);
                 $nameManagement = $plugin->getManagementName($department);
 
                 $data = [

@@ -1208,6 +1208,42 @@ class ProikosPlugin extends Plugin
         }
         return $total;
     }
+    public function getSessionRelCourseUsers($starDate, $endDate): array
+    {
+        $d_start = (string)$starDate;
+        $d_end = (string)$endDate;
+        $tbl_session = Database::get_main_table(TABLE_MAIN_SESSION);
+        $tbl_session_course = Database::get_main_table(TABLE_MAIN_SESSION_COURSE);
+        $tbl_course = Database::get_main_table(TABLE_MAIN_COURSE);
+        $sql = "SELECT s.nbr_users, s.name, c.code FROM $tbl_session s INNER JOIN $tbl_session_course src ON s.id = src.session_id
+        INNER JOIN $tbl_course c ON src.c_id = c.id WHERE s.display_start_date BETWEEN '".$d_start."' AND '".$d_end."'";
+        $result = Database::query($sql);
+        $data = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $data[] =  [
+                    'nbr_users' => intval($row['nbr_users']),
+                    'name' => $row['name'],
+                    'course_code' => $row['code']
+                ];
+            }
+        }
+
+        $aggregatedData = array();
+        foreach ($data as $item) {
+            $courseCode = $item['course_code'];
+            if (!isset($aggregatedData[$courseCode])) {
+                // Si el curso aún no se ha encontrado, crear una entrada en el array agregado
+                $aggregatedData[$courseCode] = $item;
+            } else {
+                // Si el curso ya se encontró, sumar el valor de nbr_users
+                $aggregatedData[$courseCode]['nbr_users'] += $item['nbr_users'];
+            }
+        }
+
+        return array_values($aggregatedData);
+    }
+
     public function getSessionForDate($starDate, $endDate): array
     {
         $tbl_session = Database::get_main_table(TABLE_MAIN_SESSION);

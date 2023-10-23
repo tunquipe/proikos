@@ -192,3 +192,7 @@
     border-radius: 50%;
     vertical-align: middle;
 }
+.bg-report{
+    background-color: #f9f9f9;
+    padding: 2rem;
+}
