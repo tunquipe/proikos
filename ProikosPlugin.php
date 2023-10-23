@@ -1077,7 +1077,7 @@ class ProikosPlugin extends Plugin
         return $aux['code'];
     }
 
-    public function getResultExerciseStudent($user_id, $courseId, $session_id = 0)
+    public function getResultExerciseStudent($user_id, $courseId, $session_id = 0, $showEmpty = false)
     {
         $course_code = self::getCourseCode($courseId);
         $cats = Category::load(
@@ -1104,15 +1104,33 @@ class ProikosPlugin extends Plugin
                 $itemType = get_class($item);
                 switch ($itemType) {
                     case 'Evaluation':
-                        $name = strtolower($item->get_name());
                         $score = self::getFormatScore($item,$user_id);
-                        $defaultData[$name] = $score;
+                        if($showEmpty){
+                            if($score==0){
+                                $defaultData=[];
+                            } else {
+                                $name = strtolower($item->get_name());
+                                $defaultData[$name] = $score;
+                            }
+                        } else{
+                            $name = strtolower($item->get_name());
+                            $defaultData[$name] = $score;
+                        }
                         break;
                     case 'ExerciseLink':
                         /** @var ExerciseLink $item */
-                        $name = strtolower($item->get_name());
                         $score = self::getScoreExercise($item->get_ref_id(),$session_id,$user_id);
-                        $defaultData[$name] = $score;
+                        if($showEmpty){
+                            if($score===0){
+                                $defaultData=[];
+                            }else{
+                                $name = strtolower($item->get_name());
+                                $defaultData[$name] = $score;
+                            }
+                        } else {
+                            $name = strtolower($item->get_name());
+                            $defaultData[$name] = $score;
+                        }
                         break;
                 }
             }
@@ -1208,6 +1226,84 @@ class ProikosPlugin extends Plugin
         }
         return $total;
     }
+
+    public function getCourseName($course_code){
+        $tbl_course = Database::get_main_table(TABLE_MAIN_COURSE);
+        $sql = "SELECT c.title FROM $tbl_course c WHERE c.code='$course_code' ";
+        $result = Database::query($sql);
+        $name = '';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $name =  $row['title'];
+            }
+        }
+        return $name;
+    }
+
+    public function getParticipatingUsers($starDate, $endDate): array
+    {
+        $d_start = (string)$starDate;
+        $d_end = (string)$endDate;
+        $tbl_session = Database::get_main_table(TABLE_MAIN_SESSION);
+        $tbl_session_course = Database::get_main_table(TABLE_MAIN_SESSION_COURSE_USER);
+        $sql = "SELECT srcu.user_id, srcu.session_id, srcu.c_id FROM $tbl_session_course srcu INNER JOIN $tbl_session s ON s.id = srcu.session_id
+                WHERE s.display_start_date BETWEEN '".$d_start."' AND '".$d_end."'";
+        $result = Database::query($sql);
+        $lists = [];
+        $number = 0;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $evaluations = self::getResultExerciseStudent(
+                    $row['user_id'],
+                    $row['c_id'],
+                    $row['session_id'],
+                    true
+                );
+                if(is_null($evaluations) OR empty($evaluations)){
+                    $number = 0;
+                } else {
+                    if(count($evaluations) >= 1){
+                        $number = 1;
+                    }
+                }
+                $lists[] = [
+                    'user_id' => $row['user_id'],
+                    'course_code' => self::getCourseCode($row['c_id']),
+                    'evaluations' => $number
+                ];
+            }
+        }
+        $newArray = []; // El nuevo array donde almacenaremos los resultados
+        $newList = [];
+        foreach ($lists as $item) {
+            $courseCode = $item['course_code'];
+            $evaluations = $item['evaluations'];
+
+            // Si el course_code ya existe en el nuevo array, suma las evaluaciones.
+            if (isset($newArray[$courseCode])) {
+                $newArray[$courseCode]['evaluations'] += $evaluations;
+            } else {
+                // Si no existe, crea un nuevo elemento en el nuevo array.
+                $newArray[$courseCode] = array(
+                    'course_code' => $courseCode,
+                    'course_name' => self::getCourseName($courseCode),
+                    'evaluations' => $evaluations
+                );
+            }
+        }
+        foreach ($newArray as $row){
+            $newList[] = [
+                'course_code' => $row['course_code'],
+                'course_name' =>  $row['course_name'],
+                'evaluations' => $row['evaluations']
+            ];
+        }
+
+
+        return $newList;
+    }
+
+
     public function getSessionRelCourseUsers($starDate, $endDate): array
     {
         $d_start = (string)$starDate;

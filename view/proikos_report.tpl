@@ -4,6 +4,11 @@
         max-width: 650px;
         margin: 10px auto;
     }
+    #user_participants_course{
+        max-width: 750px;
+        min-height: 400px;
+        margin: 10px auto;
+    }
 </style>
 <div class="bg-report">
     <div class="row">
@@ -69,6 +74,7 @@
         <div class="col-md-12">
             <div class="container-box">
                 <h3 class="title">Usuarios participantes por cada curso</h3>
+                <div id="user_participants_course"></div>
             </div>
         </div>
     </div>
@@ -91,7 +97,10 @@
     $(document).ready(function() {
         // Esperar a que el documento se cargue completamente
         let urlCampus = '{{_p.web}}';
-
+        let chartSession;
+        let chartParticipants;
+        var circle_approved;
+        var circle_disapproved;
         // Seleccionar el botón con el ID "report_generate" y agregar un controlador de eventos
         $("#report_generate").click(function() {
             event.preventDefault();
@@ -108,6 +117,81 @@
 
             let urlStudent = urlCampus + 'plugin/proikos/src/ajax.php?action=get_report_students';
             let urlSession = urlCampus + 'plugin/proikos/src/ajax.php?action=get_report_session';
+            let urlParticipants = urlCampus + 'plugin/proikos/src/ajax.php?action=get_participating_users';
+
+            if (chartSession) {
+                chartSession.destroy();
+            }
+            if (chartParticipants) {
+                chartParticipants.destroy();
+            }
+
+            $.ajax({
+                type: "POST",
+                url: urlParticipants,
+                data: data,
+                dataType: "json",
+                success: function(response) {
+                    let jsonData = response;
+                    let seriesData = jsonData.map(function (item) {
+                        return item.evaluations;
+                    });
+                    let categories = jsonData.map(function (item) {
+                        return item.course_name;
+                    });
+
+                    var options = {
+                        series: [{
+                            name: 'Cursos',
+                            data: seriesData,
+                        }],
+                        chart: {
+                            type: 'bar',
+                            height: 400,
+                            width: 750
+                        },
+                        plotOptions: {
+                            bar: {
+                                columnHeights: '50%',
+                                distributed: true,
+                                borderRadius: 10,
+                                borderRadiusApplication: 'end',
+                                horizontal: true,
+                                dataLabels: {
+                                    position: 'top', // top, center, bottom
+                                },
+                            }
+                        },
+                        legend: {
+                            show: false
+                        },
+                        dataLabels: {
+                            enabled: true,
+                            offsetX: -30,
+                            style: {
+                                fontSize: '12px',
+                                colors: ["#304758"]
+                            }
+                        },
+                        xaxis: {
+                            categories: categories,
+                            labels: {
+                                show: true,
+                                style: {
+                                    fontSize: '12px'
+                                }
+                            }
+                        }
+                    };
+
+                    chartParticipants = new ApexCharts(document.querySelector("#user_participants_course"), options);
+                    chartParticipants.render();
+
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log("Error: " + errorThrown);
+                }
+            });
 
             $.ajax({
                 type: "POST",
@@ -134,6 +218,7 @@
                                 columnWidth: '50%',
                                 distributed: true,
                                 borderRadius: 10,
+                                borderRadiusApplication: 'end',
                                 dataLabels: {
                                     position: 'top', // top, center, bottom
                                 },
@@ -167,8 +252,9 @@
                             show: false // Esto oculta la barra de herramientas
                         }
                     };
-                    let chart = new ApexCharts(document.querySelector("#user_register_course"), options);
-                    chart.render();
+
+                    chartSession = new ApexCharts(document.querySelector("#user_register_course"), options);
+                    chartSession.render();
 
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
@@ -184,18 +270,31 @@
                 dataType: "json",
                 success: function(response) {
                     //console.log(response); // Aquí puedes manejar la respuesta del servidor
+                    if(circle_approved){
+                        circle_approved.update({
+                            value: response.data.percentage_approved // Actualiza con los nuevos datos
+                        });
+                    } else {
+                        circle_approved = new CircleProgress('#circle_approved', {
+                            max: 100,
+                            value: response.data.percentage_approved,
+                            textFormat: 'percent'
+                        });
+                        circle_approved.updateComplete
+                    }
+                    if(circle_disapproved){
+                        circle_approved.update({
+                            value: response.data.percentage_disapproved // Actualiza con los nuevos datos
+                        });
+                    } else {
+                        circle_disapproved = new CircleProgress('#circle_disapproved', {
+                            max: 100,
+                            value: response.data.percentage_disapproved,
+                            textFormat: 'percent'
+                        });
+                    }
 
-                    new CircleProgress('#circle_approved', {
-                        max: 100,
-                        value: response.data.percentage_approved,
-                        textFormat: 'percent'
-                    });
 
-                    new CircleProgress('#circle_disapproved', {
-                        max: 100,
-                        value: response.data.percentage_disapproved,
-                        textFormat: 'percent'
-                    });
 
                     new CircleProgress('#exam_one', {
                         max: 100,

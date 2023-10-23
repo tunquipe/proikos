@@ -40,6 +40,14 @@ if ($action) {
                 echo json_encode($sessions);
             }
             break;
+        case 'get_participating_users':
+            if (isset($_POST)) {
+                $start_date = $_POST['start_date'] ?? null;
+                $end_date = $_POST['end_date'] ?? null;
+                $users = $plugin->getParticipatingUsers($start_date, $end_date);
+                echo json_encode($users);
+            }
+            break;
         case 'get_report_students':
             if (isset($_POST)) {
                 $start_date = $_POST['start_date'] ?? null;
