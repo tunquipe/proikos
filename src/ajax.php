@@ -83,14 +83,19 @@ if ($action) {
                 $position_company = $_POST['position_company'] ?? null;
                 $department = $_POST['department'] ?? null;
 
+                $nameCompany =   $plugin->getCompanyName($name_company);
+                $namePosition = $plugin->getPositionName($position_company);
+                //$nameArea = self::getAreaName($values['area']);
+                $nameManagement = $plugin->getManagementName($department);
+
                 $data = [
                     'start_date' => $start_date,
                     'end_date' => $end_date,
                     'gender' => $gender,
                     'stakeholders' => $stakeholders,
-                    'name_company' => $name_company,
-                    'position_company' => $position_company,
-                    'department' => $department
+                    'name_company' => $nameCompany,
+                    'position_company' => $namePosition,
+                    'department' => $nameManagement
                 ];
 
                 $totalStudents = $plugin->getTotalStudentsPlatform();
@@ -98,16 +103,43 @@ if ($action) {
                 $mergedStudents = [];
 
                 foreach ($sessions as $session) {
-                    $students[$session['id']] = $plugin->getStudentForSessionData($session['id'], $data);
+                    $students[$session['id']] = $plugin->getStudentForSessionData($session, $data);
                     if ($students[$session['id']] !== null) {
                         $mergedStudents = array_merge($mergedStudents, $students[$session['id']]);
                     }
                 }
 
+                $totalCurrent = 0;
+                $totalGlobal = 0;
+                $approved = 0;
+                $disapproved = 0;
+                foreach ($mergedStudents as $student) {
+                    //var_dump($student['has_certificates']);
+                    if ($student['has_certificates'] == 1) {
+                        $approved++;
+                    }
+                    if ($student['has_certificates'] == 0) {
+                        $disapproved++;
+                    }
+                }
+
+                $totalCurrent = $approved + $disapproved;
+                $percentageTotalCurrent = ($totalCurrent / $totalStudents) * 100;
+                $percentageApproved = ($approved / $totalCurrent) * 100;
+                $percentageDisapproved = ($disapproved / $totalCurrent) * 100;
+                $result = [
+                    'total_global' => intval($totalStudents),
+                    'total_current' => $totalCurrent,
+                    'approved' => $approved,
+                    'disapproved' => $disapproved,
+                    'percentage_total_current' => round($percentageTotalCurrent, 2),
+                    'percentage_approved' => round($percentageApproved, 2),
+                    'percentage_disapproved' => round($percentageDisapproved, 2)
+                ];
 
                 $response = array(
                     'status' => 'success',
-                    'data' => $mergedStudents,
+                    'data' => $result,
                     'message' => 'Datos recibidos correctamente.'
                 );
 

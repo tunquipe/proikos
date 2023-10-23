@@ -75,7 +75,7 @@
 
         // Seleccionar el botón con el ID "report_generate" y agregar un controlador de eventos
         $("#report_generate").click(function() {
-            event.preventDefault();
+
             // Acción que se realiza al hacer clic en el botón
             let data = {
                 gender: $("#report_gender").val(),
@@ -87,7 +87,6 @@
                 end_date: $("#end_date").val()
             };
 
-            console.log(data);
             let url = urlCampus + 'plugin/proikos/src/ajax.php?action=get_report_students';
 
             $.ajax({
@@ -97,15 +96,40 @@
                 dataType: "json",
                 success: function(response) {
                     console.log(response); // Aquí puedes manejar la respuesta del servidor
+
+                    new CircleProgress('#circle_approved', {
+                        max: 100,
+                        value: response.data.percentage_approved,
+                        textFormat: 'percent'
+                    });
+
+                    new CircleProgress('#circle_disapproved', {
+                        max: 100,
+                        value: response.data.percentage_disapproved,
+                        textFormat: 'percent'
+                    });
+
+                    new CircleProgress('#exam_one', {
+                        max: 100,
+                        value: 35,
+                        textFormat: 'percent'
+                    });
+
+                    new CircleProgress('#exam_two', {
+                        max: 100,
+                        value: 80,
+                        textFormat: 'percent'
+                    });
+
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     console.log("Error: " + errorThrown);
                 }
             });
-
+            event.preventDefault();
         });
     });
-
+/*
     document.addEventListener("DOMContentLoaded", function() {
         let starDate = $("#star_date").val();
         let endDate = $("#end_date").val();
@@ -113,7 +137,7 @@
         let url = urlCampus + 'plugin/proikos/src/ajax.php?action=get_status_of_students&star_date='+starDate+'&end_date='+endDate;
         let counterText = $("#counter");
         $.getJSON(url, function(response) {
-            console.log(response)
+            //console.log(response)
             new CircleProgress('#circle_approved', {
                 max: 100,
                 value: response.percentage_approved,
@@ -176,6 +200,6 @@
 
 
         });
-    });
+    });*/
 
 </script>

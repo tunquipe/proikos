@@ -1178,26 +1178,24 @@ class ProikosPlugin extends Plugin
         }
         return $list;
     }
-
-    public function getUserStatusSessionForDate($starDate, $endDate, $total = false){
-        $tbl_session = Database::get_main_table(TABLE_MAIN_SESSION);
-        $tbl_session_user = Database::get_main_table(TABLE_MAIN_SESSION_USER);
-        $d_start = (string)$starDate;
-        $d_end = (string)$endDate;
-        $list = [];
-        $sql = "SELECT sru.user_id ";
-        if($total){
-            $sql = "SELECT count(sru.user_id) ";
-        }
-        $sql.= "FROM $tbl_session s INNER JOIN $tbl_session_user sru ON s.id = sru.session_id
-                WHERE s.display_start_date BETWEEN '$d_start' AND '$d_end';";
+    public function getListCourses(): array
+    {
+        $tbl_course = Database::get_main_table(TABLE_MAIN_COURSE);
+        $sql = "SELECT c.id, c.title, c.code FROM $tbl_course c";
         $result = Database::query($sql);
+        $courses = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
-
+                $courses[] = [
+                    'id' => $row['id'],
+                    'title' => $row['title'],
+                    'code' => $row['code']
+                ];
             }
         }
+        return $courses;
     }
+
     public function getTotalStudentsPlatform(){
         $tbl_user = Database::get_main_table(TABLE_MAIN_USER);
         $sql = "SELECT count(*) as total FROM $tbl_user u WHERE u.status = 5;";
@@ -1255,18 +1253,18 @@ class ProikosPlugin extends Plugin
 
         return $list;
     }
-    public function  getStudentForSessionData($id, $data = []): array
+    public function  getStudentForSessionData($session = [], $data = []): array
     {
-        if (empty($id)) {
+        if (empty($session['id'])) {
             return [];
         }
-        $id = (int) $id;
+        $id = (int) $session['id'];
         $tbl_proikos_user = Database::get_main_table(self::TABLE_PROIKOS_USERS);
         $tbl_user = Database::get_main_table(TABLE_MAIN_USER);
         $tbl_session_rel_user = Database::get_main_table(TABLE_MAIN_SESSION_USER);
         $table_access_url_user = Database::get_main_table(TABLE_MAIN_ACCESS_URL_REL_USER);
 
-        $sql = "SELECT u.id as user_id, u.lastname, u.firstname, u.username, su.relation_type, au.access_url_id,
+        $sql = "SELECT u.id as user_id, u.lastname, u.firstname, u.username, u.email, u.official_code, u.status, u.active, su.relation_type, au.access_url_id,
                 su.moved_to, su.moved_status, su.moved_at, su.registered_at, ppu.*
                 FROM $tbl_user u
                 INNER JOIN $tbl_session_rel_user su
@@ -1277,11 +1275,69 @@ class ProikosPlugin extends Plugin
                 INNER JOIN $tbl_proikos_user ppu
                 ON u.user_id = ppu.user_id
                 WHERE (au.access_url_id = 1 OR au.access_url_id is null ) ";
+
+        if($data['gender'] != '0'){
+            $sql.= " AND ppu.gender = '".$data['gender']."' ";
+        }
+
+        if($data['stakeholders'] != '0'){
+            $sql.= " AND ppu.stakeholders = '".$data['stakeholders']."' ";
+        }
+
+        if($data['position_company'] != '0'){
+            $sql.= " AND ppu.position_company = '".$data['position_company']."' ";
+        }
+
+        if($data['department'] != '-1'){
+            $sql.= " AND ppu.department = '".$data['department']."' ";
+        }
+
+        if($data['name_company'] != '-'){
+            $sql.= " AND ppu.name_company = '".$data['name_company']."' ";
+        }
+
         $sql.= " ORDER BY su.relation_type,   u.lastname, u.firstname ";
+
         $users = [];
         $result = Database::query($sql);
         while ($row = Database::fetch_array($result, 'ASSOC')) {
-            $users[] = $row;
+
+            $hasCertificates = Certificate::getCertificateByUser($row['user_id']);
+            $row['has_certificates'] = 0;
+            if (!empty($hasCertificates)) {
+                $row['has_certificates'] = 1;
+            }
+            $courses = self::getCoursesSessionID($session['id'], $row['user_id']);
+            $users[] = [
+                'id' => $row['user_id'],
+                'firstname' => $row['firstname'],
+                'lastname' => $row['lastname'],
+                'username' => $row['username'],
+                'email' => $row['email'],
+                'official_code' => $row['official_code'],
+                'has_certificates' => $row['has_certificates'],
+                'status' => $row['status'],
+                'active' => $row['active'],
+                'phone' => $row['phone'] ?? '-',
+                'type_document' => $row['type_document'] ?? '-',
+                'number_document' => $row['number_document'] ?? '-',
+                'age' => $row['age'] ?? '-',
+                'gender' => $row['gender'] ?? '-',
+                'instruction' => $row['instruction'] ?? '-',
+                'name_company' => $row['name_company'] ?? '-',
+                'contact_manager' => $row['contact_manager'] ?? '-',
+                'position_company' => $row['position_company'] ?? '-',
+                'stakeholders' => $row['stakeholders'] ?? '-',
+                'record_number' => $row['record_number'] ?? '-',
+                'area' => $row['area'] ?? '-',
+                'department' => $row['department'] ?? '-',
+                'headquarters' => $row['headquarters'] ?? '-',
+                'session_id' => $session['id'],
+                'session_name' => $session['name'],
+                'display_start_date' => $session['display_start_date'],
+                'display_end_date' => $session['display_end_date'],
+                'courses' => $courses
+            ];
         }
 
         return $users;
