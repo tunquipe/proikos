@@ -20,6 +20,11 @@
         min-height: 400px;
         margin: 10px auto;
     }
+    #user_stakeholders_course{
+        max-width: 750px;
+        min-height: 400px;
+        margin: 10px auto;
+    }
 </style>
 <div class="bg-report">
     <div class="row">
@@ -148,6 +153,7 @@
         let chartParticipants;
         let chartCertificates;
         let chartApproved;
+        let chartStakeholders ;
         var circle_approved;
         var circle_disapproved;
         // Seleccionar el botón con el ID "report_generate" y agregar un controlador de eventos
@@ -170,6 +176,7 @@
             let urlParticipants = urlCampus + 'plugin/proikos/src/ajax.php?action=get_participating_users';
             let urlCertificates = urlCampus + 'plugin/proikos/src/ajax.php?action=get_certificate_users';
             let urlApproved = urlCampus + 'plugin/proikos/src/ajax.php?action=get_course_approved';
+            let urlStakeholders = urlCampus + 'plugin/proikos/src/ajax.php?action=get_participating_stakeholders';
 
             if (chartSession) {
                 chartSession.destroy();
@@ -183,6 +190,68 @@
             if (chartApproved) {
                 chartApproved.destroy();
             }
+            if (chartStakeholders) {
+                chartStakeholders.destroy();
+            }
+
+            $.ajax({
+                type: "POST",
+                url: urlStakeholders,
+                data: data,
+                dataType: "json",
+                success: function(response) {
+                    console.log(response);
+                    var jsonData = response;
+
+                    var categories = Object.keys(jsonData);
+                    var dataValues = Object.values(jsonData);
+
+
+                    var options = {
+                        series: [{
+                            name: 'Usuarios con certificado',
+                            data: dataValues,
+                        }],
+                        chart: {
+                            type: 'bar',
+                            height: 400,
+                            width: 750,
+                        },
+                        plotOptions: {
+                            bar: {
+                                columnHeights: '50%',
+                                distributed: true,
+                                borderRadius: 10,
+                                borderRadiusApplication: 'end',
+                                horizontal: true,
+                                dataLabels: {
+                                    position: 'top', // top, center, bottom
+                                },
+                            }
+                        },
+                        dataLabels: {
+                            enabled: true,
+                            offsetX: 30,
+                            style: {
+                                fontSize: '12px',
+                                colors: ["#304758"]
+                            }
+                        },
+                        xaxis: {
+                            categories: categories,
+                        },
+                    };
+
+
+                    chartStakeholders = new ApexCharts(document.querySelector("#user_stakeholders_course"), options);
+                    chartStakeholders.render();
+
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log("Error: " + errorThrown);
+                }
+            });
+
 
             $.ajax({
                 type: "POST",
@@ -190,7 +259,6 @@
                 data: data,
                 dataType: "json",
                 success: function(response) {
-                    console.log(response);
 
                     let jsonData = response;
                     let seriesDataApproved = jsonData.map(function (item) {
@@ -375,7 +443,7 @@
                         },
                         dataLabels: {
                             enabled: true,
-                            offsetX: -30,
+                            offsetX: 30,
                             style: {
                                 fontSize: '12px',
                                 colors: ["#304758"]

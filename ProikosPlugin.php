@@ -1298,7 +1298,7 @@ class ProikosPlugin extends Plugin
         return  $newList;
     }
 
-    public function getParticipatingUsers($starDate, $endDate): array
+    public function getUserParticipatesExam($starDate, $endDate): array
     {
         $d_start = (string)$starDate;
         $d_end = (string)$endDate;
@@ -1331,6 +1331,12 @@ class ProikosPlugin extends Plugin
                 ];
             }
         }
+        return $lists;
+    }
+
+    public function getParticipatingUsers($starDate, $endDate): array
+    {
+        $lists = self::getUserParticipatesExam($starDate, $endDate);
         $newArray = []; // El nuevo array donde almacenaremos los resultados
         $newList = [];
         foreach ($lists as $item) {
@@ -1356,8 +1362,6 @@ class ProikosPlugin extends Plugin
                 'participants' => $row['evaluations']
             ];
         }
-
-
         return $newList;
     }
 
@@ -1634,6 +1638,18 @@ class ProikosPlugin extends Plugin
         } else {
             return '-';
         }
+    }
+
+    public function getStakeholderForUserId($user_id){
+        $sql = "SELECT ppu.stakeholders FROM plugin_proikos_users ppu WHERE ppu.user_id = $user_id";
+        $result = Database::query($sql);
+        $name = '1';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $name =  $row['stakeholders'];
+            }
+        }
+        return $name;
     }
 
     function  getStakeholderTypeText($valor): string

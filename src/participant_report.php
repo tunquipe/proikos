@@ -117,7 +117,7 @@ switch ($action){
         //$form->addSelect('company',$plugin->get_lang('NameEntity'), $listCompanies);
         $form->addDatePicker('star_date',get_lang('DateStart'), ['value'=> $firstDate, 'id' => 'star_date']);
         $form->addDatePicker('end_date',get_lang('DateEnd'),['value'=> $lastDate, 'id' => 'end_date']);
-        $genders = [
+        /*$genders = [
             '0' => 'Seleccione una opción',
             'M' => 'Masculino',
             'F' => 'Femenino'

@@ -87,6 +87,31 @@ if ($action) {
                 echo json_encode($users);
             }
             break;
+        case 'get_participating_stakeholders':
+            if (isset($_POST)) {
+                $start_date = $_POST['start_date'] ?? null;
+                $end_date = $_POST['end_date'] ?? null;
+                $users = $plugin->getUserParticipatesExam($start_date, $end_date);
+                $list = [];
+                foreach ($users as $user){
+                    $idStakeholder = $plugin->getStakeholderForUserId($user['user_id']);
+                    $list[$user['user_id']] = [
+                        'stakeholder_id' => $idStakeholder,
+                        'stakeholder_name' => $plugin->getStakeholderTypeText($idStakeholder)
+                    ];
+                }
+                $conteoPorTipo = [];
+                foreach ($list as $item) {
+                    $stakeholderName = $item['stakeholder_name'];
+                    if (!isset($conteoPorTipo[$stakeholderName])) {
+                        $conteoPorTipo[$stakeholderName] = 1;
+                    } else {
+                        $conteoPorTipo[$stakeholderName]++;
+                    }
+                }
+                echo json_encode($conteoPorTipo);
+            }
+            break;
         case 'get_report_students':
             if (isset($_POST)) {
                 $start_date = $_POST['start_date'] ?? null;
