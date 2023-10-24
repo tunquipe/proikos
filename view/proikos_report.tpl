@@ -1,7 +1,8 @@
 {{ form }}
 <style>
     #user_register_course{
-        max-width: 650px;
+        max-width: 750px;
+        min-height: 400px;
         margin: 10px auto;
     }
     #user_participants_course{
@@ -22,7 +23,7 @@
 </style>
 <div class="bg-report">
     <div class="row">
-        <div class="col-md-3">
+        <div class="col-md-12">
             <h3 class="title">Trabajadores entrenados</h3>
 
             <div id="counter" class="counter" data-count="0">0</div>
@@ -56,24 +57,32 @@
 
             </div>
         </div>
-        <div class="col-md-9">
-            <div class="container-box text-center">
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="container-box">
+                <h3 class="title">Usuarios aprobados y desaprobados</h3>
+
                 <div class="row flex-container">
                     <div class="col flex-item">
                         <img src="{{ url_plugin_image }}/man_and_woman.png">
                     </div>
                     <div class="col flex-item">
-                        <h3 class="title">Aprobados</h3>
                         <div id="circle_approved" class="circle-bar-progress">
                         </div>
                     </div>
                     <div class="col flex-item">
-                        <h3 class="title">Desaprobados</h3>
                         <div id="circle_disapproved" class="circle-bar-progress">
                         </div>
                     </div>
                 </div>
+
             </div>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-md-12">
             <div class="container-box">
                 <h3 class="title">Usuarios inscritos por cada curso</h3>
                 <div id="user_register_course"></div>
@@ -102,7 +111,7 @@
     <div class="row">
         <div class="col-md-12">
             <div class="container-box">
-                <h3 class="title">Usuarios Aprovados Vs Desaprobados</h3>
+                <h3 class="title">Usuarios Aprobados Vs Desaprobados</h3>
                 <div id="user_approved_course"></div>
             </div>
         </div>
@@ -132,6 +141,7 @@
     });
 
     $(document).ready(function() {
+        $('input[name="show_data"][value="1"]').prop('checked', true);
         // Esperar a que el documento se cargue completamente
         let urlCampus = '{{_p.web}}';
         let chartSession;
@@ -151,10 +161,11 @@
                 position_company: $("#report_position_company").val(),
                 department: $("#report_department").val(),
                 start_date: $("#star_date").val(),
-                end_date: $("#end_date").val()
+                end_date: $("#end_date").val(),
+                show_data: $("#show_data").val()
             };
 
-            let urlStudent = urlCampus + 'plugin/proikos/src/ajax.php?action=get_report_students';
+            let urlStudent = urlCampus + 'plugin/proikos/src/ajax.php?action=get_students_approved_disapproved';
             let urlSession = urlCampus + 'plugin/proikos/src/ajax.php?action=get_report_session';
             let urlParticipants = urlCampus + 'plugin/proikos/src/ajax.php?action=get_participating_users';
             let urlCertificates = urlCampus + 'plugin/proikos/src/ajax.php?action=get_certificate_users';
@@ -407,8 +418,8 @@
                     let options = {
                         chart: {
                             type: 'bar',
-                            height: 350,
-                            width: 650,
+                            height: 400,
+                            width: 750,
                         },
                         plotOptions: {
                             bar: {
@@ -463,33 +474,26 @@
                 data: data,
                 dataType: "json",
                 success: function(response) {
-                    //console.log(response); // Aquí puedes manejar la respuesta del servidor
-                    if(circle_approved){
-                        circle_approved.update({
-                            value: response.data.percentage_approved // Actualiza con los nuevos datos
-                        });
-                    } else {
-                        circle_approved = new CircleProgress('#circle_approved', {
-                            max: 100,
-                            value: response.data.percentage_approved,
-                            textFormat: 'percent'
-                        });
-                        circle_approved.updateComplete
-                    }
-                    if(circle_disapproved){
-                        circle_approved.update({
-                            value: response.data.percentage_disapproved // Actualiza con los nuevos datos
-                        });
-                    } else {
-                        circle_disapproved = new CircleProgress('#circle_disapproved', {
-                            max: 100,
-                            value: response.data.percentage_disapproved,
-                            textFormat: 'percent'
-                        });
-                    }
+                    console.log(response); // Aquí puedes manejar la respuesta del servidor
+
+                    circle_approved = new CircleProgress('#circle_approved', {
+                        max: response.total,
+                        value: response.totalApproved,
+                        textFormat: function(value, max) {
+                            return value;
+                        }
+                    });
+
+                    circle_disapproved = new CircleProgress('#circle_disapproved', {
+                        max: response.total,
+                        value: response.totalDisapproved,
+                        textFormat: function(value, max) {
+                            return value;
+                        }
+                    });
 
 
-
+                    /*
                     new CircleProgress('#exam_one', {
                         max: 100,
                         value: 35,
@@ -500,7 +504,7 @@
                         max: 100,
                         value: 80,
                         textFormat: 'percent'
-                    });
+                    });*/
 
                     // Hide the label at start
                     $('#progress_bar .ui-progress .ui-label').hide();

@@ -1361,6 +1361,45 @@ class ProikosPlugin extends Plugin
         return $newList;
     }
 
+    public function getStudentsApprovedDisapproved($start_date, $end_date): array
+    {
+
+        $participants = self::getParticipatingUsers($start_date, $end_date);
+        $certificates = self::getParticipatingUsersCertificate($start_date, $end_date);
+
+        // Creamos un nuevo array para almacenar los datos combinados
+        $combinedData = [];
+        $list = [];
+        foreach ($participants as $participant) {
+            $courseCode = $participant['course_code'];
+            if (!isset($combinedData[$courseCode])) {
+                $combinedData[$courseCode] = [
+                    'course_code' => $participant['course_code'],
+                    'course_name' => $participant['course_name'],
+                    'approved' => 0,
+                    'participants' => 0,
+                ];
+            }
+            $combinedData[$courseCode]['participants'] += $participant['participants'];
+        }
+
+        foreach ($certificates as $certificate) {
+            $courseCode = $certificate['course_code'];
+            if (isset($combinedData[$courseCode])) {
+                $combinedData[$courseCode]['approved'] = $certificate['certificate'];
+            }
+        }
+
+        foreach ($combinedData as $data){
+            $list[] = [
+                'course_code' => $data['course_code'],
+                'course_name' => $data['course_name'],
+                'approved' => $data['approved'],
+                'disapproved' => $data['participants'] - $data['approved']
+            ];
+        }
+        return $list;
+    }
 
     public function getSessionRelCourseUsers($starDate, $endDate): array
     {

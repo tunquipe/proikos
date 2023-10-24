@@ -141,7 +141,7 @@ switch ($action){
         $departments = $plugin->getPetroManagement();
         $departmentsSelect = $form->addSelect('department', [$plugin->get_lang('Department')], $departments);
 
-        $courses = $plugin->getListCourses();
+        /*$courses = $plugin->getListCourses();
         $listCourses = [
             '0' => 'Todos los cursos'
         ];
@@ -149,8 +149,15 @@ switch ($action){
             $listCourses[$course['code']] = $course['title'];
         }
 
-        $courseSelect = $form->addSelect('course', [$plugin->get_lang('Course')], $listCourses);
-
+        $courseSelect = $form->addSelect('course', [$plugin->get_lang('Course')], $listCourses);*/
+        $form->addRadio(
+            'show_data',
+            get_lang('Show'),
+            [
+                '1' => $plugin->get_lang('NumberOfUsers'),
+                '2' => $plugin->get_lang('PercentageOfUsers')
+            ]
+        );
         $form->addButton('generate',$plugin->get_lang('ViewReport'),'refresh','primary');
         $tpl->assign('form', $form->returnForm());
         $urlPluginImages = api_get_path(WEB_PLUGIN_PATH).'proikos/images';

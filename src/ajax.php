@@ -32,45 +32,34 @@ if ($action) {
             header('Content-Type: application/json');
             echo json_encode($res);
             break;
+        case 'get_students_approved_disapproved':
+            if (isset($_POST)) {
+                $start_date = $_POST['start_date'] ?? null;
+                $end_date = $_POST['end_date'] ?? null;
+                $list = $plugin->getStudentsApprovedDisapproved($start_date,$end_date);
+
+                $totalApproved = 0;
+                $totalDisapproved = 0;
+
+                foreach ($list as $item) {
+                    $totalApproved += $item['approved'];
+                    $totalDisapproved += $item['disapproved'];
+                }
+
+                $totalArray = [
+                    'total' => $totalApproved + $totalDisapproved,
+                    'totalApproved' => $totalApproved,
+                    'totalDisapproved' => $totalDisapproved,
+                ];
+                echo json_encode($totalArray);
+            }
+            break;
+
         case 'get_course_approved':
             if (isset($_POST)) {
                 $start_date = $_POST['start_date'] ?? null;
                 $end_date = $_POST['end_date'] ?? null;
-                $participants = $plugin->getParticipatingUsers($start_date, $end_date);
-                $certificates = $plugin->getParticipatingUsersCertificate($start_date, $end_date);
-
-                // Creamos un nuevo array para almacenar los datos combinados
-                $combinedData = [];
-                $list = [];
-                foreach ($participants as $participant) {
-                    $courseCode = $participant['course_code'];
-                    if (!isset($combinedData[$courseCode])) {
-                        $combinedData[$courseCode] = [
-                            'course_code' => $participant['course_code'],
-                            'course_name' => $participant['course_name'],
-                            'approved' => 0,
-                            'participants' => 0,
-                        ];
-                    }
-                    $combinedData[$courseCode]['participants'] += $participant['participants'];
-                }
-
-                foreach ($certificates as $certificate) {
-                    $courseCode = $certificate['course_code'];
-                    if (isset($combinedData[$courseCode])) {
-                        $combinedData[$courseCode]['approved'] = $certificate['certificate'];
-                    }
-                }
-
-                foreach ($combinedData as $data){
-                    $list[] = [
-                        'course_code' => $data['course_code'],
-                        'course_name' => $data['course_name'],
-                        'approved' => $data['approved'],
-                        'disapproved' => $data['participants'] - $data['approved']
-                    ];
-                }
-
+                $list = $plugin->getStudentsApprovedDisapproved($start_date,$end_date);
                 echo json_encode($list);
             }
             break;
@@ -107,6 +96,7 @@ if ($action) {
                 $name_company = $_POST['name_company'] ?? null;
                 $position_company = $_POST['position_company'] ?? null;
                 $department = $_POST['department'] ?? null;
+                $show_data = $_POST['show_data'] ?? null;
 
                 $nameCompany =   $plugin->getCompanyName($name_company);
                 $namePosition = $plugin->getPositionName($position_company);
