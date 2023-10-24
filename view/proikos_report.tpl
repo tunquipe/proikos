@@ -9,6 +9,16 @@
         min-height: 400px;
         margin: 10px auto;
     }
+    #user_certificates_course{
+        max-width: 750px;
+        min-height: 400px;
+        margin: 10px auto;
+    }
+    #user_approved_course{
+        max-width: 750px;
+        min-height: 400px;
+        margin: 10px auto;
+    }
 </style>
 <div class="bg-report">
     <div class="row">
@@ -70,11 +80,39 @@
             </div>
         </div>
     </div>
+    <hr>
     <div class="row">
         <div class="col-md-12">
             <div class="container-box">
                 <h3 class="title">Usuarios participantes por cada curso</h3>
                 <div id="user_participants_course"></div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="container-box">
+                <h3 class="title">Usuarios participantes que logran culminar satisfactoriamente por curso</h3>
+                <div id="user_certificates_course"></div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="container-box">
+                <h3 class="title">Usuarios Aprovados Vs Desaprobados</h3>
+                <div id="user_approved_course"></div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="container-box">
+                <h3 class="title">Participación por tipo de Stakeholders</h3>
+                <div id="user_stakeholders_course"></div>
             </div>
         </div>
     </div>
@@ -86,7 +124,6 @@
 <script type="text/javascript">
     $("#report_stakeholders").change(function (){
         let idSelector = $("#report_stakeholders").val();
-        console.log(idSelector);
         if(idSelector == 1 ){
             $('#option-builder').hide();
         } else {
@@ -99,6 +136,8 @@
         let urlCampus = '{{_p.web}}';
         let chartSession;
         let chartParticipants;
+        let chartCertificates;
+        let chartApproved;
         var circle_approved;
         var circle_disapproved;
         // Seleccionar el botón con el ID "report_generate" y agregar un controlador de eventos
@@ -118,6 +157,8 @@
             let urlStudent = urlCampus + 'plugin/proikos/src/ajax.php?action=get_report_students';
             let urlSession = urlCampus + 'plugin/proikos/src/ajax.php?action=get_report_session';
             let urlParticipants = urlCampus + 'plugin/proikos/src/ajax.php?action=get_participating_users';
+            let urlCertificates = urlCampus + 'plugin/proikos/src/ajax.php?action=get_certificate_users';
+            let urlApproved = urlCampus + 'plugin/proikos/src/ajax.php?action=get_course_approved';
 
             if (chartSession) {
                 chartSession.destroy();
@@ -125,6 +166,162 @@
             if (chartParticipants) {
                 chartParticipants.destroy();
             }
+            if (chartCertificates) {
+                chartCertificates.destroy();
+            }
+            if (chartApproved) {
+                chartApproved.destroy();
+            }
+
+            $.ajax({
+                type: "POST",
+                url: urlApproved,
+                data: data,
+                dataType: "json",
+                success: function(response) {
+                    console.log(response);
+
+                    let jsonData = response;
+                    let seriesDataApproved = jsonData.map(function (item) {
+                        return item.approved;
+                    });
+
+                    let seriesDataDisapproved = jsonData.map(function (item) {
+                        return item.disapproved;
+                    });
+
+                    let categories = jsonData.map(function (item) {
+                        return item.course_code;
+                    });
+
+
+                    var options = {
+                        series: [{
+                            name: 'Usuarios aprobados',
+                            data: seriesDataApproved
+                        }, {
+                            name: 'Usuarios desaprobados',
+                            data: seriesDataDisapproved
+                        }],
+                        chart: {
+                            type: 'bar',
+                            height: 400,
+                            width: 750,
+                        },
+                        plotOptions: {
+                            bar: {
+                                columnWidth: '50%',
+                                borderRadius: 5,
+                                borderRadiusApplication: 'end',
+                                dataLabels: {
+                                    position: 'top', // top, center, bottom
+                                },
+                            }
+                        },
+                        dataLabels: {
+                            enabled: true,
+                            offsetY: -30,
+                            style: {
+                                fontSize: '12px',
+                                colors: ["#304758"]
+                            }
+                        },
+                        stroke: {
+                            show: true,
+                            width: 2,
+                            colors: ['transparent']
+                        },
+                        xaxis: {
+                            categories: categories,
+                        },
+                        fill: {
+                            opacity: 1
+                        },
+                        colors: ['#25e6a5', '#fe6077'],
+                        loading: {
+                            enabled: true, // Habilitar la precarga
+                            type: 'default', // Tipo de precarga ('default', 'light', 'dark')
+                            label: 'Cargando datos...', // Texto de la precarga
+                        }
+                    };
+
+                    chartApproved = new ApexCharts(document.querySelector("#user_approved_course"), options);
+                    chartApproved.render();
+
+
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log("Error: " + errorThrown);
+                }
+            });
+
+            $.ajax({
+                type: "POST",
+                url: urlCertificates,
+                data: data,
+                dataType: "json",
+                success: function(response) {
+                    let jsonData = response;
+                    let seriesData = jsonData.map(function (item) {
+                        return item.certificate;
+                    });
+                    let categories = jsonData.map(function (item) {
+                        return item.course_code;
+                    });
+
+                    let options = {
+                        chart: {
+                            type: 'bar',
+                            height: 400,
+                            width: 750,
+                        },
+                        plotOptions: {
+                            bar: {
+                                columnWidth: '50%',
+                                borderRadius: 10,
+                                borderRadiusApplication: 'end',
+                                dataLabels: {
+                                    position: 'top', // top, center, bottom
+                                },
+                            }
+                        },
+                        dataLabels: {
+                            enabled: true,
+                            offsetY: -30,
+                            style: {
+                                fontSize: '12px',
+                                colors: ["#304758"]
+                            }
+                        },
+                        legend: {
+                            show: false
+                        },
+                        series: [{
+                            name: 'Usuarios con certificado',
+                            data: seriesData,
+                        }],
+                        xaxis: {
+                            categories: categories,
+                            labels: {
+                                show: true,
+                                style: {
+                                    fontSize: '12px'
+                                }
+                            }
+                        },
+                        toolbar: {
+                            show: false // Esto oculta la barra de herramientas
+                        }
+                    };
+
+                    chartCertificates = new ApexCharts(document.querySelector("#user_certificates_course"), options);
+                    chartCertificates.render();
+
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log("Error: " + errorThrown);
+                }
+            });
 
             $.ajax({
                 type: "POST",
@@ -134,7 +331,7 @@
                 success: function(response) {
                     let jsonData = response;
                     let seriesData = jsonData.map(function (item) {
-                        return item.evaluations;
+                        return item.participants;
                     });
                     let categories = jsonData.map(function (item) {
                         return item.course_name;
@@ -142,7 +339,7 @@
 
                     var options = {
                         series: [{
-                            name: 'Cursos',
+                            name: 'Usuarios participantes',
                             data: seriesData,
                         }],
                         chart: {
@@ -236,7 +433,7 @@
                             show: false
                         },
                         series: [{
-                            name: 'Usuarios',
+                            name: 'Usuarios inscritos',
                             data: seriesData,
                         }],
                         xaxis: {
@@ -247,9 +444,6 @@
                                     fontSize: '12px'
                                 }
                             }
-                        },
-                        toolbar: {
-                            show: false // Esto oculta la barra de herramientas
                         }
                     };
 

@@ -32,6 +32,56 @@ if ($action) {
             header('Content-Type: application/json');
             echo json_encode($res);
             break;
+        case 'get_course_approved':
+            if (isset($_POST)) {
+                $start_date = $_POST['start_date'] ?? null;
+                $end_date = $_POST['end_date'] ?? null;
+                $participants = $plugin->getParticipatingUsers($start_date, $end_date);
+                $certificates = $plugin->getParticipatingUsersCertificate($start_date, $end_date);
+
+                // Creamos un nuevo array para almacenar los datos combinados
+                $combinedData = [];
+                $list = [];
+                foreach ($participants as $participant) {
+                    $courseCode = $participant['course_code'];
+                    if (!isset($combinedData[$courseCode])) {
+                        $combinedData[$courseCode] = [
+                            'course_code' => $participant['course_code'],
+                            'course_name' => $participant['course_name'],
+                            'approved' => 0,
+                            'participants' => 0,
+                        ];
+                    }
+                    $combinedData[$courseCode]['participants'] += $participant['participants'];
+                }
+
+                foreach ($certificates as $certificate) {
+                    $courseCode = $certificate['course_code'];
+                    if (isset($combinedData[$courseCode])) {
+                        $combinedData[$courseCode]['approved'] = $certificate['certificate'];
+                    }
+                }
+
+                foreach ($combinedData as $data){
+                    $list[] = [
+                        'course_code' => $data['course_code'],
+                        'course_name' => $data['course_name'],
+                        'approved' => $data['approved'],
+                        'disapproved' => $data['participants'] - $data['approved']
+                    ];
+                }
+
+                echo json_encode($list);
+            }
+            break;
+        case 'get_certificate_users':
+            if (isset($_POST)) {
+                $start_date = $_POST['start_date'] ?? null;
+                $end_date = $_POST['end_date'] ?? null;
+                $users = $plugin->getParticipatingUsersCertificate($start_date, $end_date);
+                echo json_encode($users);
+            }
+            break;
         case 'get_report_session':
             if (isset($_POST)) {
                 $start_date = $_POST['start_date'] ?? null;

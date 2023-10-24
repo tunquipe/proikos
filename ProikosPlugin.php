@@ -1239,6 +1239,64 @@ class ProikosPlugin extends Plugin
         }
         return $name;
     }
+    public function getParticipatingUsersCertificate($starDate, $endDate): array
+    {
+        $d_start = (string)$starDate;
+        $d_end = (string)$endDate;
+        $tbl_session = Database::get_main_table(TABLE_MAIN_SESSION);
+        $tbl_session_course = Database::get_main_table(TABLE_MAIN_SESSION_COURSE_USER);
+        $sql = "SELECT srcu.user_id, srcu.session_id, srcu.c_id FROM $tbl_session_course srcu INNER JOIN $tbl_session s ON s.id = srcu.session_id
+                WHERE s.display_start_date BETWEEN '".$d_start."' AND '".$d_end."'";
+        $result = Database::query($sql);
+        $lists = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $code = self::getCourseCode($row['c_id']);
+                $certificate = $this->getScoreCertificate($row['user_id'],$code,$row['session_id'],true);
+                $has_certificate = 0;
+                if(empty($certificate)){
+                    $has_certificate = 0;
+                } else {
+                    $score_min = $certificate['certif_min_score'];
+                    $score = $certificate['score'];
+                    if(intval(round($score,0)) >= $score_min){
+                        $has_certificate = 1;
+                    }
+                }
+                $lists[] = [
+                    'user_id' => $row['user_id'],
+                    'course_code' => self::getCourseCode($row['c_id']),
+                    'certificate' => $has_certificate
+                ];
+            }
+        }
+        $newArray = []; // El nuevo array donde almacenaremos los resultados
+        $newList = [];
+        foreach ($lists as $item) {
+            $courseCode = $item['course_code'];
+            $certificate = $item['certificate'];
+
+            // Si el course_code ya existe en el nuevo array, suma las evaluaciones.
+            if (isset($newArray[$courseCode])) {
+                $newArray[$courseCode]['certificate'] += $certificate;
+            } else {
+                // Si no existe, crea un nuevo elemento en el nuevo array.
+                $newArray[$courseCode] = array(
+                    'course_code' => $courseCode,
+                    'course_name' => self::getCourseName($courseCode),
+                    'certificate' => $certificate
+                );
+            }
+        }
+        foreach ($newArray as $row){
+            $newList[] = [
+                'course_code' => $row['course_code'],
+                'course_name' =>  $row['course_name'],
+                'certificate' => $row['certificate']
+            ];
+        }
+        return  $newList;
+    }
 
     public function getParticipatingUsers($starDate, $endDate): array
     {
@@ -1295,7 +1353,7 @@ class ProikosPlugin extends Plugin
             $newList[] = [
                 'course_code' => $row['course_code'],
                 'course_name' =>  $row['course_name'],
-                'evaluations' => $row['evaluations']
+                'participants' => $row['evaluations']
             ];
         }
 
