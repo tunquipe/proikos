@@ -1391,11 +1391,14 @@ class ProikosPlugin extends Plugin
         }
 
         foreach ($combinedData as $data){
+            $approved = $data['approved'];
+            $participants = $data['participants'];
+            $disapproved = max($participants - $approved, 0);
             $list[] = [
                 'course_code' => $data['course_code'],
                 'course_name' => $data['course_name'],
                 'approved' => $data['approved'],
-                'disapproved' => $data['participants'] - $data['approved']
+                'disapproved' => $disapproved
             ];
         }
         return $list;
