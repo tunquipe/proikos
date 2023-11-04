@@ -25,6 +25,35 @@
         min-height: 400px;
         margin: 10px auto;
     }
+    .header01{
+        background: #259ffb;
+        color: #FFF;
+        text-align: center;
+        text-transform: uppercase;
+    }
+    .header02{
+        background: #25e6a5;
+        color: #FFF;
+        text-align: center;
+        text-transform: uppercase;
+    }
+    .header03{
+        background: #fe6077;
+        color: #FFF;
+        text-align: center;
+        text-transform: uppercase;
+    }
+    .footer-table{
+        background: #FFF;
+        text-transform: uppercase;
+        color: #000;
+    }
+    .table tr th{
+        padding: 14px !important;
+    }
+    .table tr td{
+        padding: 14px !important;
+    }
 </style>
 <div class="bg-report">
     <div class="row">
@@ -130,6 +159,297 @@
             </div>
         </div>
     </div>
+    <hr>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="container-box">
+                <h3 class="title">Usuarios por Actividad de Formación Acumulado</h3>
+                <div id="table_for_activity">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr class="header01">
+                                <th>Actividad / Mes</th>
+                                <th>Jul</th>
+                                <th>Ago</th>
+                                <th>Set</th>
+                                <th>Oct</th>
+                                <th>Nov</th>
+                                <th>Dic</th>
+                                <th>Ene</th>
+                                <th>Feb</th>
+                                <th>Mar</th>
+                                <th>Abr</th>
+                                <th>May</th>
+                                <th>Jun</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Inducción HSE</td>
+                                <td>538</td>
+                                <td>538</td>
+                                <td>538</td>
+                                <td>538</td>
+                                <td>538</td>
+                                <td>538</td>
+                                <td>538</td>
+                                <td>538</td>
+                                <td>538</td>
+                                <td>538</td>
+                                <td>538</td>
+                                <td>538</td>
+                                <td>538</td>
+                            </tr>
+                            <tr>
+                                <td>Matriz IPERC y Matriz IAEIA</td>
+                                <td>26</td>
+                                <td>26</td>
+                                <td>26</td>
+                                <td>26</td>
+                                <td>26</td>
+                                <td>26</td>
+                                <td>26</td>
+                                <td>26</td>
+                                <td>26</td>
+                                <td>26</td>
+                                <td>26</td>
+                                <td>26</td>
+                                <td>26</td>
+                            </tr>
+                            <tr>
+                                <td>Permisos de Trabajo</td>
+                                <td>30</td>
+                                <td>30</td>
+                                <td>30</td>
+                                <td>30</td>
+                                <td>30</td>
+                                <td>30</td>
+                                <td>30</td>
+                                <td>30</td>
+                                <td>30</td>
+                                <td>30</td>
+                                <td>30</td>
+                                <td>30</td>
+                                <td>30</td>
+                            </tr>
+                            <tr class="footer-table">
+                                <td>Total Acumulado</td>
+                                <td>594</td>
+                                <td>594</td>
+                                <td>594</td>
+                                <td>594</td>
+                                <td>594</td>
+                                <td>594</td>
+                                <td>594</td>
+                                <td>594</td>
+                                <td>594</td>
+                                <td>594</td>
+                                <td>594</td>
+                                <td>594</td>
+                                <td>594</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="container-box">
+                <h3 class="title">HH de Formación - Acumulado</h3>
+                <div id="table_for_activity">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                        <tr class="header02">
+                            <th>Actividad / Mes</th>
+                            <th>Jul</th>
+                            <th>Ago</th>
+                            <th>Set</th>
+                            <th>Oct</th>
+                            <th>Nov</th>
+                            <th>Dic</th>
+                            <th>Ene</th>
+                            <th>Feb</th>
+                            <th>Mar</th>
+                            <th>Abr</th>
+                            <th>May</th>
+                            <th>Jun</th>
+                            <th>Total</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>Inducción HSE</td>
+                            <td>4304</td>
+                            <td>4304</td>
+                            <td>4304</td>
+                            <td>4304</td>
+                            <td>4304</td>
+                            <td>4304</td>
+                            <td>4304</td>
+                            <td>4304</td>
+                            <td>4304</td>
+                            <td>4304</td>
+                            <td>4304</td>
+                            <td>4304</td>
+                            <td>4304</td>
+                        </tr>
+                        <tr>
+                            <td>Matriz IPERC y Matriz IAEIA</td>
+                            <td>208</td>
+                            <td>208</td>
+                            <td>208</td>
+                            <td>208</td>
+                            <td>208</td>
+                            <td>208</td>
+                            <td>208</td>
+                            <td>208</td>
+                            <td>208</td>
+                            <td>208</td>
+                            <td>208</td>
+                            <td>208</td>
+                            <td>208</td>
+                        </tr>
+                        <tr>
+                            <td>Permisos de Trabajo</td>
+                            <td>240</td>
+                            <td>240</td>
+                            <td>240</td>
+                            <td>240</td>
+                            <td>240</td>
+                            <td>240</td>
+                            <td>240</td>
+                            <td>240</td>
+                            <td>240</td>
+                            <td>240</td>
+                            <td>240</td>
+                            <td>240</td>
+                            <td>240</td>
+                        </tr>
+                        <tr class="footer-table">
+                            <td>Total Acumulado</td>
+                            <td>4752</td>
+                            <td>4752</td>
+                            <td>4752</td>
+                            <td>4752</td>
+                            <td>4752</td>
+                            <td>4752</td>
+                            <td>4752</td>
+                            <td>4752</td>
+                            <td>4752</td>
+                            <td>4752</td>
+                            <td>4752</td>
+                            <td>4752</td>
+                            <td>4752</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="container-box">
+                <h3 class="title">% de aprobación por Actividad de Formación</h3>
+                <div id="table_for_activity">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                        <tr class="header03">
+                            <th>Actividad / Mes</th>
+                            <th>Jul</th>
+                            <th>Ago</th>
+                            <th>Set</th>
+                            <th>Oct</th>
+                            <th>Nov</th>
+                            <th>Dic</th>
+                            <th>Ene</th>
+                            <th>Feb</th>
+                            <th>Mar</th>
+                            <th>Abr</th>
+                            <th>May</th>
+                            <th>Jun</th>
+                            <th>Total</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>Inducción HSE</td>
+                            <td>92%</td>
+                            <td>92%</td>
+                            <td>92%</td>
+                            <td>92%</td>
+                            <td>92%</td>
+                            <td>92%</td>
+                            <td>92%</td>
+                            <td>92%</td>
+                            <td>92%</td>
+                            <td>92%</td>
+                            <td>92%</td>
+                            <td>92%</td>
+                            <td>92%</td>
+                        </tr>
+                        <tr>
+                            <td>Matriz IPERC y Matriz IAEIA</td>
+                            <td>96%</td>
+                            <td>96%</td>
+                            <td>96%</td>
+                            <td>96%</td>
+                            <td>96%</td>
+                            <td>96%</td>
+                            <td>96%</td>
+                            <td>96%</td>
+                            <td>96%</td>
+                            <td>96%</td>
+                            <td>96%</td>
+                            <td>96%</td>
+                            <td>96%</td>
+                        </tr>
+                        <tr>
+                            <td>Permisos de Trabajo</td>
+                            <td>77%</td>
+                            <td>77%</td>
+                            <td>77%</td>
+                            <td>77%</td>
+                            <td>77%</td>
+                            <td>77%</td>
+                            <td>77%</td>
+                            <td>77%</td>
+                            <td>77%</td>
+                            <td>77%</td>
+                            <td>77%</td>
+                            <td>77%</td>
+                            <td>77%</td>
+                        </tr>
+                        <tr class="footer-table">
+                            <td>Total Acumulado</td>
+                            <td>88%</td>
+                            <td>88%</td>
+                            <td>88%</td>
+                            <td>88%</td>
+                            <td>88%</td>
+                            <td>88%</td>
+                            <td>88%</td>
+                            <td>88%</td>
+                            <td>88%</td>
+                            <td>88%</td>
+                            <td>88%</td>
+                            <td>88%</td>
+                            <td>88%</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 
