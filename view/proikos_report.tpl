@@ -662,7 +662,7 @@
                     examsElement.removeChild(examsElement.firstChild);
                 }
                 response.forEach(function(data) {
-                    var chartData = {
+                    let chartData = {
                         series: [data.exam_taken, data.exam_not_taken],
                         chart: {
                             type: 'donut',
@@ -721,7 +721,7 @@
                 var dataValues = Object.values(jsonData);
 
 
-                var options = {
+                let options = {
                     series: [{
                         name: 'Usuarios con certificado',
                         data: dataValues,
@@ -787,7 +787,7 @@
                 });
 
 
-                var options = {
+                let options = {
                     series: [{
                         name: 'Usuarios aprobados',
                         data: seriesDataApproved
@@ -929,7 +929,7 @@
                     return item.course_name;
                 });
 
-                var options = {
+                let options = {
                     series: [{
                         name: 'Usuarios participantes',
                         data: seriesData,
@@ -1060,7 +1060,7 @@
 
                 let pieChartData = [seriesDataApproved, seriesDataDisapproved];
 
-                var options = {
+                let options = {
                     series: pieChartData,
                     chart: {
                         width: 380,

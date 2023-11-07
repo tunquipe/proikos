@@ -201,6 +201,7 @@ if ($action) {
                     $result[] = $plugin->processStudentList(70,$row['exercises_id'],$row['course_code'],$row['session_id'], $row['title']);
                 }
                 $unifiedArray = [];
+                $finalArray = [];
 
                 // Recorre el array original
                 foreach ($result as $item) {
@@ -220,7 +221,12 @@ if ($action) {
                 // Convierte el array unificado en un array indexado
                 $unifiedArray = array_values($unifiedArray);
 
-                echo json_encode($unifiedArray);
+                foreach ($unifiedArray as $element){
+                    if($element['exam_taken'] >= 1){
+                        $finalArray[] = $element;
+                    }
+                }
+                echo json_encode($finalArray);
             }
             break;
     }
