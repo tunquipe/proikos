@@ -117,79 +117,28 @@ if ($action) {
                 $start_date = $_POST['start_date'] ?? null;
                 $end_date = $_POST['end_date'] ?? null;
                 $gender = $_POST['gender'] ?? null;
-                $stakeholders = $_POST['stakeholders'] ?? null;
-                $name_company = $_POST['name_company'] ?? null;
-                $position_company = $_POST['position_company'] ?? null;
-                $department = $_POST['department'] ?? null;
-                $show_data = $_POST['show_data'] ?? null;
-
-                $nameCompany =   $plugin->getCompanyName($name_company);
-                $namePosition = $plugin->getPositionName($position_company);
-                $nameManagement = $plugin->getManagementName($department);
 
                 $data = [
                     'start_date' => $start_date,
                     'end_date' => $end_date,
-                    'gender' => $gender,
-                    'stakeholders' => $stakeholders,
-                    'name_company' => $nameCompany,
-                    'position_company' => $namePosition,
-                    'department' => $nameManagement
                 ];
 
-                $totalStudents = $plugin->getTotalStudentsPlatform();
-                $sessions = $plugin->getSessionForDate($start_date, $end_date);
-                $mergedStudents = [];
-
-                foreach ($sessions as $session) {
-                    $students[$session['id']] = $plugin->getStudentForSessionData($session, $data);
-                    if ($students[$session['id']] !== null) {
-                        $mergedStudents = array_merge($mergedStudents, $students[$session['id']]);
-                    }
-                }
-
+                $totalStudents = intval($plugin->getTotalStudentsPlatform());
+                $sessions = $plugin->getSessionRelCourseUsers($start_date, $end_date);
                 $totalCurrent = 0;
-                $totalGlobal = 0;
-                $approved = 0;
-                $disapproved = 0;
-                foreach ($mergedStudents as $student) {
-                    //var_dump($student['has_certificates']);
-                    if ($student['has_certificates'] == 1) {
-                        $approved++;
-                    }
-                    if ($student['has_certificates'] == 0) {
-                        $disapproved++;
+                $totalDisapproved = 0;
+                foreach ($sessions as $item) {
+                    //var_dump($item);
+                    if($item['nbr_users']>=1){
+                        $totalCurrent+= intval($item['nbr_users']);
                     }
                 }
-
-                $totalCurrent = $approved + $disapproved;
-                $percentageTotalCurrent = ($totalCurrent / $totalStudents) * 100;
-                $percentageApproved = ($approved / $totalCurrent) * 100;
-                $percentageDisapproved = ($disapproved / $totalCurrent) * 100;
                 $result = [
-                    'total_global' => intval($totalStudents),
+                    'total_global' => $totalStudents-$totalCurrent,
                     'total_current' => $totalCurrent,
-                    'approved' => $approved,
-                    'disapproved' => $disapproved,
-                    'percentage_total_current' => round($percentageTotalCurrent, 2),
-                    'percentage_approved' => round($percentageApproved, 2),
-                    'percentage_disapproved' => round($percentageDisapproved, 2)
                 ];
-
-                $response = array(
-                    'status' => 'success',
-                    'data' => $result,
-                    'message' => 'Datos recibidos correctamente.'
-                );
-
-
-            } else {
-                $response = array(
-                    'status' => 'error',
-                    'message' => 'No se recibieron datos.'
-                );
+                echo json_encode($result);
             }
-            echo json_encode($response);
             break;
         case 'get_exams_students':
             if (isset($_POST)) {

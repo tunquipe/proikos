@@ -1,108 +1,5 @@
 {{ form }}
 <style>
-
-    [class^=circle-bar-progress]>svg, [class*=" circle-bar-progress"]>svg {
-        width: 200px;
-        height: 200px;
-    }
-    [class^=circle-bar-exam]>svg, [class*=" circle-bar-exam"]>svg {
-        width: 150px;
-        height: 150px;
-    }
-    #circle_approved .circle-progress-value {
-        stroke-width: 20px;
-        stroke: hsl(195, 100%, 44%);
-    }
-    #circle_approved .circle-progress-circle {
-        stroke-width: 20px;
-        stroke: hsl(0, 0%, 85%);
-    }
-    #circle_approved .circle-progress-text {
-        fill: hsl(195, 100%, 44%);
-        font-weight: 800;
-        font-family: 'Gabarito', sans-serif;
-        font-size: 1.8rem;
-    }
-
-    #circle_disapproved .circle-progress-value {
-        stroke-width: 20px;
-        stroke: hsl(0, 85%, 45%);
-    }
-    #circle_disapproved .circle-progress-circle {
-        stroke-width: 20px;
-        stroke: hsl(0, 0%, 85%);
-    }
-    #circle_disapproved .circle-progress-text {
-        fill: hsl(0, 85%, 45%);
-        font-weight: 800;
-        font-family: 'Gabarito', sans-serif;
-        font-size: 1.8rem;
-    }
-    #exam_one .circle-progress-value {
-        stroke-width: 10px;
-        stroke: hsl(37, 100%, 48%);
-        stroke-dasharray: 11 2;
-    }
-    #exam_one .circle-progress-circle {
-        stroke-width: 10px;
-        stroke: #FFF;
-    }
-    #exam_one .circle-progress-text {
-        font-weight: bold;
-        fill: hsl(37, 100%, 48%);
-        font-family: 'Gabarito', sans-serif;
-        font-size: 2.2rem;
-    }
-    #exam_two .circle-progress-value {
-        stroke-width: 10px;
-        stroke: #00a7df;
-        stroke-dasharray: 11 2;
-    }
-    #exam_two .circle-progress-circle {
-        stroke-width: 10px;
-        stroke: #FFF;
-    }
-    #exam_two .circle-progress-text {
-        font-weight: bold;
-        fill: #00a7df;
-        font-family: 'Gabarito', sans-serif;
-        font-size: 2.2rem;
-    }
-    .ui-progress-bar {
-        position: relative;
-        height: 22px;
-        padding-right: 2px;
-        background-color: #FFF;
-        border: 1px solid #cdcd;
-    }
-
-    .ui-progress {
-        position: relative;
-        display: block;
-        overflow: hidden;
-        height: 20px;
-        background-color: #d41111;
-        border: 1px solid #d41111;
-        -webkit-animation: animate-stripes 2s linear infinite;
-    }
-
-    .ui-progress span.ui-label {
-        font-size: 1.2em;
-        position: absolute;
-        right: 0;
-        line-height: 20px;
-        padding-right: 12px;
-        color: rgba(0,0,0,0.6);
-        text-shadow: rgba(255,255,255, 0.45) 0 1px 0px;
-        white-space: nowrap;
-    }
-    .counter {
-        display: table-cell;
-        margin:1.5%;
-        font-size:50px;
-        border-radius: 50%;
-        vertical-align: middle;
-    }
     .bg-report{
         background-color: #f9f9f9;
         padding: 2rem;
@@ -166,7 +63,6 @@
         flex-wrap: wrap;
         justify-content: space-between;
     }
-
     .chart-item {
         flex: 1;
         max-width: 300px;
@@ -177,9 +73,24 @@
         padding: 10px;
         box-sizing: border-box;
     }
+    #trained_workers{
+        max-width: 750px;
+        min-height: 200px;
+        margin: 10px auto;
+    }
 </style>
 <div class="bg-report">
 
+    <div class="row">
+        <div class="col-md-12">
+            <div class="container-box">
+                <h3 class="title">Trabajadores entrenados</h3>
+                <div id="trained_workers"></div>
+            </div>
+        </div>
+    </div>
+
+    <hr>
     <div class="row">
         <div class="col-md-12">
             <div class="container-box">
@@ -622,6 +533,7 @@
         let chartApproved;
         let chartStakeholders ;
         let chart_approved_disapproved;
+        let chart_total;
 
         let urlStudent = urlCampus + 'plugin/proikos/src/ajax.php?action=get_students_approved_disapproved';
         let urlSession = urlCampus + 'plugin/proikos/src/ajax.php?action=get_report_session';
@@ -630,6 +542,8 @@
         let urlApproved = urlCampus + 'plugin/proikos/src/ajax.php?action=get_course_approved';
         let urlStakeholders = urlCampus + 'plugin/proikos/src/ajax.php?action=get_participating_stakeholders';
         let urlExams = urlCampus + 'plugin/proikos/src/ajax.php?action=get_exams_students';
+        let urlTotals = urlCampus + 'plugin/proikos/src/ajax.php?action=get_report_students';
+
 
         if (chartSession) {
             chartSession.destroy();
@@ -649,6 +563,89 @@
         if (chart_approved_disapproved) {
             chart_approved_disapproved.destroy();
         }
+        if (chart_total) {
+            chart_total.destroy();
+        }
+
+
+        $.ajax({
+            type: "POST",
+            url: urlTotals,
+            data: data,
+            dataType: "json",
+            success: function(response) {
+                console.log(response);
+
+                let options = {
+                    series: [{
+                        name: 'Entrenados',
+                        data: [response.total_current]
+                    }, {
+                        name: 'Total registados en plataforma',
+                        data: [response.total_global]
+                    }],
+                    chart: {
+                        type: 'bar',
+                        height: 200,
+                        width: 750,
+                        stacked: true,
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: true,
+                            dataLabels: {
+                                total: {
+                                    enabled: true,
+                                    offsetX: 0,
+                                    style: {
+                                        fontSize: '13px',
+                                        fontWeight: 900
+                                    }
+                                }
+                            }
+                        },
+                    },
+                    stroke: {
+                        width: 1,
+                        colors: ['#fff']
+                    },
+                    xaxis: {
+                        categories: ['Trabajadores']
+                    },
+                    yaxis: {
+                        title: {
+                            text: undefined
+                        },
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val + "K"
+                            }
+                        }
+                    },
+                    fill: {
+                        opacity: 1
+                    },
+                    legend: {
+                        position: 'top',
+                        horizontalAlign: 'left',
+                        offsetX: 40
+                    }
+                };
+
+                chart_total = new ApexCharts(document.querySelector("#trained_workers"), options);
+                chart_total.render();
+
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Error: " + errorThrown);
+            }
+        });
+
+
+
+
 
         $.ajax({
             type: "POST",
