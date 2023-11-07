@@ -1073,17 +1073,6 @@
                             return val; // Mostrar valores reales en lugar de porcentajes
                         }
                     }
-                    responsive: [{
-                        breakpoint: 480,
-                        options: {
-                            chart: {
-                                width: 200
-                            },
-                            legend: {
-                                position: 'bottom'
-                            }
-                        }
-                    }]
                 };
 
                 chart_approved_disapproved = new ApexCharts(document.querySelector("#chart_approved_disapproved"), options);
