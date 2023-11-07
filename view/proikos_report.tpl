@@ -165,47 +165,15 @@
 <div class="bg-report">
 
     <div class="row">
-        div.col-md-
-    </div>
-
-
-    <div class="row">
         <div class="col-md-12">
-            <h3 class="title">Trabajadores entrenados</h3>
-
-            <div id="counter" class="counter" data-count="0">0</div>
-
-            <div id="progress_bar" class="ui-progress-bar">
-                <div class="ui-progress" style="width: 0;">
-                </div>
-            </div>
-
-            <h3 class="title">Evaluaciones</h3>
             <div class="container-box">
-                <div class="row flex-container">
-                    <div class="col flex-item">
-                        Resultados examen inicial
-                    </div>
-                    <div class="col flex-item">
-                        <div id="exam_one" class="circle-bar-exam">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row flex-container">
-                    <div class="col flex-item">
-                        Resultados examen final
-                    </div>
-                    <div class="col flex-item">
-                        <div id="exam_two" class="circle-bar-exam">
-                        </div>
-                    </div>
-                </div>
-
+                <h3 class="title">Evaluaciones realizadas por curso</h3>
+                <div id="exams" class="row"></div>
             </div>
         </div>
     </div>
 
+    <hr>
     <div class="row">
         <div class="col-md-12">
             <div class="container-box">
@@ -619,6 +587,19 @@
         });
     });
 
+    function capitalizeTitle(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function replaceSpaces(string) {
+        return string.replace(/ /g, '-');
+    }
+
+    function createRandomColor() {
+        // Genera un color aleatorio en formato hexadecimal
+        return '#' + Math.floor(Math.random()*16777215).toString(16);
+    }
+
     function loadData(data){
 
         let urlCampus = '{{_p.web}}';
@@ -636,6 +617,7 @@
         let urlCertificates = urlCampus + 'plugin/proikos/src/ajax.php?action=get_certificate_users';
         let urlApproved = urlCampus + 'plugin/proikos/src/ajax.php?action=get_course_approved';
         let urlStakeholders = urlCampus + 'plugin/proikos/src/ajax.php?action=get_participating_stakeholders';
+        let urlExams = urlCampus + 'plugin/proikos/src/ajax.php?action=get_exams_students';
 
         if (chartSession) {
             chartSession.destroy();
@@ -655,6 +637,97 @@
         if (circle_approved) {
             circle_approved.destroy();
         }
+
+        $.ajax({
+            type: "POST",
+            url: urlExams,
+            data: data,
+            dataType: "json",
+            success: function(response) {
+                //console.log(response);
+                var examsElement = document.getElementById('exams');
+                while (examsElement.firstChild) {
+                    examsElement.removeChild(examsElement.firstChild);
+                }
+                response.forEach(function(data) {
+                    var chartData = {
+                        series: [data.exam_taken, data.exam_not_taken],
+                        chart: {
+                            type: 'donut',
+                        },
+                        labels: ['Realizado', 'No Realizado'],
+                        dataLabels: {
+                            enabled: false
+                        },
+                        legend: {
+                            position: 'bottom', // Mueve las etiquetas a la parte inferior
+                        },
+                        title: {
+                            text: capitalizeTitle(data.title),
+                            align: 'center',
+                            margin: 10,
+                        },
+                        colors: ['#259ffb', '#fe6077'],
+                        responsive: [{
+                            breakpoint: 350,
+                            options: {
+                                chart: {
+                                    width: 100
+                                }
+                            }
+                        }]
+                    };
+
+                    var chartElement = document.createElement('div');
+                    chartElement.id = replaceSpaces(data.title); // Asigna el id basado en el título del gráfico
+                    chartElement.classList.add('chart-item');
+                    chartElement.style.width = '300px'; // Ajusta el ancho del gráfico según tus necesidades
+                    chartElement.style.margin = '10px'; // Ajusta el margen entre gráficos según tus necesidades
+
+                    document.getElementById('exams').appendChild(chartElement);
+
+                    var chart = new ApexCharts(chartElement, chartData);
+                    chart.render();
+                });
+
+                /*var options = {
+                    series: [44, 55],
+                    chart: {
+                        type: 'donut',
+                    },
+                    labels: ['Realizado', 'No Realizado'],
+                    dataLabels: {
+                        enabled: false // Desactiva la visualización de porcentajes
+                    },
+                    legend: {
+                        position: 'bottom', // Mueve las etiquetas a la parte inferior
+                    },
+                    title: {
+                        text: 'Título del Gráfico', // Agrega un título en la parte inferior
+                        align: 'center',
+                        margin: 10,
+                    },
+                    colors: ['#25e6a5', '#fe6077'],
+                    responsive: [{
+                        breakpoint: 480,
+                        options: {
+                            chart: {
+                                width: 200
+                            },
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }]
+                };
+
+                var chart = new ApexCharts(document.querySelector("#entrance_exam"), options);
+                chart.render();*/
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Error: " + errorThrown);
+            }
+        });
 
         $.ajax({
             type: "POST",

@@ -1298,6 +1298,112 @@ class ProikosPlugin extends Plugin
         return  $newList;
     }
 
+    public function getExamsSession($starDate, $endDate): array
+    {
+        $d_start = (string)$starDate;
+        $d_end = (string)$endDate;
+        $sql = "SELECT src.session_id, src.c_id, cq.title,cq.iid FROM session s
+        INNER JOIN session_rel_course src ON s.id = src.session_id
+        INNER JOIN c_quiz cq ON cq.c_id=src.c_id
+        WHERE cq.active = 1 AND s.display_start_date BETWEEN '".$d_start."' AND '".$d_end."'";
+        $result = Database::query($sql);
+        $lists = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $lists[] = [
+                    'session_id' => $row['session_id'],
+                    'course_code' => self::getCourseCode($row['c_id']),
+                    'title' => strtolower($row['title']),
+                    'exercises_id' => $row['iid']
+                ];
+            }
+        }
+        return $lists;
+    }
+
+    public function processStudentList($filter_score, $exercise, $courseCode, $sessionId, $title): array
+    {
+        $exerciseStatsTable = Database::get_main_table(TABLE_STATISTIC_TRACK_E_EXERCISES);
+        $courseId = api_get_course_int_id($courseCode);
+        $students = CourseManager::get_student_list_from_course_code(
+            $courseCode,
+            true,
+            $sessionId,
+            null,
+            null,
+            false
+        );
+        $totalStudents = count($students);
+        $total_with_parameter_score = 0;
+        $taken = 0;
+
+        $globalRow = [
+            'title' => $title,
+            'exam_taken' => 0,
+            'exam_not_taken' => 0,
+            'exam_pass' => 0,
+            'exam_fail' => 0,
+            'total_students' => $totalStudents,
+        ];
+
+        foreach ($students as $student) {
+            $studentId = isset($student['user_id']) ? $student['user_id'] : $student['id_user'];
+            $sql = "SELECT COUNT(ex.exe_id) as count
+                FROM $exerciseStatsTable AS ex
+                WHERE
+                    ex.c_id = $courseId AND
+                    ex.exe_exo_id = ".$exercise." AND
+                    exe_user_id= $studentId AND
+                    session_id = $sessionId
+                ";
+            $result = Database::query($sql);
+            $attempts = Database::fetch_array($result);
+
+            $sql = "SELECT exe_id, exe_result, exe_weighting
+                FROM $exerciseStatsTable
+                WHERE
+                    exe_user_id = $studentId AND
+                    c_id = $courseId AND
+                    exe_exo_id = ".$exercise." AND
+                    session_id = $sessionId
+                ORDER BY exe_result DESC
+                LIMIT 1";
+            $result = Database::query($sql);
+            $score = 0;
+            $weighting = 0;
+            while ($scoreInfo = Database::fetch_array($result)) {
+                $score = $score + $scoreInfo['exe_result'];
+                $weighting = $weighting + $scoreInfo['exe_weighting'];
+            }
+
+            $percentageScore = 0;
+
+            if ($weighting != 0) {
+                $percentageScore = round(($score * 100) / $weighting);
+            }
+
+            if ($attempts['count'] > 0) {
+                $taken++;
+            }
+
+            if ($percentageScore >= $filter_score) {
+                $total_with_parameter_score++;
+            }
+
+            $globalRow = [
+                'title' => $title,
+                'exam_taken' => $taken,
+                'exam_not_taken' => $totalStudents - $taken,
+                'exam_pass' => $total_with_parameter_score,
+                'exam_fail' => $taken - $total_with_parameter_score,
+                'total_students' => $totalStudents,
+            ];
+
+        }
+        return $globalRow;
+    }
+
+
     public function getUserParticipatesExam($starDate, $endDate): array
     {
         $d_start = (string)$starDate;

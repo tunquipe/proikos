@@ -191,5 +191,37 @@ if ($action) {
             }
             echo json_encode($response);
             break;
+        case 'get_exams_students':
+            if (isset($_POST)) {
+                $start_date = $_POST['start_date'] ?? null;
+                $end_date = $_POST['end_date'] ?? null;
+                $list = $plugin->getExamsSession($start_date, $end_date);
+                $result = [];
+                foreach ($list as $row){
+                    $result[] = $plugin->processStudentList(70,$row['exercises_id'],$row['course_code'],$row['session_id'], $row['title']);
+                }
+                $unifiedArray = [];
+
+                // Recorre el array original
+                foreach ($result as $item) {
+                    $title = $item['title'];
+
+                    if (!isset($unifiedArray[$title])) {
+                        // Si el título no existe en el array unificado, lo agrega como un nuevo elemento
+                        $unifiedArray[$title] = $item;
+                    } else {
+                        // Si el título ya existe, suma los valores correspondientes
+                        $unifiedArray[$title]['exam_taken'] += $item['exam_taken'];
+                        $unifiedArray[$title]['exam_not_taken'] += $item['exam_not_taken'];
+                        $unifiedArray[$title]['total_students'] += $item['total_students'];
+                    }
+                }
+
+                // Convierte el array unificado en un array indexado
+                $unifiedArray = array_values($unifiedArray);
+
+                echo json_encode($unifiedArray);
+            }
+            break;
     }
 }
