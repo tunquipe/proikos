@@ -544,7 +544,9 @@
         let urlExams = urlCampus + 'plugin/proikos/src/ajax.php?action=get_exams_students';
         let urlTotals = urlCampus + 'plugin/proikos/src/ajax.php?action=get_report_students';
 
-
+        if (chart_total) {
+            chart_total.destroy();
+        }
         if (chartSession) {
             chartSession.destroy();
         }
@@ -563,10 +565,6 @@
         if (chart_approved_disapproved) {
             chart_approved_disapproved.destroy();
         }
-        if (chart_total) {
-            chart_total.destroy();
-        }
-
 
         $.ajax({
             type: "POST",
@@ -574,8 +572,6 @@
             data: data,
             dataType: "json",
             success: function(response) {
-                console.log(response);
-
                 let options = {
                     series: [{
                         name: 'Entrenados',
@@ -611,18 +607,6 @@
                     },
                     xaxis: {
                         categories: ['Trabajadores']
-                    },
-                    yaxis: {
-                        title: {
-                            text: undefined
-                        },
-                    },
-                    tooltip: {
-                        y: {
-                            formatter: function (val) {
-                                return val + "K"
-                            }
-                        }
                     },
                     fill: {
                         opacity: 1
@@ -1063,12 +1047,9 @@
                         width: 380,
                         type: 'pie',
                     },
-                    labels: ['Aprobados', 'Desaprobados'],
+                    labels: ['Aprobados (' + response.totalApproved +')' , 'Desaprobados  (' + response.totalDisapproved +')'],
                     dataLabels: {
-                        enabled: true,
-                        formatter: function (val) {
-                            return val; // Mostrar valores reales en lugar de porcentajes
-                        }
+                        enabled: false
                     }
                 };
 
