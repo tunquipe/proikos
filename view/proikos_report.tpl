@@ -161,6 +161,22 @@
     .table tr td{
         padding: 14px !important;
     }
+    #exams {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .chart-item {
+        flex: 1;
+        max-width: 300px;
+        margin: 10px;
+        min-height: 217.7px;
+        background-color: #f2f2f2;
+        border: 1px solid #ccc;
+        padding: 10px;
+        box-sizing: border-box;
+    }
 </style>
 <div class="bg-report">
 
@@ -184,13 +200,10 @@
                         <img src="{{ url_plugin_image }}/man_and_woman.png">
                     </div>
                     <div class="col flex-item">
-                        <div id="circle_approved" class="circle-bar-progress">
+                        <div id="chart_approved_disapproved" class="circle-bar-progress">
                         </div>
                     </div>
-                    <div class="col flex-item">
-                        <div id="circle_disapproved" class="circle-bar-progress">
-                        </div>
-                    </div>
+
                 </div>
 
             </div>
@@ -608,8 +621,7 @@
         let chartCertificates;
         let chartApproved;
         let chartStakeholders ;
-        let circle_approved;
-        let circle_disapproved;
+        let chart_approved_disapproved;
 
         let urlStudent = urlCampus + 'plugin/proikos/src/ajax.php?action=get_students_approved_disapproved';
         let urlSession = urlCampus + 'plugin/proikos/src/ajax.php?action=get_report_session';
@@ -634,8 +646,8 @@
         if (chartStakeholders) {
             chartStakeholders.destroy();
         }
-        if (circle_approved) {
-            circle_approved.destroy();
+        if (chart_approved_disapproved) {
+            chart_approved_disapproved.destroy();
         }
 
         $.ajax({
@@ -681,8 +693,8 @@
                     var chartElement = document.createElement('div');
                     chartElement.id = replaceSpaces(data.title); // Asigna el id basado en el título del gráfico
                     chartElement.classList.add('chart-item');
-                    chartElement.style.width = '300px'; // Ajusta el ancho del gráfico según tus necesidades
-                    chartElement.style.margin = '10px'; // Ajusta el margen entre gráficos según tus necesidades
+                    chartElement.style.width = '250px'; // Ajusta el ancho del gráfico según tus necesidades
+                    chartElement.style.margin = '5px'; // Ajusta el margen entre gráficos según tus necesidades
 
                     document.getElementById('exams').appendChild(chartElement);
 
@@ -690,39 +702,6 @@
                     chart.render();
                 });
 
-                /*var options = {
-                    series: [44, 55],
-                    chart: {
-                        type: 'donut',
-                    },
-                    labels: ['Realizado', 'No Realizado'],
-                    dataLabels: {
-                        enabled: false // Desactiva la visualización de porcentajes
-                    },
-                    legend: {
-                        position: 'bottom', // Mueve las etiquetas a la parte inferior
-                    },
-                    title: {
-                        text: 'Título del Gráfico', // Agrega un título en la parte inferior
-                        align: 'center',
-                        margin: 10,
-                    },
-                    colors: ['#25e6a5', '#fe6077'],
-                    responsive: [{
-                        breakpoint: 480,
-                        options: {
-                            chart: {
-                                width: 200
-                            },
-                            legend: {
-                                position: 'bottom'
-                            }
-                        }
-                    }]
-                };
-
-                var chart = new ApexCharts(document.querySelector("#entrance_exam"), options);
-                chart.render();*/
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log("Error: " + errorThrown);
@@ -1076,21 +1055,39 @@
             dataType: "json",
             success: function(response) {
 
-                circle_approved = new CircleProgress('#circle_approved', {
-                    max: response.total,
-                    value: response.totalApproved,
-                    textFormat: function(value, max) {
-                        return value;
-                    }
-                });
+                let seriesDataApproved = response.totalApproved;
+                let seriesDataDisapproved = response.totalDisapproved;
 
-                circle_disapproved = new CircleProgress('#circle_disapproved', {
-                    max: response.total,
-                    value: response.totalDisapproved,
-                    textFormat: function(value, max) {
-                        return value;
+                let pieChartData = [seriesDataApproved, seriesDataDisapproved];
+
+                var options = {
+                    series: pieChartData,
+                    chart: {
+                        width: 380,
+                        type: 'pie',
+                    },
+                    labels: ['Aprobados', 'Desaprobados'],
+                    dataLabels: {
+                        enabled: true,
+                        formatter: function (val) {
+                            return val; // Mostrar valores reales en lugar de porcentajes
+                        }
                     }
-                });
+                    responsive: [{
+                        breakpoint: 480,
+                        options: {
+                            chart: {
+                                width: 200
+                            },
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }]
+                };
+
+                chart_approved_disapproved = new ApexCharts(document.querySelector("#chart_approved_disapproved"), options);
+                chart_approved_disapproved.render();
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log("Error: " + errorThrown);
