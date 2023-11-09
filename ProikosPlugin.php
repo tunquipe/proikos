@@ -1687,7 +1687,7 @@ class ProikosPlugin extends Plugin
 
     public function getStudentForSession($session = [], $tmpEvals = [])
     {
-        $userList = SessionManager::get_users_by_seiossion($session['id']);
+        $userList = SessionManager::get_users_by_session($session['id']);
         $users = [];
         if (!empty($userList)) {
             foreach ($userList as $user) {
@@ -1912,7 +1912,7 @@ class ProikosPlugin extends Plugin
                 'startColor' => ['rgb' => 'FF6B61'],
             ],
         ];
-
+        $score_min = 0;
         foreach ($students as $student){
             //var_dump($student);
             $worksheet->setCellValueByColumnAndRow(0, $line, '');
