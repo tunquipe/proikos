@@ -110,7 +110,7 @@ if($action == 'second'){
             $companiesInput = $form->addSelect('name_company', $plugin->get_lang('CompanyName'), $companies);
             $form->setRequired($companiesInput);
             $form->addHtml('</div><div class="col-md-6">');
-            $form->addText('contact_manager', $plugin->get_lang('ContactManager'),true, ['readonly', 'value' => '-']);
+            $form->addText('contact_manager', $plugin->get_lang('ContactManager'),false, ['value' => '-']);
             $form->addHtml('</div></div>');
             $form->addHtml('</div>');
             // end contratistas
