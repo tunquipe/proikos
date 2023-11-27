@@ -106,9 +106,9 @@ if($action == 'second'){
             //contratistas
             $form->addHtml('<div id="option-builder">');
             $form->addHtml('<div class="row"><div class="col-md-6">');
-            $companies = $plugin->getCompanies();
-            $companiesInput = $form->addSelect('name_company', $plugin->get_lang('CompanyName'), $companies);
-            $form->setRequired($companiesInput);
+            //$companies = $plugin->getCompanies();
+            $companiesInput = $form->addText('name_company', $plugin->get_lang('CompanyName'),true);
+            //$form->setRequired($companiesInput);
             $form->addHtml('</div><div class="col-md-6">');
             $form->addText('contact_manager', $plugin->get_lang('ContactManager'),false, ['value' => '-']);
             $form->addHtml('</div></div>');
