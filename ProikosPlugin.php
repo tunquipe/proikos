@@ -422,7 +422,7 @@ class ProikosPlugin extends Plugin
             return false;
         }
         $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
-        $nameCompany =  self::getCompanyName($values['name_company']);
+        $nameCompany =  $values['name_company'];
         $namePosition = self::getPositionName($values['position_company']);
         $nameArea = self::getAreaName($values['area']);
         $nameManagement = self::getManagementName($values['department']);
@@ -1404,7 +1404,7 @@ class ProikosPlugin extends Plugin
     }
 
 
-    public function getUserParticipatesExam($starDate, $endDate): array
+    public function getUserParticipatesExam($starDate, $endDate, $stakeholders = '0', $gender = '0'): array
     {
         $d_start = (string)$starDate;
         $d_end = (string)$endDate;
@@ -1412,6 +1412,8 @@ class ProikosPlugin extends Plugin
         $tbl_session_course = Database::get_main_table(TABLE_MAIN_SESSION_COURSE_USER);
         $sql = "SELECT srcu.user_id, srcu.session_id, srcu.c_id FROM $tbl_session_course srcu INNER JOIN $tbl_session s ON s.id = srcu.session_id
                 WHERE s.display_start_date BETWEEN '".$d_start."' AND '".$d_end."'";
+        print_r($sql);
+        exit;
         $result = Database::query($sql);
         $lists = [];
         $number = 0;
@@ -1440,9 +1442,9 @@ class ProikosPlugin extends Plugin
         return $lists;
     }
 
-    public function getParticipatingUsers($starDate, $endDate): array
+    public function getParticipatingUsers($starDate, $endDate, $stakeholders='0', $gender='0'): array
     {
-        $lists = self::getUserParticipatesExam($starDate, $endDate);
+        $lists = self::getUserParticipatesExam($starDate, $endDate, $stakeholders, $gender);
         $newArray = []; // El nuevo array donde almacenaremos los resultados
         $newList = [];
         foreach ($lists as $item) {
@@ -1471,10 +1473,10 @@ class ProikosPlugin extends Plugin
         return $newList;
     }
 
-    public function getStudentsApprovedDisapproved($start_date, $end_date): array
+    public function getStudentsApprovedDisapproved($start_date, $end_date, $stakeholders='0', $gender = '0'): array
     {
 
-        $participants = self::getParticipatingUsers($start_date, $end_date);
+        $participants = self::getParticipatingUsers($start_date, $end_date, $stakeholders, $gender);
         $certificates = self::getParticipatingUsersCertificate($start_date, $end_date);
 
         // Creamos un nuevo array para almacenar los datos combinados
