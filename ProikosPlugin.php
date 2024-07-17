@@ -990,18 +990,45 @@ class ProikosPlugin extends Plugin
         return false;
     }
 
+    /**
+     * @param $idStudent
+     * @return array
+     */
+    public function getExtraInfo($idStudent): array
+    {
+        $tbl_proikos_info = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $sql = "SELECT * FROM $tbl_proikos_info pe WHERE pe.user_id = '$idStudent'";
+        $result = Database::query($sql);
+        $list = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $list = [
+                    'phone' => $row['phone'],
+                    'name_company' => $row['name_company'],
+                    'stakeholders' => $row['stakeholders'],
+                    'area' => $row['area'],
+                    'department' => $row['department'],
+                    'headquarters' => $row['headquarters'],
+                    'code_reference' => $row['code_reference'],
+                ];
+            }
+        }
+        return $list;
+    }
     public function getStudentsSessionForFora($idSession): array
     {
         $users = SessionManager::get_users_by_session($idSession);
         $list = [];
         $count = 1;
         foreach ($users as $row) {
+            $extras = self::getExtraInfo($row['user_id']);
             $list[] = [
                 'number' => $count,
                 'user_id' => $row['user_id'],
                 'firstname' => $row['firstname'],
                 'lastname' => $row['lastname'],
-                'email' => $row['username']
+                'email' => $row['username'],
+                'extras' => $extras
             ];
             $count++;
         }

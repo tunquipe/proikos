@@ -112,9 +112,9 @@ if($action == 'export_pdf'){
                     <td style="border-right: 1px solid #000; width: 20%; font-size: 12px; text-transform: uppercase;">'.$student['lastname'].','.$student['firstname'].'</td>
                     <td style="border-right: 1px solid #000; width: 10%; text-align: center">'.$student['email'].'</td>
                     <td style="border-right: 1px solid #000; width: 10%; ">&nbsp; </td>
+                    <td style="border-right: 1px solid #000; width: 10%; font-size: 10px; ">'.$student['extras']['headquarters'].'</td>
                     <td style="border-right: 1px solid #000; width: 10%; ">&nbsp; </td>
-                    <td style="border-right: 1px solid #000; width: 10%; ">&nbsp; </td>
-                    <td style="width: 10%;"></td>
+                    <td style="width: 10%; font-size: 10px;">'.$student['extras']['name_company'].'</td>
                 </tr>
             ';
         }
