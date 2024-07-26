@@ -127,12 +127,12 @@ if($action == 'second'){
             $form->setRequired($areaSelect);
             $form->addHtml('</div>');
 
-            $departments = $plugin->getPetroManagement();
-            $departmentsSelect = $form->addSelect('department', [$plugin->get_lang('Department')], $departments);
-            $form->setRequired($departmentsSelect);
-            $headquarters = $plugin->getHeadquarters(true);
-            $headquartersSelect = $form->addSelect('headquarters', [$plugin->get_lang('Headquarters')], $headquarters);
-            $form->setRequired($headquartersSelect);
+            //$departments = $plugin->getPetroManagement();
+            //$departmentsSelect = $form->addSelect('department', [$plugin->get_lang('Department')], $departments);
+            //$form->setRequired($departmentsSelect);
+            //$headquarters = $plugin->getHeadquarters(true);
+            //$headquartersSelect = $form->addSelect('headquarters', [$plugin->get_lang('Headquarters')], $headquarters);
+            //$form->setRequired($headquartersSelect);
             $form->addHtml('</div></div>');
             $form->addHidden('code_reference', $entitySelect);
             $form->addButton('register', $plugin->get_lang('RegisterUser'), null, 'primary', 'btn-block');

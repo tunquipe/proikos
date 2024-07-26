@@ -425,8 +425,10 @@ class ProikosPlugin extends Plugin
         $nameCompany =  $values['name_company'];
         $namePosition = self::getPositionName($values['position_company']);
         $nameArea = self::getAreaName($values['area']);
-        $nameManagement = self::getManagementName($values['department']);
-        $nameHeadquarters = self::getHeadquartersName($values['headquarters']);
+        //$nameManagement = self::getManagementName($values['department']);
+        //$nameHeadquarters = self::getHeadquartersName($values['headquarters']);
+        $nameManagement = '-';
+        $nameHeadquarters = '-';
         $params = [
             'id' => $values['user_id'],
             'user_id' => $values['user_id'],
@@ -474,8 +476,8 @@ class ProikosPlugin extends Plugin
             'stakeholders' => $values['stakeholders'],
             'record_number' => $values['record_number'],
             'area' => $values['area'],
-            'department' => $values['department'],
-            'headquarters' => $values['headquarters'],
+            'department' => '-',
+            'headquarters' => '-',
             'code_reference' => $values['code_reference']
         ];
 
