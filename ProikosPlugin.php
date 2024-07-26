@@ -779,7 +779,24 @@ class ProikosPlugin extends Plugin
         $list['999'] = 'Otros';
         return $list;
     }
-
+    public function getCompanyArea($idUser){
+        if (empty($idUser)) {
+            return false;
+        }
+        $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $sql = "SELECT pu.name_company, pu.area  FROM $table pu WHERE pu.user_id = '$idUser'";
+        $result = Database::query($sql);
+        $item = null;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $item = [
+                    '0' => $row['name_company'],
+                    '1' => $row['area']
+                ];
+            }
+        }
+        return $item;
+    }
 
     public function getCodeReferenceByUser($idUser){
         if (empty($idUser)) {
