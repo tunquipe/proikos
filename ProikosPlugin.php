@@ -584,7 +584,7 @@ class ProikosPlugin extends Plugin
                 $list[$row['id']] = $row['name_area'];
             }
         }
-        $list['999'] = 'Otros';
+        //$list['999'] = 'Otros';
         return $list;
     }
 
