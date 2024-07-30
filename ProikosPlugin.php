@@ -575,7 +575,7 @@ class ProikosPlugin extends Plugin
     public function getPetroArea(): array
     {
         $table = Database::get_main_table(self::TABLE_PROIKOS_AREA);
-        $sql = "SELECT * FROM $table pa ";
+        $sql = "SELECT * FROM $table pa WHERE pa.status = 1";
         $result = Database::query($sql);
         $list = [];
         $list['-1'] = 'Selecciona una opción';
