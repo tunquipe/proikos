@@ -107,7 +107,7 @@ if($action == 'second'){
             $form->addHtml('<div id="option-builder">');
             $form->addHtml('<div class="row"><div class="col-md-6">');
             //$companies = $plugin->getCompanies();
-            $companiesInput = $form->addText('ruc_company', $plugin->get_lang('CompanyRuc'),true);
+            $companiesInput = $form->addText('ruc_company', $plugin->get_lang('CompanyRuc'),true, ['maxlength' => 11]);
             //$form->setRequired($companiesInput);
             $form->addHtml('</div><div class="col-md-6">');
             $companiesInput = $form->addText('name_company', $plugin->get_lang('CompanyName'),true);
