@@ -753,7 +753,7 @@ class ProikosPlugin extends Plugin
         $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
 
         // find first row with the same ruc_company
-        $sql = "SELECT name_company FROM $table WHERE ruc_company = '$ruc' order by id asc LIMIT 1;";
+        $sql = "SELECT name_company FROM $table WHERE ruc_company = '$ruc' order by id desc LIMIT 1;";
         $result = Database::query($sql);
         $nameCompany = '';
         if (Database::num_rows($result) > 0) {
