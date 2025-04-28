@@ -107,12 +107,14 @@ if($action == 'second'){
             $form->addHtml('<div id="option-builder">');
             $form->addHtml('<div class="row"><div class="col-md-6">');
             //$companies = $plugin->getCompanies();
-            $companiesInput = $form->addText('name_company', $plugin->get_lang('CompanyName'),true);
+            $companiesInput = $form->addText('ruc_company', $plugin->get_lang('CompanyRuc'),true);
             //$form->setRequired($companiesInput);
             $form->addHtml('</div><div class="col-md-6">');
+            $companiesInput = $form->addText('name_company', $plugin->get_lang('CompanyName'),true);
+            $form->addHtml('</div></div>');
+            $form->addHtml('<div class="row"><div class="col-md-12">');
             $form->addText('contact_manager', $plugin->get_lang('ContactManager'),false, ['value' => '-']);
             $form->addHtml('</div></div>');
-            $form->addHtml('</div>');
             // end contratistas
 
             $form->addHtml('<div id="options-column">');

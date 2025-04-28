@@ -178,5 +178,21 @@ if ($action) {
                 echo json_encode($finalArray);
             }
             break;
+        case 'get_company_by_ruc':
+            if (isset($_POST)) {
+                $ruc = $_POST['ruc'] ?? null;
+
+                if (empty($ruc)) {
+                    echo json_encode(['error' => 'RUC is required']);
+                    exit;
+                }
+
+                $nameCompany = $plugin->getCompanyByRuc($ruc);
+                echo json_encode([
+                    'name_company' => $nameCompany
+                ]);
+                exit;
+            }
+            break;
     }
 }

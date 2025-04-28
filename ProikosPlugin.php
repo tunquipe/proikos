@@ -422,6 +422,7 @@ class ProikosPlugin extends Plugin
             return false;
         }
         $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $rucCompany =  $values['ruc_company'];
         $nameCompany =  $values['name_company'];
         $namePosition = self::getPositionName($values['position_company']);
         $nameArea = self::getAreaName($values['area']);
@@ -440,6 +441,7 @@ class ProikosPlugin extends Plugin
             'age' => $values['age'],
             'gender' => $values['gender'],
             'instruction' => $values['instruction'],
+            'ruc_company' => $rucCompany,
             'name_company' => $nameCompany,
             'contact_manager' => $values['contact_manager'],
             'position_company' => $namePosition,
@@ -741,6 +743,26 @@ class ProikosPlugin extends Plugin
             }
         }
         return $nameAdministrator;
+    }
+
+    public function getCompanyByRuc($ruc) {
+        if (empty($ruc)) {
+            return '';
+        }
+        
+        $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+
+        // find first row with the same ruc_company
+        $sql = "SELECT name_company FROM $table WHERE ruc_company = '$ruc' order by id asc LIMIT 1;";
+        $result = Database::query($sql);
+        $nameCompany = '';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $nameCompany = $row['name_company'];
+            }
+        }
+
+        return $nameCompany;
     }
 
     public function getManagers(): array

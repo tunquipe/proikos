@@ -5,6 +5,7 @@ $strings['plugin_comment'] = 'Plugin creado para la empresa Proikos.';
 $strings['tool_enable'] = 'Habilitar plugin';
 $strings['RegisterUser'] = 'Registrar nuevo usuario';
 $strings['PersonalInformation'] = 'Datos personales';
+$strings['CompanyRuc'] = 'RUC de la empresa';
 $strings['CompanyData'] = 'Datos de la empresa';
 $strings['LastNameHelp'] = 'Escribe correctamente tus apellidos para usarlos en tus certificaciones.';
 $strings['FirstNameHelp'] = 'Escribe correctamente tus nombres para usarlos en tus certificaciones.';
