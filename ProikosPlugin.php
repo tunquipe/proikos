@@ -758,26 +758,6 @@ class ProikosPlugin extends Plugin
         return $nameAdministrator;
     }
 
-    public function getCompanyByRuc($ruc) {
-        if (empty($ruc)) {
-            return '';
-        }
-        
-        $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
-
-        // find first row with the same ruc_company
-        $sql = "SELECT name_company FROM $table WHERE ruc_company = '$ruc' order by id desc LIMIT 1;";
-        $result = Database::query($sql);
-        $nameCompany = '';
-        if (Database::num_rows($result) > 0) {
-            while ($row = Database::fetch_array($result)) {
-                $nameCompany = $row['name_company'];
-            }
-        }
-
-        return $nameCompany;
-    }
-
     public function getManagers(): array
     {
         $table = Database::get_main_table(self::TABLE_PROIKOS_MANAGERS);
@@ -2260,14 +2240,24 @@ class ProikosPlugin extends Plugin
         return $list;
     }
 
-    public function getContratingCompanies() {
+    public function getContratingCompanies($asSelect = false) {
         $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
         $sql = "SELECT * FROM $table";
 
         $result = Database::query($sql);
         $list = [];
+
+        if ($asSelect) {
+            $list[0] = 'Seleccione una opción';
+        }
+
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
+
+                if ($asSelect) {
+                    $list[$row['id']] = $row['name'];
+                    continue;
+                }
 
                 $action = Display::url(
                     Display::return_icon(
@@ -2309,7 +2299,7 @@ class ProikosPlugin extends Plugin
     public function createContratingCompany(array $values) {
         if (!is_array($values)) {
             return false;
-        }        
+        }
 
         $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
         $params = [
@@ -2355,7 +2345,7 @@ class ProikosPlugin extends Plugin
         if (empty($ruc)) {
             return '';
         }
-        
+
         $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
 
         $sql = "SELECT name FROM $table WHERE ruc = '$ruc' order by id desc LIMIT 1;";
@@ -2376,32 +2366,45 @@ class ProikosPlugin extends Plugin
         }
 
         $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
-        $params = [
-            'name' => $values['name'],
-            'ruc' => $values['ruc'],
-            'user_quota' => $values['user_quota'],
-            'status' => $values['status']
-        ];
+        $params = [];
 
-        Database::update(
-            $table,
-            $params,
-            [
-                'id = ?' => [
-                    $values['id'],
-                ],
-            ]
-        );
+        if (isset($values['name'])) {
+            $params['name'] = $values['name'];
+        }
+
+        if (isset($values['ruc'])) {
+            $params['ruc'] = $values['ruc'];
+        }
+
+        if (isset($values['user_quota'])) {
+            $params['user_quota'] = $values['user_quota'];
+        }
+
+        if (isset($values['status'])) {
+            $params['status'] = $values['status'];
+        }
+
+        if (!empty($params)) {
+            Database::update(
+                $table,
+                $params,
+                [
+                    'id = ?' => [
+                        $values['id'],
+                    ],
+                ]
+            );
+        }
 
         return true;
     }
 
     public function deleteContratingCompany($id) {
         $result = Database::delete(
-            self::TABLE_PROIKOS_CONTRATING_COMPANIES, 
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES,
             ['id = ?' => $id]
         );
-        
+
         if ($result) {
             return true;
         }

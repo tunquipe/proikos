@@ -105,13 +105,11 @@ if($action == 'second'){
 
             //contratistas
             $form->addHtml('<div id="option-builder">');
-            $form->addHtml('<div class="row"><div class="col-md-6">');
-            //$companies = $plugin->getCompanies();
-            $companiesInput = $form->addText('ruc_company', $plugin->get_lang('CompanyRuc'),true, ['maxlength' => 11]);
-            //$form->setRequired($companiesInput);
-            $form->addHtml('</div><div class="col-md-6">');
-            $companiesInput = $form->addText('name_company', $plugin->get_lang('CompanyName'),true);
-            $form->addHtml('</div></div>');
+
+            $contratingCompanies = $plugin->getContratingCompanies(true);
+            $contratingCompaniesSelect = $form->addSelect('contrating_companies', $plugin->get_lang('Company'), $contratingCompanies);
+            $form->setRequired($contratingCompaniesSelect);
+
             $form->addHtml('<div class="row"><div class="col-md-12">');
             $form->addText('contact_manager', $plugin->get_lang('ContactManager'),false, ['value' => '-']);
             $form->addHtml('</div></div>');
@@ -155,6 +153,15 @@ if($action == 'second'){
                 } catch (Exception $e) {
                     print_r($e);
                 }
+
+                $selectedContratingCompany = $plugin->getContratingCompanyById($_POST['contrating_companies']);
+                $values['ruc_company'] = $values['ruc_company'] ?? '';
+                $values['name_company'] = $values['name_company'] ?? '';
+                if (!empty($selectedContratingCompany)) {
+                    $values['ruc_company'] = $selectedContratingCompany['ruc'];
+                    $values['name_company'] = $selectedContratingCompany['name'];
+                }
+
                 $values['address'] = $values['address'] ?? '';
                 $values['record_number'] = $values['record_number'] ?? '-';
                 $phone = $values['phone'] ?? null;

@@ -79,3 +79,5 @@ $strings['ContratingCompanyUserQuota'] = 'Nº Cupos';
 $strings['SaveContratingCompany'] = 'Guardar empresa';
 $strings['ContratingCompanyRUCExists'] = 'El RUC de la empresa ya existe';
 $strings['ContratingCompanyDeleted'] = 'La empresa contratista fue eliminada';
+$strings['Company'] = 'Empresa';
+$strings['ContratingCompanyUserQuotaErrorMessage'] = 'Se alcanzó el límite de usuarios que pueden registrarse en esta empresa';
