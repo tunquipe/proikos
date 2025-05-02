@@ -2255,7 +2255,7 @@ class ProikosPlugin extends Plugin
             while ($row = Database::fetch_array($result)) {
 
                 if ($asSelect) {
-                    $list[$row['id']] = $row['name'];
+                    $list[$row['id']] = $row['ruc'] . ' - ' . $row['name'];
                     continue;
                 }
 
