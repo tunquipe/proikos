@@ -2411,4 +2411,45 @@ class ProikosPlugin extends Plugin
 
         return false;
     }
+
+    public function getUsers() {
+        // nombre/ apellodo empresa
+        // select plugin_proikos_users
+        $sql = "SELECT * FROM plugin_proikos_users";
+        $result = Database::query($sql);
+        $list = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $action = Display::url(
+                    Display::return_icon(
+                        'visible.png',
+                        null,
+                        [],
+                        ICON_SIZE_SMALL),
+                    api_get_path(WEB_PLUGIN_PATH)
+                );
+                $action .= Display::url(
+                    Display::return_icon(
+                        'lp.png',
+                        get_lang('Delete'),
+                        [],
+                        ICON_SIZE_SMALL
+                    ),
+                    api_get_path(WEB_PLUGIN_PATH)
+                );
+
+                $list[] = [
+                    'id' => $row['user_id'],
+                    'name' => $row['firstname'] . ' ' . $row['lastname'],
+                    'email' => $row['email'],
+                    'phone' => $row['phone'],
+                    'ruc' => $row['ruc_company'],
+                    'company' => $row['name_company'],
+                    'actions' => $action
+                ];
+            }
+        }
+
+        return $list;
+    }
 }
