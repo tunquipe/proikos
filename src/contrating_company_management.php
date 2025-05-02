@@ -101,8 +101,8 @@ if ($isAdmin) {
             );
 
             $form->addHeader($plugin->get_lang('AddContratingCompany'));
-            $form->addText('name', $plugin->get_lang('ContratingCompanyName'));
             $form->addText('ruc', $plugin->get_lang('ContratingCompanyRUC'));
+            $form->addText('name', $plugin->get_lang('ContratingCompanyName'));
             $form->addNumeric('user_quota', $plugin->get_lang('ContratingCompanyUserQuota'));
 
             $group = [];
