@@ -25,6 +25,7 @@ class ProikosPlugin extends Plugin
     const TABLE_PROIKOS_COMPANIES = 'plugin_proikos_companies';
     const TABLE_PROIKOS_MANAGERS = 'plugin_proikos_managers';
     const TABLE_PROIKOS_AREA_REF_MANAGEMENT = 'plugin_proikos_area_ref_management';
+    const TABLE_PROIKOS_CONTRATING_COMPANIES = 'plugin_proikos_contrating_companies';
 
     protected function __construct()
     {
@@ -77,7 +78,8 @@ class ProikosPlugin extends Plugin
                 'plugin_proikos_managers',
                 'plugin_proikos_position',
                 'plugin_proikos_sector',
-                'plugin_proikos_users'
+                'plugin_proikos_users',
+                self::TABLE_PROIKOS_CLIENT_COMPANIES
             ]
         );
 
@@ -199,6 +201,17 @@ class ProikosPlugin extends Plugin
         ('7', 'Banca', '1');";
 
         Database::query($sql);*/
+
+        $sql = "CREATE TABLE IF NOT EXISTS  ".self::TABLE_PROIKOS_CONTRATING_COMPANIES." (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            ruc VARCHAR(20) UNIQUE NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            status VARCHAR(1) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            user_quota INT NOT NULL
+        );";
+        Database::query($sql);
 
     }
 
@@ -2245,5 +2258,147 @@ class ProikosPlugin extends Plugin
             }
         }
         return $list;
+    }
+
+    public function getContratingCompanies() {
+        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
+        $sql = "SELECT * FROM $table";
+
+        $result = Database::query($sql);
+        $list = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+
+                $action = Display::url(
+                    Display::return_icon(
+                        'edit.png',
+                        null,
+                        [],
+                        ICON_SIZE_SMALL),
+                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_management.php?action=edit&id=' . $row['id']
+                );
+                $action .= Display::url(
+                    Display::return_icon(
+                        'delete.png',
+                        get_lang('Delete'),
+                        [],
+                        ICON_SIZE_SMALL
+                    ),
+                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_management.php?action=delete&id=' . $row['id'],
+                    [
+                        'onclick' => 'javascript:if(!confirm(' . "'" .
+                            addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
+                            . "'" . ')) return false;',
+                    ]
+                );
+
+                $list[] = [
+                    'id' => $row['id'],
+                    'name' => $row['name'],
+                    'ruc' => $row['ruc'],
+                    'user_quota' => $row['user_quota'],
+                    'status' => $row['status'],
+                    'actions' => $action
+                ];
+            }
+        }
+
+        return $list;
+    }
+
+    public function createContratingCompany(array $values) {
+        if (!is_array($values)) {
+            return false;
+        }        
+
+        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
+        $params = [
+            'name' => $values['name'],
+            'ruc' => $values['ruc'],
+            'user_quota' => $values['user_quota'] ?? 0,
+            'status' => $values['status'] ?? 1,
+        ];
+        $id = Database::insert($table, $params);
+
+        if ($id > 0) {
+            return $id;
+        }
+
+        return false;
+    }
+
+    public function getContratingCompanyById($id) {
+        if (empty($id)) {
+            return false;
+        }
+
+        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
+        $sql = "SELECT * FROM $table WHERE id = $id";
+        $result = Database::query($sql);
+        $item = null;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $item = [
+                    'id' => $row['id'],
+                    'name' => $row['name'],
+                    'ruc' => $row['ruc'],
+                    'user_quota' => $row['user_quota'],
+                    'status' => $row['status']
+                ];
+            }
+        }
+
+        return $item;
+    }
+
+    public function getContratingCompanyByRUC(string $ruc) {
+        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
+        $sql = "SELECT * FROM $table WHERE ruc = '$ruc'";
+        $result = Database::query($sql);
+
+        if (Database::num_rows($result) > 0) {
+            return Database::fetch_array($result);
+        }
+
+        return null;
+    }
+
+    public function updateContratingCompany(array $values) {
+        if (!is_array($values)) {
+            return false;
+        }
+
+        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
+        $params = [
+            'name' => $values['name'],
+            'ruc' => $values['ruc'],
+            'user_quota' => $values['user_quota'],
+            'status' => $values['status']
+        ];
+
+        Database::update(
+            $table,
+            $params,
+            [
+                'id = ?' => [
+                    $values['id'],
+                ],
+            ]
+        );
+
+        return true;
+    }
+
+    public function deleteContratingCompany($id) {
+        $result = Database::delete(
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES, 
+            ['id = ?' => $id]
+        );
+        
+        if ($result) {
+            return true;
+        }
+
+        return false;
     }
 }
