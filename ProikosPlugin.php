@@ -2351,16 +2351,23 @@ class ProikosPlugin extends Plugin
         return $item;
     }
 
-    public function getContratingCompanyByRUC(string $ruc) {
+    public function getContratingCompanyByRUC($ruc) {
+        if (empty($ruc)) {
+            return '';
+        }
+        
         $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
-        $sql = "SELECT * FROM $table WHERE ruc = '$ruc'";
-        $result = Database::query($sql);
 
+        $sql = "SELECT name FROM $table WHERE ruc = '$ruc' order by id desc LIMIT 1;";
+        $result = Database::query($sql);
+        $nameCompany = '';
         if (Database::num_rows($result) > 0) {
-            return Database::fetch_array($result);
+            while ($row = Database::fetch_array($result)) {
+                $nameCompany = $row['name'];
+            }
         }
 
-        return null;
+        return $nameCompany;
     }
 
     public function updateContratingCompany(array $values) {

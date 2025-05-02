@@ -187,7 +187,7 @@ if ($action) {
                     exit;
                 }
 
-                $nameCompany = $plugin->getCompanyByRuc($ruc);
+                $nameCompany = $plugin->getContratingCompanyByRUC($ruc);
                 echo json_encode([
                     'name_company' => $nameCompany
                 ]);
