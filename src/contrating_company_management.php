@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 require_once __DIR__ . '/../config.php';
 api_block_anonymous_users();
@@ -60,7 +60,6 @@ if ($isAdmin) {
             $form->addHeader($plugin->get_lang('AddContratingCompany'));
             $form->addText('ruc', $plugin->get_lang('ContratingCompanyRUC'));
             $form->addText('name', $plugin->get_lang('ContratingCompanyName'));
-            $form->addNumeric('user_quota', $plugin->get_lang('ContratingCompanyUserQuota'), [], true);
 
             $group = [];
             $group[] = $form->createElement('radio', 'status', null, get_lang('Active'), 1);
@@ -103,7 +102,6 @@ if ($isAdmin) {
             $form->addHeader($plugin->get_lang('AddContratingCompany'));
             $form->addText('ruc', $plugin->get_lang('ContratingCompanyRUC'));
             $form->addText('name', $plugin->get_lang('ContratingCompanyName'));
-            $form->addNumeric('user_quota', $plugin->get_lang('ContratingCompanyUserQuota'));
 
             $group = [];
             $group[] = $form->createElement('radio', 'status', null, get_lang('Active'), 1);

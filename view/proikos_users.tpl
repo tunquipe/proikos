@@ -1,4 +1,4 @@
-<table class="table table-bordered">
+<table class="table table-bordered js-paginated-table">
     <thead>
     <tr>
         <th>#</th>
@@ -24,3 +24,5 @@
     {% endfor %}
     </tbody>
 </table>
+
+<script src="../js/table-pagination/main.js"></script>
