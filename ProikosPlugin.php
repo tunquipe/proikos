@@ -2572,4 +2572,147 @@ class ProikosPlugin extends Plugin
 
         return false;
     }
+
+    public function getSpecificCourseFeature() {
+        $coursesTarget = ['PTRA'];
+        $courseInTarget = (isset($_GET['c']) && in_array($_GET['c'], $coursesTarget)) ||
+            (isset($_GET['cidReq']) && in_array($_GET['cidReq'], $coursesTarget));
+        $requireUploadMapFiles = !empty($_POST) && (
+                empty($_FILES['user_attachment_cert_ext']['tmp_name']) ||
+                empty($_FILES['user_attachment_dj']['tmp_name'])
+            );
+        $documentMap = [
+            'user_attachment_cert_ext' => 'certificado_externo',
+            'user_attachment_dj'       => 'declaracion_jurada'
+        ];
+
+        return (object)[
+            'courses_target' => $coursesTarget,
+            'course_in_target' => $courseInTarget,
+            'require_upload_map_files' => $requireUploadMapFiles,
+            'document_map' => $documentMap,
+            'validate_upload' => function () use ($courseInTarget, $requireUploadMapFiles) {
+                if ($courseInTarget && $requireUploadMapFiles) {
+                    return (
+                        '<div class="form-group alert alert-danger" role="alert" style="grid-column: span 2;">'.
+                        'Adjutar los documentos requeridos para la inscripción'
+                        .'</div>'
+                    );
+                }
+
+                return '';
+            },
+            'upload_buttons_ui' => function() use ($courseInTarget) {
+                if (!$courseInTarget) {
+                    return '';
+                }
+
+                return (
+                <<<EOT
+                    <br>
+                    <div class="form-group">
+                        <label for="user_attachment_cert_ext">Adjuntar certificado externo</label>
+                        <input type="file" name="user_attachment_cert_ext" id="user_attachment_cert_ext" class="form-control input_user_attachment" style="display: none;" />
+                        <button class="btn btn-default form-control user_attachment_doc" data-input="user_attachment_cert_ext" type="button">
+                            <em class="fa fa-paperclip"></em> Cargar archivo
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="user_attachment_dj">Adjuntar declaración jurada</label>
+                        <input type="file" name="user_attachment_dj" id="user_attachment_dj" class="form-control input_user_attachment" style="display: none;" />
+                        <button class="btn btn-default form-control user_attachment_doc" data-input="user_attachment_dj" type="button">
+                            <em class="fa fa-paperclip"></em> Cargar archivo
+                        </button>
+                    </div>
+
+                    <script>
+                        $(function () {
+                            const \$btnAdd = $('.user_attachment_doc');
+                            const \$input = $('.input_user_attachment');
+
+                            \$btnAdd.on('click', function (e) {
+                                e.preventDefault();
+                                const inputId = $(this).data('input');
+                                const \$inputRef = $('#' + inputId);
+                                \$inputRef.click();
+                            });
+
+                            \$input.on('change', function (e) {
+                                const name = $(this).attr('name');
+                                const fileName = e.target?.files[0]?.name;
+                                const \$btnAddRef = $('.user_attachment_doc[data-input="' + name + '"]');
+                                if (fileName) {
+                                    \$btnAddRef.html('<em class="fa fa-paperclip"></em> ' + fileName);
+                                } else {
+                                    \$btnAddRef.html('<em class="fa fa-paperclip"></em> Cargar archivo');
+                                }
+                            });
+                        });
+                    </script>
+EOT
+                );
+            },
+            'save_files' => function($user_id) use ($documentMap, $courseInTarget) {
+                if (!$courseInTarget) {
+                    return false;
+                }
+
+                $courseCode = $_GET['c'] ?? $_GET['cidReq'];
+                $baseUploadDir = api_get_path(SYS_APP_PATH) . 'upload/proikos_user_documents/';
+                $userCourseDir = $baseUploadDir . $user_id . '/' . $courseCode . '/';
+
+                if (!file_exists($userCourseDir)) {
+                    mkdir($userCourseDir, 0775, true);
+                }
+
+                foreach ($documentMap as $inputName => $documentName) {
+                    if (!empty($_FILES[$inputName]['tmp_name']) && $_FILES[$inputName]['error'] === UPLOAD_ERR_OK) {
+                        $originalName = basename($_FILES[$inputName]['name']);
+                        $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+                        $fileName = $documentName . '.' . $extension;
+                        $destination = $userCourseDir . $fileName;
+                        move_uploaded_file($_FILES[$inputName]['tmp_name'], $destination);
+                    }
+                }
+
+                return true;
+            },
+            'get_actions' => function($user_id) use ($courseInTarget) {
+                if (!$courseInTarget) {
+                    return '';
+                }
+
+                $courseCode = $_GET['c'] ?? $_GET['cidReq'];
+                $downloadCertificadoExternoButton = '';
+                $downloadDJButton = '';
+                $baseUploadDir = api_get_path(SYS_APP_PATH) . 'upload/proikos_user_documents/';
+                $userCourseDir = $baseUploadDir . $user_id . '/' . $courseCode;
+                $userCertificadoExterno = $userCourseDir . '/certificado_externo.*';
+                $userDeclaracionJurada = $userCourseDir . '/declaracion_jurada.*';
+
+                if (!empty(glob($userCertificadoExterno))) {
+                    $downloadLink = glob($userCertificadoExterno)[0];
+                    $filename = basename($downloadLink);
+                    $downloadUrl = api_get_path(WEB_PATH) . 'plugin/proikos/src/ajax.php?action=download_user_uploaded_documents&user_id=' . $user_id
+                        . '&course_code=' . urlencode($courseCode)
+                        . '&filename=' . urlencode($filename);
+                    $downloadCertificadoExternoButton = '<a class="btn btn-small btn-default" style="margin-left: 8px;" href="' . $downloadUrl . '">'.
+                        get_lang("Certificado Externo").'</a>';
+                }
+
+                if (!empty(glob($userDeclaracionJurada))) {
+                    $downloadLink = glob($userDeclaracionJurada)[0];
+                    $filename = basename($downloadLink);
+                    $downloadUrl = api_get_path(WEB_PATH) . 'plugin/proikos/src/ajax.php?action=download_user_uploaded_documents&user_id=' . $user_id
+                        . '&course_code=' . urlencode($courseCode)
+                        . '&filename=' . urlencode($filename);
+                    $downloadDJButton = '<a class="btn btn-small btn-default" style="margin-left: 8px;" href="' . $downloadUrl . '">'.
+                        get_lang("Declaración Jurada").'</a>';
+                }
+
+                return $downloadCertificadoExternoButton . $downloadDJButton;
+            }
+        ];
+    }
 }

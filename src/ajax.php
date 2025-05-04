@@ -194,5 +194,25 @@ if ($action) {
                 exit;
             }
             break;
+        case 'download_user_uploaded_documents':
+            $userId = (int) $_GET['user_id'];
+            $courseCode = basename($_GET['course_code']);
+            $filename = basename($_GET['filename']);
+            $basePath = api_get_path(SYS_APP_PATH) . 'upload/proikos_user_documents/';
+            $filePath = $basePath . $userId . '/' . $courseCode . '/' . $filename;
+
+            if (!file_exists($filePath)) {
+                header("HTTP/1.0 404 Not Found");
+                echo "Archivo no encontrado.";
+                exit;
+            }
+
+            header('Content-Description: File Transfer');
+            header('Content-Type: application/octet-stream');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Content-Length: ' . filesize($filePath));
+            readfile($filePath);
+            exit;
+            break;
     }
 }
