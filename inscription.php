@@ -20,7 +20,18 @@ $htmlHeadXtra[] = '<link rel="stylesheet" type="text/css" href="'.api_get_path(
 if($action == 'second'){
             $entitySelect = $_POST['entity'];
             $picture = $plugin->getPictureEntity($entitySelect);
-            $form = new FormValidator('registration-two', 'post', api_get_self().'?action='.Security::remove_XSS('register'), '', [], FormValidator::LAYOUT_INLINE);
+            $SpecificCourseFeature = $plugin->getSpecificCourseFeature();
+            $formAction = api_get_self().'?action='.Security::remove_XSS('register');
+            $formAttributes = [];
+            if ($SpecificCourseFeature->course_in_target) {
+                $formAction = api_get_self() . '?' . 'action='.Security::remove_XSS('register') .'&c=' . Security::remove_XSS($_GET['c']) . '&e=' . Security::remove_XSS($_GET['e']);
+                $formAttributes = [
+                    'enctype' => 'multipart/form-data',
+                ];
+            }
+
+            $form = new FormValidator('registration-two', 'post', $formAction, '', $formAttributes, FormValidator::LAYOUT_INLINE);
+            $form->addHtml(($SpecificCourseFeature->validate_upload)());
             $form->addHtml('<div class="panel panel-default">
                     <div class="panel-heading panel-user">
                         <h3 class="panel-title">' . $plugin->get_lang('PersonalInformation') . '</h3>
@@ -126,6 +137,7 @@ if($action == 'second'){
             $areaSelect = $form->addSelect('area', $plugin->get_lang('Area'), $area);
             $form->setRequired($areaSelect);
             $form->addHtml('</div>');
+            $form->addHtml(($SpecificCourseFeature->upload_buttons_ui)());
 
             //$departments = $plugin->getPetroManagement();
             //$departmentsSelect = $form->addSelect('department', [$plugin->get_lang('Department')], $departments);
@@ -141,6 +153,9 @@ if($action == 'second'){
 
             if ($form->validate()) {
                 $values = $form->getSubmitValues(1);
+                if ($SpecificCourseFeature->course_in_target && $SpecificCourseFeature->require_upload_map_files) {
+                    goto init_form;
+                }
 
                 $values['username'] = api_substr($values['number_document'], 0, USERNAME_MAX_LENGTH);
                 $values['official_code'] = 'PK'.$values['number_document'];
@@ -197,6 +212,7 @@ if($action == 'second'){
                 if ($user_id) {
                     $values['user_id'] = $user_id;
                     $plugin->saveInfoUserProikos($values);
+                    ($SpecificCourseFeature->save_files)($user_id);
                 }
 
                 /* SESSION REGISTERING */
@@ -223,6 +239,7 @@ if($action == 'second'){
             }
             // Custom pages
             if (CustomPages::enabled() && CustomPages::exists(CustomPages::REGISTRATION)) {
+                init_form:
                 CustomPages::display(
                     CustomPages::REGISTRATION,
                     [

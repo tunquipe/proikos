@@ -26,7 +26,9 @@ class ProikosPlugin extends Plugin
     const TABLE_PROIKOS_MANAGERS = 'plugin_proikos_managers';
     const TABLE_PROIKOS_AREA_REF_MANAGEMENT = 'plugin_proikos_area_ref_management';
     const TABLE_PROIKOS_CONTRATING_COMPANIES = 'plugin_proikos_contrating_companies';
-    const TABLE_PROIKOS_CONTRATING_COMPANIES_DETAILS = 'plugin_proikos_contrating_companies_details';
+    const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS = 'plugin_proikos_contrating_companies_quota_details';
+    const EVENT_ADD_QUOTA = 'add_quota';
+    const EVENT_USER_SUBSCRIPTION_TO_COURSE = 'user_subscription_to_course';
 
     protected function __construct()
     {
@@ -80,7 +82,8 @@ class ProikosPlugin extends Plugin
                 'plugin_proikos_position',
                 'plugin_proikos_sector',
                 'plugin_proikos_users',
-                self::TABLE_PROIKOS_CLIENT_COMPANIES
+                self::TABLE_PROIKOS_CONTRATING_COMPANIES,
+                self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS
             ]
         );
 
@@ -214,10 +217,11 @@ class ProikosPlugin extends Plugin
         );";
         Database::query($sql);
 
-        $sql = "CREATE TABLE IF NOT EXISTS " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_DETAILS . " (
+        $sql = "CREATE TABLE IF NOT EXISTS " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS . " (
           id INT PRIMARY KEY AUTO_INCREMENT,
           cab_id INT,
           user_quota INT NOT NULL,
+          event VARCHAR(50) NOT NULL,
           user_id INT NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );";
@@ -2258,7 +2262,7 @@ class ProikosPlugin extends Plugin
         FROM
           $table c
         LEFT JOIN
-          " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_DETAILS ." d ON d.cab_id = c.id
+          " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS ." d ON d.cab_id = c.id
         GROUP BY
           c.id;";
 
@@ -2364,7 +2368,7 @@ class ProikosPlugin extends Plugin
         FROM
           $table c
         LEFT JOIN
-          " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_DETAILS ." d ON d.cab_id = c.id
+          " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS ." d ON d.cab_id = c.id
         WHERE
           c.id = $id
         GROUP BY
@@ -2497,16 +2501,73 @@ class ProikosPlugin extends Plugin
         return $list;
     }
 
+    public function contratingCompanyQuotaManager() {
+        return (object) [
+            'subscribe_user' => function($userId) {
+                if (empty($userId)) {
+                    return false;
+                }
+                // get ruc_company from self::TABLE_PROIKOS_USERS then search in self::TABLE_PROIKOS_CONTRATING_COMPANIES
+                $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+                $sql = "SELECT ruc_company FROM $table WHERE user_id = $userId";
+                $result = Database::query($sql);
+                $rucCompany = '';
+                if (Database::num_rows($result) > 0) {
+                    while ($row = Database::fetch_array($result)) {
+                        $rucCompany = $row['ruc_company'];
+                    }
+                }
+
+                if (empty($rucCompany)) {
+                    return false;
+                }
+
+                $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
+                $sql = "SELECT id FROM $table WHERE ruc = '$rucCompany'";
+                $result = Database::query($sql);
+                $id = '';
+                if (Database::num_rows($result) > 0) {
+                    while ($row = Database::fetch_array($result)) {
+                        $id = $row['id'];
+                    }
+                }
+
+                if (empty($id)) {
+                    return false;
+                }
+
+                $company = $this->getContratingCompanyById($id);
+                if (empty($company)) {
+                    return false;
+                }
+
+                if ($company['total_user_quota'] <= 0) {
+                    return -1;
+                }
+
+                $this->addContratingCompanyDetail([
+                    'cab_id' => $id,
+                    'user_id' => $userId,
+                    'user_quota' => -1,
+                    'event' => self::EVENT_USER_SUBSCRIPTION_TO_COURSE
+                ]);
+
+                return true;
+            }
+        ];
+    }
+
     public function addContratingCompanyDetail(array $values) {
         if (!is_array($values)) {
             return false;
         }
 
-        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES_DETAILS);
+        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS);
         $params = [
             'cab_id' => $values['cab_id'],
             'user_id' => $values['user_id'],
-            'user_quota' => $values['user_quota']
+            'user_quota' => $values['user_quota'],
+            'event' => $values['event']
         ];
         $id = Database::insert($table, $params);
         if ($id > 0) {
@@ -2522,12 +2583,13 @@ class ProikosPlugin extends Plugin
             return false;
         }
 
-        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES_DETAILS);
+        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS);
         $sql = "SELECT
             a.id,
             a.cab_id,
             DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
             a.user_quota,
+            a.event,
             CONCAT(b.lastname, ' ', b.firstname) AS user_name
             FROM $table a
             LEFT JOIN user b on a.user_id = b.user_id
@@ -2562,7 +2624,7 @@ class ProikosPlugin extends Plugin
 
     public function deleteContratingCompanyDetail($id) {
         $result = Database::delete(
-            self::TABLE_PROIKOS_CONTRATING_COMPANIES_DETAILS,
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS,
             ['id = ?' => $id]
         );
 

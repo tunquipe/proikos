@@ -63,7 +63,8 @@ if ($form->validate()) {
     $params = [
         'cab_id' => $id,
         'user_id' => api_get_user_id(),
-        'user_quota' => $values['user_quota']
+        'user_quota' => $values['user_quota'],
+        'event' => ProikosPlugin::EVENT_ADD_QUOTA
     ];
     $plugin->addContratingCompanyDetail($params);
 
