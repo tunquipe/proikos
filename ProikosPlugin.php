@@ -223,7 +223,8 @@ class ProikosPlugin extends Plugin
           user_quota INT NOT NULL,
           event VARCHAR(50) NOT NULL,
           user_id INT NOT NULL,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          details TEXT
         );";
         Database::query($sql);
 
@@ -2503,7 +2504,7 @@ class ProikosPlugin extends Plugin
 
     public function contratingCompanyQuotaManager() {
         return (object) [
-            'subscribe_user' => function($userId) {
+            'subscribe_user' => function($userId, $userAdmin, $userInfo, $courseInfo) {
                 if (empty($userId)) {
                     return false;
                 }
@@ -2547,9 +2548,10 @@ class ProikosPlugin extends Plugin
 
                 $this->addContratingCompanyDetail([
                     'cab_id' => $id,
-                    'user_id' => $userId,
+                    'user_id' => $userAdmin,
                     'user_quota' => -1,
-                    'event' => self::EVENT_USER_SUBSCRIPTION_TO_COURSE
+                    'event' => self::EVENT_USER_SUBSCRIPTION_TO_COURSE,
+                    'details' => 'El usuario ' . $userInfo['complete_name_with_username'] . ' ha sido registrado al curso ' . $courseInfo['name']
                 ]);
 
                 return true;
@@ -2567,7 +2569,8 @@ class ProikosPlugin extends Plugin
             'cab_id' => $values['cab_id'],
             'user_id' => $values['user_id'],
             'user_quota' => $values['user_quota'],
-            'event' => $values['event']
+            'event' => $values['event'],
+            'details' => $values['details'] ?? null
         ];
         $id = Database::insert($table, $params);
         if ($id > 0) {
@@ -2590,6 +2593,7 @@ class ProikosPlugin extends Plugin
             DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
             a.user_quota,
             a.event,
+            a.details,
             CONCAT(b.lastname, ' ', b.firstname) AS user_name
             FROM $table a
             LEFT JOIN user b on a.user_id = b.user_id
