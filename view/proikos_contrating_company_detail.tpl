@@ -6,6 +6,7 @@
         <th class="text-center">{{ 'ContratingCompanyUserQuota'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'ContratingCompanyCreationDate'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'Evento'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th>{{ 'Detalle'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'ContratingCompanyCreatedByUser'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="text-center">{{ 'Actions'|get_plugin_lang('ProikosPlugin') }}</th>
     </tr>
@@ -20,9 +21,10 @@
             {% if item.event == 'add_quota' %}
                 Agregar Cupos
             {% elseif item.event == 'user_subscription_to_course' %}
-                Usuario Suscrito
+                Usuario Suscrito a Curso
             {% endif %}
         </td>
+        <td>{{ item.details }}</td>
         <td>{{ item.user_name }}</td>
         <td class="text-center">{{ item.actions }}</td>
     </tr>
