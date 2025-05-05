@@ -2781,4 +2781,26 @@ EOT
             }
         ];
     }
+
+    public function validEmail($email) {
+        if (empty($email)) {
+            return false;
+        }
+
+        $table = Database::get_main_table(TABLE_MAIN_USER);
+        $sql = "SELECT email FROM $table WHERE email = '$email'";
+        $result = Database::query($sql);
+        $emailFound = '';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $emailFound = $row['email'];
+            }
+        }
+
+        if (empty($emailFound)) {
+            return true;
+        }
+
+        return 'El correo electrónico ingresado ya existe en el sistema';
+    }
 }

@@ -16,6 +16,8 @@ $urlPlugin = api_get_path(WEB_PLUGIN_PATH).'proikos';
 $htmlHeadXtra[] = '<link rel="stylesheet" type="text/css" href="'.api_get_path(
         WEB_PLUGIN_PATH
     ).'proikos/css/style.css"/>';
+$title = isset($_GET['action']) && $_GET['action'] === 'register' ?
+    $plugin->get_lang('TitleRegister') : $plugin->get_lang('TitleRegisterTwo');
 
 if($action == 'second'){
             $entitySelect = $_POST['entity'];
@@ -157,6 +159,12 @@ if($action == 'second'){
                     goto init_form;
                 }
 
+                $emailValidation = $plugin->validEmail($values['email']);
+                if (true !== $emailValidation) {
+                    $form->setElementError('email', $emailValidation);
+                    goto init_form;
+                }
+
                 $values['username'] = api_substr($values['number_document'], 0, USERNAME_MAX_LENGTH);
                 $values['official_code'] = 'PK'.$values['number_document'];
                 if (api_get_setting('allow_registration_as_teacher') === 'false') {
@@ -245,7 +253,7 @@ if($action == 'second'){
                     [
                         'form' => $form,
                         'content' => $content,
-                        'title' => $plugin->get_lang('TitleRegisterTwo'),
+                        'title' => $title,
                         'url_plugin' => $urlPlugin,
                         'picture' => $picture
                     ]

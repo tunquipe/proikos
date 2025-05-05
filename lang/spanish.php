@@ -39,6 +39,7 @@ $strings['CodeReference'] = 'Código de referencia';
 $strings['Picture'] = 'Agregar imagen';
 $strings['PictureHelp'] = 'La imagen tiene que tener las dimensiones 320 x 200 pixeles en formato PNG con fondo transparente para mejor visualización';
 $strings['ManageEntities'] = 'Gestionar entidades';
+$strings['TitleRegister'] = 'Proceso de Registro';
 $strings['TitleRegisterOne'] = 'Proceso de Registro - Paso 01';
 $strings['TitleRegisterTwo'] = 'Proceso de Registro - Paso 02';
 $strings['ChooseTheEntity'] = 'Escoge la entidad a la que pertenece';
