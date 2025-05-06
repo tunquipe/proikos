@@ -2325,6 +2325,7 @@ class ProikosPlugin extends Plugin
                     'id' => $row['id'],
                     'name' => $row['name'],
                     'ruc' => $row['ruc'],
+                    'admin_name' => $row['admin_name'],
                     'user_quota' => $row['user_quota'],
                     'total_user_quota' => $row['total_user_quota'],
                     'status' => $row['status'],
@@ -2345,6 +2346,7 @@ class ProikosPlugin extends Plugin
         $params = [
             'name' => $values['name'],
             'ruc' => $values['ruc'],
+            'admin_name' => $values['admin_name'] ?? '',
             'user_quota' => $values['user_quota'] ?? 0,
             'status' => $values['status'] ?? 1,
         ];
