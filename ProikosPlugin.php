@@ -212,8 +212,7 @@ class ProikosPlugin extends Plugin
             name VARCHAR(255) NOT NULL,
             status VARCHAR(1) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            user_quota INT NOT NULL
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         );";
         Database::query($sql);
 
@@ -2326,7 +2325,6 @@ class ProikosPlugin extends Plugin
                     'name' => $row['name'],
                     'ruc' => $row['ruc'],
                     'admin_name' => $row['admin_name'],
-                    'user_quota' => $row['user_quota'],
                     'total_user_quota' => $row['total_user_quota'],
                     'status' => $row['status'],
                     'actions' => $action
@@ -2347,7 +2345,6 @@ class ProikosPlugin extends Plugin
             'name' => $values['name'],
             'ruc' => $values['ruc'],
             'admin_name' => $values['admin_name'] ?? '',
-            'user_quota' => $values['user_quota'] ?? 0,
             'status' => $values['status'] ?? 1,
         ];
         $id = Database::insert($table, $params);
@@ -2384,7 +2381,6 @@ class ProikosPlugin extends Plugin
                     'id' => $row['id'],
                     'name' => $row['name'],
                     'ruc' => $row['ruc'],
-                    'user_quota' => $row['user_quota'],
                     'total_user_quota' => $row['total_user_quota'],
                     'status' => $row['status']
                 ];
@@ -2427,10 +2423,6 @@ class ProikosPlugin extends Plugin
 
         if (isset($values['ruc'])) {
             $params['ruc'] = $values['ruc'];
-        }
-
-        if (isset($values['user_quota'])) {
-            $params['user_quota'] = $values['user_quota'];
         }
 
         if (isset($values['status'])) {
