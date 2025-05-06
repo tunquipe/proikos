@@ -103,6 +103,7 @@ if ($isAdmin) {
             $form->addHeader($plugin->get_lang('AddContratingCompany'));
             $form->addText('ruc', $plugin->get_lang('ContratingCompanyRUC'));
             $form->addText('name', $plugin->get_lang('ContratingCompanyName'));
+            $form->addText('admin_name', $plugin->get_lang('ContratingAdminName'));
 
             $group = [];
             $group[] = $form->createElement('radio', 'status', null, get_lang('Active'), 1);

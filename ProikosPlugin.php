@@ -2381,6 +2381,7 @@ class ProikosPlugin extends Plugin
                     'id' => $row['id'],
                     'name' => $row['name'],
                     'ruc' => $row['ruc'],
+                    'admin_name' => $row['admin_name'],
                     'total_user_quota' => $row['total_user_quota'],
                     'status' => $row['status']
                 ];
@@ -2423,6 +2424,10 @@ class ProikosPlugin extends Plugin
 
         if (isset($values['ruc'])) {
             $params['ruc'] = $values['ruc'];
+        }
+
+        if (isset($values['admin_name'])) {
+            $params['admin_name'] = $values['admin_name'];
         }
 
         if (isset($values['status'])) {
