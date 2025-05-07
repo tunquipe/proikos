@@ -94,3 +94,5 @@ $strings['TypeCourse'] = 'Tipo de Curso';
 $strings['Course'] = 'Curso';
 $strings['Validity'] = 'Vigencia';
 $strings['ValidityRequired'] = 'La vigencia es requerida';
+$strings['CoursesConfigurationRequired'] = 'La configuración de los cursos es requerida';
+$strings['CoursesConfigurationPleaseCompleteAllFields'] = 'Por favor completa todos los campos';

@@ -27,6 +27,7 @@ class ProikosPlugin extends Plugin
     const TABLE_PROIKOS_AREA_REF_MANAGEMENT = 'plugin_proikos_area_ref_management';
     const TABLE_PROIKOS_CONTRATING_COMPANIES = 'plugin_proikos_contrating_companies';
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS = 'plugin_proikos_contrating_companies_quota_details';
+    const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET = 'plugin_proikos_contrating_companies_quota_det';
     const EVENT_ADD_QUOTA = 'add_quota';
     const EVENT_USER_SUBSCRIPTION_TO_COURSE = 'user_subscription_to_course';
 
@@ -224,6 +225,19 @@ class ProikosPlugin extends Plugin
           user_id INT NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           details TEXT
+        );";
+        Database::query($sql);
+
+        $sql = "CREATE TABLE IF NOT EXISTS " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET . " (
+          id INT PRIMARY KEY AUTO_INCREMENT,
+          cab_id INT,
+          type_course_id INT NOT NULL,
+          course_id INT NOT NULL,
+          user_quota INT NOT NULL,
+          created_user_id INT NOT NULL,
+          updated_user_id INT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         );";
         Database::query($sql);
 
@@ -2801,5 +2815,14 @@ EOT
         }
 
         return 'El correo electrónico ingresado ya existe en el sistema';
+    }
+
+    public function contratingCompaniesQuotaDetModel()
+    {
+        require_once __DIR__ . '/src/model/PluginProikosContratingCompaniesQuotaDet.php';
+
+        return (new PluginProikosContratingCompaniesQuotaDet(
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET
+        ));
     }
 }
