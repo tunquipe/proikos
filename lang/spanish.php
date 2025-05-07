@@ -90,3 +90,7 @@ $strings['ContratingCompanyCreationDate'] = 'Fecha de creación';
 $strings['ContratingCompanyCreatedByUser'] = 'Creado por';
 $strings['ContratingCompanyQuotaZero'] = 'La empresa contratista no tiene cupos disponibles';
 $strings['ContratingAdminName'] = 'Administrador de contrato';
+$strings['TypeCourse'] = 'Tipo de Curso';
+$strings['Course'] = 'Curso';
+$strings['Validity'] = 'Vigencia';
+$strings['ValidityRequired'] = 'La vigencia es requerida';
