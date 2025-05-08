@@ -74,6 +74,7 @@ $strings['NumberOfUsers'] = 'N° número de usuarios';
 $strings['PercentageOfUsers'] = '% porcentaje de usuarios';
 $strings['ManageContratingCompanies'] = 'Gestionar empresas contratistas';
 $strings['AddContratingCompany'] = 'Agregar empresa contratista';
+$strings['UpdateContratingCompany'] = 'Actualizar empresa contratista';
 $strings['ContratingCompanyName'] = 'Nombre Empresa';
 $strings['ContratingCompanyRUC'] = 'RUC';
 $strings['ContratingCompanyUserQuota'] = 'Nº Cupos';

@@ -12,7 +12,7 @@ if (!$allow) {
 
 $id = $_GET['id'];
 if (isset($_GET['action']) && $_GET['action'] === 'delete') {
-    $plugin->deleteContratingCompanyDetail($_GET['item_id']);
+    $plugin->contratingCompaniesQuotaCabModel()->delete($_GET['item_id']);
     $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_detail_management.php?id=' . $id;
     header('Location: ' . $url);
 }
@@ -28,10 +28,10 @@ $actionLinks .= Display::url(
     api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_management.php'
 );
 
-$empresa = $plugin->getContratingCompanyById($id);
+$empresa = $plugin->contratingCompaniesModel()->getData($id);
 $tool_name = 'Gestionar detalles de la empresa';
 $tpl = new Template($tool_name);
-$items = $plugin->getContratingCompanyDetailById($id);
+$items = $plugin->contratingCompaniesQuotaCabModel()->getData($id);
 
 // ------------------------
 // Form
@@ -58,8 +58,6 @@ $form->addText('company_total_user_quota', $plugin->get_lang('CompanyTotalUserQu
     'value' => $empresa['total_user_quota'],
     'disabled' => 'disabled'
 ]);
-
-$form->addNumeric('user_quota', $plugin->get_lang('ContratingCompanyUserQuota'), [], true);
 
 $typeCourse = json_encode([
     '0' => 'Seleccione un tipo de curso',
@@ -302,12 +300,10 @@ if ($form->validate() && $courseDetailHasError === false) {
 
     // Save cab
     $params = [
-        'cab_id' => $id,
-        'user_id' => api_get_user_id(),
-        'user_quota' => $values['user_quota'],
-        'event' => ProikosPlugin::EVENT_ADD_QUOTA
+        'contrating_company_id' => $id,
+        'created_user_id' => api_get_user_id()
     ];
-    //$plugin->addContratingCompanyDetail($params);
+    $plugin->contratingCompaniesQuotaCabModel()->save($params);
 
     // save det
     foreach ($values['course_detail'] as $key => $value) {

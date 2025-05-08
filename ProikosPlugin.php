@@ -26,7 +26,7 @@ class ProikosPlugin extends Plugin
     const TABLE_PROIKOS_MANAGERS = 'plugin_proikos_managers';
     const TABLE_PROIKOS_AREA_REF_MANAGEMENT = 'plugin_proikos_area_ref_management';
     const TABLE_PROIKOS_CONTRATING_COMPANIES = 'plugin_proikos_contrating_companies';
-    const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS = 'plugin_proikos_contrating_companies_quota_details';
+    const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB = 'plugin_proikos_contrating_companies_quota_cab';
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET = 'plugin_proikos_contrating_companies_quota_det';
     const EVENT_ADD_QUOTA = 'add_quota';
     const EVENT_USER_SUBSCRIPTION_TO_COURSE = 'user_subscription_to_course';
@@ -84,7 +84,8 @@ class ProikosPlugin extends Plugin
                 'plugin_proikos_sector',
                 'plugin_proikos_users',
                 self::TABLE_PROIKOS_CONTRATING_COMPANIES,
-                self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS
+                self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB,
+                self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET
             ]
         );
 
@@ -217,14 +218,11 @@ class ProikosPlugin extends Plugin
         );";
         Database::query($sql);
 
-        $sql = "CREATE TABLE IF NOT EXISTS " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS . " (
+        $sql = "CREATE TABLE IF NOT EXISTS " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB . " (
           id INT PRIMARY KEY AUTO_INCREMENT,
-          cab_id INT,
-          user_quota INT NOT NULL,
-          event VARCHAR(50) NOT NULL,
-          user_id INT NOT NULL,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          details TEXT
+          contrating_company_id INT,
+          created_user_id INT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );";
         Database::query($sql);
 
@@ -2268,214 +2266,6 @@ class ProikosPlugin extends Plugin
         return $list;
     }
 
-    public function getContratingCompanies($asSelect = false, $asCount = false) {
-        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
-        $sql = "SELECT
-          c.*,
-          SUM(d.user_quota) AS total_user_quota
-        FROM
-          $table c
-        LEFT JOIN
-          " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS ." d ON d.cab_id = c.id
-        GROUP BY
-          c.id;";
-
-        if ($asCount) {
-            $sql = "SELECT COUNT(*) as total FROM $table;";
-            $result = Database::query($sql);
-            $result = Database::fetch_array($result);
-
-            return $result['count'];
-        }
-
-        $result = Database::query($sql);
-        $list = [];
-
-        if ($asSelect) {
-            $list[0] = 'Seleccione una opción';
-        }
-
-        if (Database::num_rows($result) > 0) {
-            while ($row = Database::fetch_array($result)) {
-
-                if ($asSelect) {
-                    $list[$row['id']] = $row['ruc'] . ' - ' . $row['name'];
-                    continue;
-                }
-
-                $action = Display::url(
-                    Display::return_icon(
-                        'edit.png',
-                        null,
-                        [],
-                        ICON_SIZE_SMALL),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_management.php?action=edit&id=' . $row['id']
-                );
-                $action .= Display::url(
-                    Display::return_icon(
-                        'delete.png',
-                        get_lang('Delete'),
-                        [],
-                        ICON_SIZE_SMALL
-                    ),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_management.php?action=delete&id=' . $row['id'],
-                    [
-                        'onclick' => 'javascript:if(!confirm(' . "'" .
-                            addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
-                            . "'" . ')) return false;',
-                    ]
-                );
-                $action .= Display::url(
-                    Display::return_icon(
-                        'visible.png',
-                        null,
-                        [],
-                        ICON_SIZE_SMALL),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_detail_management.php?id=' . $row['id']
-                );
-
-                $list[] = [
-                    'id' => $row['id'],
-                    'name' => $row['name'],
-                    'ruc' => $row['ruc'],
-                    'admin_name' => $row['admin_name'],
-                    'total_user_quota' => $row['total_user_quota'],
-                    'status' => $row['status'],
-                    'actions' => $action
-                ];
-            }
-        }
-
-        return $list;
-    }
-
-    public function createContratingCompany(array $values) {
-        if (!is_array($values)) {
-            return false;
-        }
-
-        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
-        $params = [
-            'name' => $values['name'],
-            'ruc' => $values['ruc'],
-            'admin_name' => $values['admin_name'] ?? '',
-            'status' => $values['status'] ?? 1,
-        ];
-        $id = Database::insert($table, $params);
-
-        if ($id > 0) {
-            return $id;
-        }
-
-        return false;
-    }
-
-    public function getContratingCompanyById($id) {
-        if (empty($id)) {
-            return false;
-        }
-
-        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
-        $sql = "SELECT
-          c.*,
-          SUM(d.user_quota) AS total_user_quota
-        FROM
-          $table c
-        LEFT JOIN
-          " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS ." d ON d.cab_id = c.id
-        WHERE
-          c.id = $id
-        GROUP BY
-          c.id;";
-        $result = Database::query($sql);
-        $item = null;
-        if (Database::num_rows($result) > 0) {
-            while ($row = Database::fetch_array($result)) {
-                $item = [
-                    'id' => $row['id'],
-                    'name' => $row['name'],
-                    'ruc' => $row['ruc'],
-                    'admin_name' => $row['admin_name'],
-                    'total_user_quota' => $row['total_user_quota'],
-                    'status' => $row['status']
-                ];
-            }
-        }
-
-        return $item;
-    }
-
-    public function getContratingCompanyByRUC($ruc) {
-        if (empty($ruc)) {
-            return '';
-        }
-
-        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
-
-        $sql = "SELECT name FROM $table WHERE ruc = '$ruc' order by id desc LIMIT 1;";
-        $result = Database::query($sql);
-        $nameCompany = '';
-        if (Database::num_rows($result) > 0) {
-            while ($row = Database::fetch_array($result)) {
-                $nameCompany = $row['name'];
-            }
-        }
-
-        return $nameCompany;
-    }
-
-    public function updateContratingCompany(array $values) {
-        if (!is_array($values)) {
-            return false;
-        }
-
-        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
-        $params = [];
-
-        if (isset($values['name'])) {
-            $params['name'] = $values['name'];
-        }
-
-        if (isset($values['ruc'])) {
-            $params['ruc'] = $values['ruc'];
-        }
-
-        if (isset($values['admin_name'])) {
-            $params['admin_name'] = $values['admin_name'];
-        }
-
-        if (isset($values['status'])) {
-            $params['status'] = $values['status'];
-        }
-
-        if (!empty($params)) {
-            Database::update(
-                $table,
-                $params,
-                [
-                    'id = ?' => [
-                        $values['id'],
-                    ],
-                ]
-            );
-        }
-
-        return true;
-    }
-
-    public function deleteContratingCompany($id) {
-        $result = Database::delete(
-            self::TABLE_PROIKOS_CONTRATING_COMPANIES,
-            ['id = ?' => $id]
-        );
-
-        if ($result) {
-            return true;
-        }
-
-        return false;
-    }
-
     public function getUsers() {
         $sql = "SELECT * FROM plugin_proikos_users";
         $result = Database::query($sql);
@@ -2550,7 +2340,7 @@ class ProikosPlugin extends Plugin
                     return false;
                 }
 
-                $company = $this->getContratingCompanyById($id);
+                $company = $this->contratingCompaniesModel()->getData($id);
                 if (empty($company)) {
                     return false;
                 }
@@ -2559,97 +2349,17 @@ class ProikosPlugin extends Plugin
                     return -1;
                 }
 
-                $this->addContratingCompanyDetail([
-                    'cab_id' => $id,
-                    'user_id' => $userAdmin,
-                    'user_quota' => -1,
-                    'event' => self::EVENT_USER_SUBSCRIPTION_TO_COURSE,
-                    'details' => 'El usuario ' . $userInfo['complete_name_with_username'] . ' ha sido registrado al curso ' . $courseInfo['name']
-                ]);
+//                $this->addContratingCompanyDetail([
+//                    'cab_id' => $id,
+//                    'user_id' => $userAdmin,
+//                    'user_quota' => -1,
+//                    'event' => self::EVENT_USER_SUBSCRIPTION_TO_COURSE,
+//                    'details' => 'El usuario ' . $userInfo['complete_name_with_username'] . ' ha sido registrado al curso ' . $courseInfo['name']
+//                ]);
 
                 return true;
             }
         ];
-    }
-
-    public function addContratingCompanyDetail(array $values) {
-        if (!is_array($values)) {
-            return false;
-        }
-
-        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS);
-        $params = [
-            'cab_id' => $values['cab_id'],
-            'user_id' => $values['user_id'],
-            'user_quota' => $values['user_quota'],
-            'event' => $values['event'],
-            'details' => $values['details'] ?? null
-        ];
-        $id = Database::insert($table, $params);
-        if ($id > 0) {
-            return $id;
-        }
-
-        return false;
-    }
-
-    public function getContratingCompanyDetailById($id)
-    {
-        if (empty($id)) {
-            return false;
-        }
-
-        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS);
-        $sql = "SELECT
-            a.id,
-            a.cab_id,
-            DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
-            a.user_quota,
-            a.event,
-            a.details,
-            CONCAT(b.lastname, ' ', b.firstname) AS user_name
-            FROM $table a
-            LEFT JOIN user b on a.user_id = b.user_id
-            WHERE a.cab_id = $id";
-        $result = Database::query($sql);
-        $items = [];
-        if (Database::num_rows($result) > 0) {
-            while ($row = Database::fetch_array($result)) {
-                // delete action
-                $action = Display::url(
-                    Display::return_icon(
-                        'delete.png',
-                        get_lang('Delete'),
-                        [],
-                        ICON_SIZE_SMALL
-                    ),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_detail_management.php?action=delete&id=' . $row['cab_id'] . '&item_id=' . $row['id'],
-                    [
-                        'onclick' => 'javascript:if(!confirm(' . "'" .
-                            addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
-                            . "'" . ')) return false;',
-                    ]
-                );
-
-                $row['actions'] = $action;
-                $items[] = $row;
-            }
-        }
-
-        return $items;
-    }
-
-    public function deleteContratingCompanyDetail($id) {
-        $result = Database::delete(
-            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DETAILS,
-            ['id = ?' => $id]
-        );
-
-        if ($result) {
-            return true;
-        }
-
-        return false;
     }
 
     public function getSpecificCourseFeature() {
@@ -2815,6 +2525,26 @@ EOT
         }
 
         return 'El correo electrónico ingresado ya existe en el sistema';
+    }
+
+    public function contratingCompaniesModel()
+    {
+        require_once __DIR__ . '/src/model/PluginProikosContratingCompanies.php';
+
+        return (new PluginProikosContratingCompanies(
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES,
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB,
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET
+        ));
+    }
+
+    public function contratingCompaniesQuotaCabModel()
+    {
+        require_once __DIR__ . '/src/model/PluginProikosContratingCompaniesQuotaCab.php';
+
+        return (new PluginProikosContratingCompaniesQuotaCab(
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB
+        ));
     }
 
     public function contratingCompaniesQuotaDetModel()

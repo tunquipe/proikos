@@ -119,7 +119,7 @@ if($action == 'second'){
             //contratistas
             $form->addHtml('<div id="option-builder">');
 
-            $contratingCompanies = $plugin->getContratingCompanies(true);
+            $contratingCompanies = $plugin->contratingCompaniesModel()->getData(null, true);
             $contratingCompaniesSelect = $form->addSelect('contrating_companies', $plugin->get_lang('Company'), $contratingCompanies);
             $form->setRequired($contratingCompaniesSelect);
 
@@ -177,7 +177,7 @@ if($action == 'second'){
                     print_r($e);
                 }
 
-                $selectedContratingCompany = $plugin->getContratingCompanyById($_POST['contrating_companies']);
+                $selectedContratingCompany = $plugin->contratingCompaniesModel()->getData($_POST['contrating_companies']);
                 $values['ruc_company'] = $values['ruc_company'] ?? '';
                 $values['name_company'] = $values['name_company'] ?? '';
                 if (!empty($selectedContratingCompany)) {

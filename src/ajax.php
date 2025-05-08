@@ -187,7 +187,7 @@ if ($action) {
                     exit;
                 }
 
-                $nameCompany = $plugin->getContratingCompanyByRUC($ruc);
+                $nameCompany = $plugin->contratingCompaniesModel()->getDataByRUC($ruc);
                 echo json_encode([
                     'name_company' => $nameCompany
                 ]);

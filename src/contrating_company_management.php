@@ -31,9 +31,9 @@ if ($isAdmin) {
 
     if ($action === 'delete') {
         $id = $_GET['id'] ?? null;
-        $contratingCompany = $plugin->getContratingCompanyById($id);
+        $contratingCompany = $plugin->contratingCompaniesModel()->getData($id);
         if (!empty($contratingCompany)) {
-            $res = $plugin->deleteContratingCompany($id);
+            $res = $plugin->contratingCompaniesModel()->delete($id);
             if ($res) {
                 $message = Display::return_message(
                     $plugin->get_lang('ContratingCompanyDeleted'),
@@ -43,7 +43,7 @@ if ($isAdmin) {
         }
     }
 
-    $contratingCompanies = $plugin->getContratingCompanies();
+    $contratingCompanies = $plugin->contratingCompaniesModel()->getData();
     $tpl->assign('contrating_companies', $contratingCompanies);
 
     switch ($action) {
@@ -71,14 +71,14 @@ if ($isAdmin) {
             if ($form->validate()) {
                 $values = $form->getSubmitValues();
 
-                $exists = $plugin->getContratingCompanyByRUC($values['ruc']);
+                $exists = $plugin->contratingCompaniesModel()->getDataByRUC($values['ruc']);
                 if (!empty($exists)) {
                     $message = Display::return_message(
                         $plugin->get_lang('ContratingCompanyRUCExists'),
                         'error'
                     );
                 } else {
-                    $res = $plugin->createContratingCompany($values);
+                    $res = $plugin->contratingCompaniesModel()->save($values);
                     $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_management.php';
                     header('Location: ' . $url);
                 }
@@ -91,7 +91,7 @@ if ($isAdmin) {
                 api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_management.php'
             );
             $idContratingCompany = $_GET['id'] ?? null;
-            $contratingCompany = $plugin->getContratingCompanyById($idContratingCompany);
+            $contratingCompany = $plugin->contratingCompaniesModel()->getData($idContratingCompany);
 
             //edit form
             $form = new FormValidator(
@@ -100,7 +100,7 @@ if ($isAdmin) {
                 api_get_self() . '?action=' . Security::remove_XSS($_GET['action'])
             );
 
-            $form->addHeader($plugin->get_lang('AddContratingCompany'));
+            $form->addHeader($plugin->get_lang('UpdateContratingCompany'));
             $form->addText('ruc', $plugin->get_lang('ContratingCompanyRUC'));
             $form->addText('name', $plugin->get_lang('ContratingCompanyName'));
             $form->addText('admin_name', $plugin->get_lang('ContratingAdminName'));
@@ -116,12 +116,12 @@ if ($isAdmin) {
 
             if ($form->validate()) {
                 $values = $form->exportValues();
-                $contratingCompany = $plugin->getContratingCompanyById($values['id']);
+                $contratingCompany = $plugin->contratingCompaniesModel()->getData($values['id']);
                 $update = true;
 
                 if ($contratingCompany) {
                     if ($contratingCompany['ruc'] != $values['ruc']) {
-                        $exists = $plugin->getContratingCompanyByRUC($values['ruc']);
+                        $exists = $plugin->contratingCompaniesModel()->getDataByRUC($values['ruc']);
                         if (!empty($exists)) {
                             $message = Display::return_message(
                                 $plugin->get_lang('ContratingCompanyRUCExists'),
@@ -133,7 +133,7 @@ if ($isAdmin) {
                 }
 
                 if ($update == true) {
-                    $res = $plugin->updateContratingCompany($values);
+                    $res = $plugin->contratingCompaniesModel()->update($values);
 
                     if ($res) {
                         $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_management.php';
