@@ -27,6 +27,34 @@ class PluginProikosContratingCompaniesQuotaCab
         return false;
     }
 
+    public function update($values)
+    {
+        if (!is_array($values)) {
+            return false;
+        }
+
+        $table = Database::get_main_table($this->table);
+        $params = [];
+
+        if (isset($values['validity_date'])) {
+            $params['validity_date'] = $values['validity_date'];
+        }
+
+        if (!empty($params)) {
+            Database::update(
+                $table,
+                $params,
+                [
+                    'id = ?' => [
+                        $values['id'],
+                    ],
+                ]
+            );
+        }
+
+        return true;
+    }
+
     public function getData($id)
     {
         if (empty($id)) {
@@ -38,11 +66,38 @@ class PluginProikosContratingCompaniesQuotaCab
             a.id,
             a.contrating_company_id,
             (SELECT SUM(user_quota) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) AS total_user_quota,
+            DATE_FORMAT(a.validity_date, '%Y-%m-%d') AS formatted_input_validity_date,
+            DATE_FORMAT(a.validity_date, '%d-%m-%Y') AS formatted_validity_date,
             DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
             CONCAT(b.lastname, ' ', b.firstname) AS user_name
             FROM $table a
             LEFT JOIN user b on a.created_user_id = b.user_id
-            WHERE a.contrating_company_id = $id";
+            WHERE a.id = $id";
+        $result = Database::query($sql);
+        if (Database::num_rows($result) > 0) {
+            return Database::fetch_array($result);
+        }
+
+        return false;
+    }
+
+    public function getDataByCompanyId($companyId)
+    {
+        if (empty($companyId)) {
+            return false;
+        }
+
+        $table = Database::get_main_table($this->table);
+        $sql = "SELECT
+            a.id,
+            a.contrating_company_id,
+            (SELECT SUM(user_quota) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) AS total_user_quota,
+            DATE_FORMAT(a.validity_date, '%d-%m-%Y') AS formatted_validity_date,
+            DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
+            CONCAT(b.lastname, ' ', b.firstname) AS user_name
+            FROM $table a
+            LEFT JOIN user b on a.created_user_id = b.user_id
+            WHERE a.contrating_company_id = $companyId";
         $result = Database::query($sql);
         $items = [];
         if (Database::num_rows($result) > 0) {
@@ -55,7 +110,7 @@ class PluginProikosContratingCompaniesQuotaCab
                         null,
                         [],
                         ICON_SIZE_SMALL),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $id . '&action=edit&quota_cab_id=' . $row['id']
+                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_det.php?company_id=' . $companyId . '&action=edit&quota_cab_id=' . $row['id']
                 );
 
                 // delete action
@@ -66,7 +121,7 @@ class PluginProikosContratingCompaniesQuotaCab
                         [],
                         ICON_SIZE_SMALL
                     ),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $id . '&action=delete&quota_cab_id=' . $row['id'],
+                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $companyId . '&action=delete&quota_cab_id=' . $row['id'],
                     [
                         'onclick' => 'javascript:if(!confirm(' . "'" .
                             addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
@@ -99,5 +154,38 @@ class PluginProikosContratingCompaniesQuotaCab
         }
 
         return false;
+    }
+
+    public function getDetails($cabId)
+    {
+        if (empty($cabId)) {
+            return false;
+        }
+
+        $table = Database::get_main_table($this->contratingCompaniesQuotaDet);
+        $sql = "SELECT
+            a.id,
+            a.type_course_id,
+            a.course_id,
+            a.user_quota,
+            DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
+            CONCAT(b.lastname, ' ', b.firstname) AS user_name
+            FROM $table a
+            LEFT JOIN user b on a.created_user_id = b.user_id
+            WHERE a.cab_id = $cabId";
+        $result = Database::query($sql);
+        $items = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $items[] = [
+                    'id' => $row['id'],
+                    'type' => $row['type_course_id'],
+                    'course' => $row['course_id'],
+                    'quota' => $row['user_quota']
+                ];
+            }
+        }
+
+        return $items;
     }
 }

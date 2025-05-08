@@ -222,6 +222,7 @@ class ProikosPlugin extends Plugin
           id INT PRIMARY KEY AUTO_INCREMENT,
           contrating_company_id INT,
           created_user_id INT NOT NULL,
+          validity_date DATE NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );";
         Database::query($sql);
@@ -2555,5 +2556,256 @@ EOT
         return (new PluginProikosContratingCompaniesQuotaDet(
             self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET
         ));
+    }
+
+    public function getCRUDQuotaDet(FormValidator $form, $defaultCourseDetail = [])
+    {
+        $typeCourse = json_encode([
+            '0' => 'Seleccione un tipo de curso',
+            '1' => 'Asíncrono',
+            '2' => 'Síncrono'
+        ]);
+        $coursesByType = json_encode([
+            '1' => [
+                '1' => 'Curso 1',
+                '2' => 'Curso 2',
+            ],
+            '2' => [
+                '3' => 'Curso 3',
+                '4' => 'Curso 4',
+            ]
+        ]);
+        $deleteIcon = Display::return_icon(
+            'delete.png',
+            get_lang('Delete'),
+            [],
+            ICON_SIZE_SMALL
+        );
+
+        $defaultIndex = 0;
+        $courseDetailHasError = false;
+        $courseDetailHasErrorClass = '';
+        $courseDetailErrorMessage = '';
+
+        if ($form->isSubmitted()) {
+            $formValues = $form->getSubmitValues();
+            $defaultCourseDetail = $formValues['course_detail'] ?? [];
+
+            if (empty($defaultCourseDetail)) {
+                $courseDetailHasError = true;
+                $courseDetailHasErrorClass = 'has-error';
+                $courseDetailErrorMessage = $this->get_lang('CoursesConfigurationRequired');
+            } else {
+                foreach ($defaultCourseDetail as $key => $value) {
+                    if (empty($value['type']) || empty($value['course']) || empty($value['quota'])) {
+                        $courseDetailHasError = true;
+                    }
+                }
+
+                if ($courseDetailHasError) {
+                    $courseDetailHasErrorClass = 'has-error';
+                    $courseDetailErrorMessage = $this->get_lang('CoursesConfigurationPleaseCompleteAllFields');
+                }
+            }
+        }
+
+        if (!empty($defaultCourseDetail)) {
+            foreach ($defaultCourseDetail as $key => $value) {
+                if ($key > $defaultIndex) {
+                    $defaultIndex = $key;
+                }
+            }
+
+            if ($defaultIndex >= 0) {
+                $defaultIndex += 1;
+            }
+        }
+
+        $defaultCourseDetail = json_encode($defaultCourseDetail);
+
+        $form->addHtml(
+            <<<EOT
+    <div class="form-group {$courseDetailHasErrorClass}">
+        <label for="configure_courses" class="col-sm-2 control-label">
+            <span class="form_required">*</span>
+            Configurar Cupos
+        </label>
+        <div class="col-sm-8">
+            <div class="card">
+                <table class="table table-striped" style="margin-bottom: 0px;">
+                    <thead>
+                        <tr>
+                            <th>{$this->get_lang('TypeCourse')}</th>
+                            <th style="width: 200px;">{$this->get_lang('Course')}</th>
+                            <th>{$this->get_lang('ContratingCompanyUserQuota')}</th>
+                            <th style="text-align: center;">
+                                <button type="button" class="btn btn-primary" id="add_course_session">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="course-detail-container">
+                    </tbody>
+                    <tfoot style="display: none;">
+                        <tr>
+                            <td></td>
+                            <td style="text-align: right;">
+                                <label for="total_quota" class="control-label">
+                                    Total Nº Cupos
+                                </label>
+                            </td>
+                            <td>
+                                <input type="number" name="total_quota" id="total_quota" readonly class="form-control">
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <span class="help-inline help-block">{$courseDetailErrorMessage}</span>
+        </div>
+        <div class="col-sm-2"></div>
+    </div>
+    <script>
+        let index = {$defaultIndex};
+        const typeCourse = JSON.parse('{$typeCourse}');
+        const courses = JSON.parse('{$coursesByType}');
+
+        function addNewRow(itemIndex = null, itemType = null, itemCourse = null, itemQuota = null, id = null) {
+            const tableBody = document.getElementById('course-detail-container');
+            const newRow = document.createElement('tr');
+            itemIndex = itemIndex === null ? index : itemIndex;
+
+            // ----- Create the select element for typeCourse -----
+            const typeCourseSelect = document.createElement('select');
+            typeCourseSelect.name = 'course_detail[' + itemIndex + '][type]';
+            typeCourseSelect.id = 'course_type';
+            typeCourseSelect.className = 'form-control';
+            typeCourseSelect.dataset.index = itemIndex;
+            for (const [value, text] of Object.entries(typeCourse)) {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = text;
+                typeCourseSelect.appendChild(option);
+            }
+
+            // ----- Create the select element for course -----
+            const courseSelect = document.createElement('select');
+            courseSelect.name = 'course_detail[' + itemIndex + '][course]';
+            courseSelect.id = 'course_session';
+            courseSelect.className = 'form-control';
+            courseSelect.innerHTML = '<option value="0">Seleccione un curso</option>';
+            const inputIdHidden = id !== null ? (`<input type="hidden" name="course_detail[` + itemIndex + `][id]" value="` + id + `">`) : ``;
+
+            newRow.innerHTML = `
+                <td>
+                    ` + typeCourseSelect.outerHTML + `
+                </td>
+                <td>
+                    ` + courseSelect.outerHTML + `
+                </td>
+                <td>
+                    ` + inputIdHidden  + `
+                    <input type="number" name="course_detail[` + itemIndex + `][quota]" id="quota" class="form-control">
+                </td>
+                <td style="text-align: center;">
+                    <a href="javascript:void(0);" id="remove_item_` + itemIndex + `">
+                        {$deleteIcon}
+                    </a>
+                </td>`;
+            tableBody.appendChild(newRow);
+            const quotaInput = newRow.querySelector('input[name="course_detail[' + itemIndex + '][quota]"]');
+            quotaInput.addEventListener('input', function() {
+                updateTotalQuota();
+            });
+
+            if (itemQuota != null) {
+                quotaInput.value = itemQuota;
+                quotaInput.dispatchEvent(new Event('input'));
+            }
+
+            const deleteButton = newRow.querySelector('a[id="remove_item_' + itemIndex + '"]');
+            deleteButton.addEventListener('click', function() {
+                tableBody.removeChild(newRow);
+                updateTotalQuota();
+            });
+
+            const typeCourseSelectElement = newRow.querySelector('select[name="course_detail[' + itemIndex + '][type]"]');
+            typeCourseSelectElement.addEventListener('change', function() {
+                const selectedType = this.value;
+                const selfIndex = this.dataset.index;
+                const courseSelectElement = newRow.querySelector('select[name="course_detail[' + selfIndex + '][course]"]');
+
+                $(courseSelectElement).empty();
+                $(courseSelectElement).append(new Option('Seleccione un curso', '0'));
+                if (courses[selectedType]) {
+                    for (const [value, text] of Object.entries(courses[selectedType])) {
+                        $(courseSelectElement).append(new Option(text, value));
+                    }
+                }
+                $(courseSelectElement).selectpicker('refresh');
+            });
+
+            $(typeCourseSelectElement).selectpicker({
+                width: '285px'
+            });
+
+            if (itemType != null) {
+                typeCourseSelectElement.value = itemType;
+                typeCourseSelectElement.dispatchEvent(new Event('change'));
+            }
+
+            const courseSelectElement = newRow.querySelector('select[name="course_detail[' + itemIndex + '][course]"]');
+            $(courseSelectElement).selectpicker({
+                liveSearch: true,
+                width: '200px',
+            });
+
+            if (itemCourse != null) {
+                courseSelectElement.value = itemCourse;
+                courseSelectElement.dispatchEvent(new Event('change'));
+            }
+        }
+
+        function updateTotalQuota() {
+            const quotaInputs = document.querySelectorAll('input[name^="course_detail["][name$="[quota]"]');
+            let totalQuota = 0;
+            quotaInputs.forEach(input => {
+                const quotaValue = parseInt(input.value) || 0;
+                totalQuota += quotaValue;
+            });
+            document.getElementById('total_quota').value = totalQuota;
+
+            if (totalQuota > 0) {
+                document.querySelector('tfoot').style.display = 'table-row-group';
+            } else {
+                document.querySelector('tfoot').style.display = 'none';
+            }
+        }
+
+        document.getElementById('add_course_session').addEventListener('click', function() {
+            addNewRow();
+            index++;
+        });
+
+        // Add initial row if needed
+        let defaultCourseDetail = JSON.parse('{$defaultCourseDetail}');
+        if (Object.keys(defaultCourseDetail)?.length > 0) {
+            for (const [key, value] of Object.entries(defaultCourseDetail)) {
+                addNewRow(parseInt(key), value.type, value.course, value.quota, value.id);
+            }
+        }
+
+        if (Object.keys(defaultCourseDetail)?.length === 0) {
+            // attach event
+            document.getElementById('add_course_session')
+                .dispatchEvent(new Event('click'));
+        }
+    </script>
+EOT
+        );
+
+        return $courseDetailHasError;
     }
 }

@@ -97,3 +97,6 @@ $strings['Validity'] = 'Vigencia';
 $strings['ValidityRequired'] = 'La vigencia es requerida';
 $strings['CoursesConfigurationRequired'] = 'La configuración de los cursos es requerida';
 $strings['CoursesConfigurationPleaseCompleteAllFields'] = 'Por favor completa todos los campos';
+$strings['ContratingCompanyValidityDate'] = 'Vigencia';
+$strings['EditContratingCompanyDetailsQuota'] = 'Editar configuración de cupos';
+$strings['ContratingCompanyDetailsQuotaUpdated'] = 'La configuración de cupos fue actualizada';
