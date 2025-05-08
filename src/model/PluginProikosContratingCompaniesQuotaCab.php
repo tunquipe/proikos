@@ -56,7 +56,7 @@ class PluginProikosContratingCompaniesQuotaCab
                         [],
                         ICON_SIZE_SMALL
                     ),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_detail_management.php?action=delete&id=' . $row['cab_id'] . '&item_id=' . $row['id'],
+                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?action=delete&id=' . $row['cab_id'] . '&item_id=' . $row['id'],
                     [
                         'onclick' => 'javascript:if(!confirm(' . "'" .
                             addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))

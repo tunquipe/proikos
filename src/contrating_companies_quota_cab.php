@@ -13,7 +13,7 @@ if (!$allow) {
 $id = $_GET['id'];
 if (isset($_GET['action']) && $_GET['action'] === 'delete') {
     $plugin->contratingCompaniesQuotaCabModel()->delete($_GET['item_id']);
-    $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_detail_management.php?id=' . $id;
+    $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?id=' . $id;
     header('Location: ' . $url);
 }
 
@@ -25,7 +25,7 @@ $message = '';
 $actionLinks = '';
 $actionLinks .= Display::url(
     Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
-    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_management.php'
+    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php'
 );
 
 $empresa = $plugin->contratingCompaniesModel()->getData($id);
@@ -322,7 +322,7 @@ if ($form->validate() && $courseDetailHasError === false) {
         'success'
     );
 
-    $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_detail_management.php?id=' . $id;
+    $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?id=' . $id;
     header('Location: ' . $url);
 }
 

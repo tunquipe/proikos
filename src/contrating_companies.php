@@ -26,7 +26,7 @@ if ($isAdmin) {
     );
     $actionLinks .= Display::url(
         Display::return_icon('new_class.png', get_lang('Add'), [], ICON_SIZE_MEDIUM),
-        api_get_path(WEB_PLUGIN_PATH).'proikos/src/contrating_company_management.php?action=create'
+        api_get_path(WEB_PLUGIN_PATH).'proikos/src/contrating_companies.php?action=create'
     );
 
     if ($action === 'delete') {
@@ -50,7 +50,7 @@ if ($isAdmin) {
         case 'create':
             $actionLinks = Display::url(
                 Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
-                api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_management.php'
+                api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php'
             );
             $form = new FormValidator(
                 'add_contrating_company',
@@ -79,7 +79,7 @@ if ($isAdmin) {
                     );
                 } else {
                     $res = $plugin->contratingCompaniesModel()->save($values);
-                    $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_management.php';
+                    $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php';
                     header('Location: ' . $url);
                 }
             }
@@ -88,7 +88,7 @@ if ($isAdmin) {
         case 'edit':
             $actionLinks = Display::url(
                 Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
-                api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_management.php'
+                api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php'
             );
             $idContratingCompany = $_GET['id'] ?? null;
             $contratingCompany = $plugin->contratingCompaniesModel()->getData($idContratingCompany);
@@ -136,7 +136,7 @@ if ($isAdmin) {
                     $res = $plugin->contratingCompaniesModel()->update($values);
 
                     if ($res) {
-                        $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_company_management.php';
+                        $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php';
                         header('Location: ' . $url);
                     }
                 }

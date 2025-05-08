@@ -30,7 +30,7 @@
     </div>
     <div class="col-md-3">
         <div class="tool-box">
-            <a href="{{ src_plugin }}src/contrating_company_management.php" class="tool">
+            <a href="{{ src_plugin }}src/contrating_companies.php" class="tool">
                 <img src="{{ src_plugin }}/images/contract_proikos.png" alt="">
                 <div class="tool-title">Empresas Contratistas</div>
             </a>
