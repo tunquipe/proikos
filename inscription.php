@@ -64,7 +64,6 @@ if($action == 'second'){
                 '1' => 'DNI',
                 '2' => 'Carnet de Extranjeria',
                 '3' => 'Pasaporte',
-                '4' => 'RUC',
                 '5' => 'Otros',
             ];
             $form->addHtml('<div class="row"><div class="col-md-6">');
@@ -120,12 +119,8 @@ if($action == 'second'){
             $form->addHtml('<div id="option-builder">');
 
             $contratingCompanies = $plugin->contratingCompaniesModel()->getData(null, true);
-            $contratingCompaniesSelect = $form->addSelect('contrating_companies', $plugin->get_lang('Company'), $contratingCompanies);
+            $contratingCompaniesSelect = $form->addSelect('contrating_companies', $plugin->get_lang('Company_RUC'), $contratingCompanies);
             $form->setRequired($contratingCompaniesSelect);
-
-            $form->addHtml('<div class="row"><div class="col-md-12">');
-            $form->addText('contact_manager', $plugin->get_lang('ContactManager'),false, ['value' => '-']);
-            $form->addHtml('</div></div>');
             // end contratistas
 
             $form->addHtml('<div id="options-column">');
@@ -136,7 +131,7 @@ if($action == 'second'){
             $positionInput = $form->addSelect('position_company', $plugin->get_lang('Position'), $position);
             $form->setRequired($positionInput);
             $area = $plugin->getPetroArea();
-            $areaSelect = $form->addSelect('area', $plugin->get_lang('Area'), $area);
+            $areaSelect = $form->addSelect('area', $plugin->get_lang('Sede'), $area);
             $form->setRequired($areaSelect);
             $form->addHtml('</div>');
             $form->addHtml(($SpecificCourseFeature->upload_buttons_ui)());
@@ -149,7 +144,45 @@ if($action == 'second'){
             //$form->setRequired($headquartersSelect);
             $form->addHtml('</div></div>');
             $form->addHidden('code_reference', $entitySelect);
-            $form->addButton('register', $plugin->get_lang('RegisterUser'), null, 'primary', 'btn-block');
+
+            $termsAndConditionsAccepted = isset($_POST) && $_POST['check_terms_and_conditions'] == 1;
+            $form->addHtml('<div class="form-check terms_conditions_container">
+                  <input name="check_terms_and_conditions" class="form-check-input" type="checkbox" value="1" id="check_terms_and_conditions" ' . ($termsAndConditionsAccepted ? 'checked' : '') . '>
+                  <label class="form-check-label" for="check_terms_and_conditions">
+                    <a href="' . api_get_path(WEB_PLUGIN_PATH) . 'proikos/files/proikos_terminos_y_condiciones.pdf" target="_blank" id="link_term_and_conditions">
+                        ' . $plugin->get_lang('TermsAndConditions') . '
+                    </a>
+                  </label>
+                </div>
+                <script>
+                    // Check if the checkbox is checked to enable or disable the button with name "register"
+                    document.getElementById("check_terms_and_conditions").addEventListener("change", function() {
+                        let registerButton = document.querySelector("button[name=\'register\']");
+                        if (this.checked) {
+                            registerButton.removeAttribute("disabled");
+                        } else {
+                            registerButton.setAttribute("disabled", "disabled");
+                        }
+                    });
+
+                    document.getElementById("link_term_and_conditions").addEventListener("click", function() {
+                        // attach event click to check_terms_and_conditions
+                        let checkbox = document.getElementById("check_terms_and_conditions");
+                        if (!checkbox.checked) {
+                            checkbox.click();
+                        }
+                    });
+                </script>
+                ');
+
+            $buttonAttr = [];
+            if (!$termsAndConditionsAccepted) {
+                $buttonAttr = [
+                    'disabled' => 'disabled'
+                ];
+            }
+
+            $form->addButton('register', $plugin->get_lang('RegisterUser'), null, 'primary', 'btn-block', null, $buttonAttr);
             $form->addHtml('<div class="form-group row-back"><a href="'.api_get_self().'" class="btn btn-success btn-block">Regresar</a></div>');
             $form->applyFilter('__ALL__', 'Security::remove_XSS');
 
@@ -242,7 +275,7 @@ if($action == 'second'){
 
                 $recipient_name = api_get_person_name($values['firstname'], $values['lastname']);
 
-                header('Location: '.api_get_path(WEB_PATH).'user_portal.php');
+                header('Location: '.api_get_path(WEB_PATH).'main/auth/courses.php');
                 exit;
             }
             // Custom pages
