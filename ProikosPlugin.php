@@ -230,7 +230,7 @@ class ProikosPlugin extends Plugin
         $sql = "CREATE TABLE IF NOT EXISTS " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET . " (
           id INT PRIMARY KEY AUTO_INCREMENT,
           cab_id INT,
-          type_course_id INT NOT NULL,
+          type_course_id VARCHAR(50) NOT NULL,
           course_id INT NOT NULL,
           user_quota INT NOT NULL,
           created_user_id INT NOT NULL,
@@ -2560,20 +2560,33 @@ EOT
 
     public function getCRUDQuotaDet(FormValidator $form, $defaultCourseDetail = [])
     {
+        $asincrono = 'ASINCRONO';
+        $sincrono = 'SINCRONO';
+        $asyncCourses = CourseCategory::getCoursesInCategory($asincrono, '', false, false);
+        $syncCourses = CourseCategory::getCoursesInCategory($sincrono, '', false, false);
+
+        $asyncCoursesList = [];
+        if (!empty($asyncCourses)) {
+            foreach ($asyncCourses as $course) {
+                $asyncCoursesList[$course['id']] = $course['title'];
+            }
+        }
+
+        $syncCoursesList = [];
+        if (!empty($syncCourses)) {
+            foreach ($syncCourses as $course) {
+                $syncCoursesList[$course['id']] = $course['title'];
+            }
+        }
+
         $typeCourse = json_encode([
             '0' => 'Seleccione un tipo de curso',
-            '1' => 'Asíncrono',
-            '2' => 'Síncrono'
+            $asincrono => 'Asíncrono',
+            $sincrono => 'Síncrono'
         ]);
         $coursesByType = json_encode([
-            '1' => [
-                '1' => 'Curso 1',
-                '2' => 'Curso 2',
-            ],
-            '2' => [
-                '3' => 'Curso 3',
-                '4' => 'Curso 4',
-            ]
+            $asincrono => $asyncCoursesList,
+            $sincrono => $syncCoursesList
         ]);
         $deleteIcon = Display::return_icon(
             'delete.png',
