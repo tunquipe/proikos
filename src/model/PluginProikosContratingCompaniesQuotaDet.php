@@ -67,20 +67,18 @@ class PluginProikosContratingCompaniesQuotaDet
 
     public function delete($items)
     {
-        if (empty($items)) {
+        if (empty($items) || !is_array($items)) {
             return false;
         }
 
-        $table = \Database::get_main_table($this->table);
-        $result = \Database::delete(
-            $table,
-            ['id IN (?)' => $items]
-        );
-
-        if ($result) {
-            return true;
+        foreach ($items as $item) {
+            $table = \Database::get_main_table($this->table);
+            \Database::delete(
+                $table,
+                ['id = ?' => $item]
+            );
         }
 
-        return false;
+        return true;
     }
 }
