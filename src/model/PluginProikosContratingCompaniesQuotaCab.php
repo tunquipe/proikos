@@ -3,10 +3,12 @@
 class PluginProikosContratingCompaniesQuotaCab
 {
     private $table;
+    private $contratingCompaniesQuotaDet;
 
-    public function __construct($table)
+    public function __construct($table, $contratingCompaniesQuotaDet)
     {
         $this->table = $table;
+        $this->contratingCompaniesQuotaDet = $contratingCompaniesQuotaDet;
     }
 
     public function save($values)
@@ -16,11 +18,7 @@ class PluginProikosContratingCompaniesQuotaCab
         }
 
         $table = \Database::get_main_table($this->table);
-        $params = [
-            'contrating_company_id' => $values['cab_id'],
-            'created_user_id' => $values['user_id']
-        ];
-        $id = \Database::insert($table, $params);
+        $id = \Database::insert($table, $values);
 
         if ($id > 0) {
             return $id;
@@ -39,6 +37,7 @@ class PluginProikosContratingCompaniesQuotaCab
         $sql = "SELECT
             a.id,
             a.contrating_company_id,
+            (SELECT SUM(user_quota) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) AS total_user_quota,
             DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
             CONCAT(b.lastname, ' ', b.firstname) AS user_name
             FROM $table a
@@ -48,15 +47,26 @@ class PluginProikosContratingCompaniesQuotaCab
         $items = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
-                // delete action
+
+                // edit action
                 $action = Display::url(
+                    Display::return_icon(
+                        'edit.png',
+                        null,
+                        [],
+                        ICON_SIZE_SMALL),
+                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $id . '&action=edit&quota_cab_id=' . $row['id']
+                );
+
+                // delete action
+                $action .= Display::url(
                     Display::return_icon(
                         'delete.png',
                         get_lang('Delete'),
                         [],
                         ICON_SIZE_SMALL
                     ),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?action=delete&id=' . $row['cab_id'] . '&item_id=' . $row['id'],
+                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $id . '&action=delete&quota_cab_id=' . $row['id'],
                     [
                         'onclick' => 'javascript:if(!confirm(' . "'" .
                             addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
@@ -80,6 +90,11 @@ class PluginProikosContratingCompaniesQuotaCab
         );
 
         if ($result) {
+            Database::delete(
+                $this->contratingCompaniesQuotaDet,
+                ['cab_id = ?' => $id]
+            );
+
             return true;
         }
 

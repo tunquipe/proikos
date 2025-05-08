@@ -10,14 +10,14 @@ if (!$allow) {
     api_not_allowed(true);
 }
 
-$id = $_GET['id'];
+$companyId = $_GET['company_id'];
 if (isset($_GET['action']) && $_GET['action'] === 'delete') {
-    $plugin->contratingCompaniesQuotaCabModel()->delete($_GET['item_id']);
-    $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?id=' . $id;
+    $plugin->contratingCompaniesQuotaCabModel()->delete($_GET['quota_cab_id']);
+    $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $companyId;
     header('Location: ' . $url);
 }
 
-if (empty($id)) {
+if (empty($companyId)) {
     api_not_allowed(true);
 }
 
@@ -28,10 +28,10 @@ $actionLinks .= Display::url(
     api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php'
 );
 
-$empresa = $plugin->contratingCompaniesModel()->getData($id);
+$empresa = $plugin->contratingCompaniesModel()->getData($companyId);
 $tool_name = 'Gestionar detalles de la empresa';
 $tpl = new Template($tool_name);
-$items = $plugin->contratingCompaniesQuotaCabModel()->getData($id);
+$items = $plugin->contratingCompaniesQuotaCabModel()->getData($companyId);
 
 // ------------------------
 // Form
@@ -39,7 +39,7 @@ $items = $plugin->contratingCompaniesQuotaCabModel()->getData($id);
 $form = new FormValidator(
     'add_contrating_company_details',
     'post',
-    api_get_self() . '?id=' . Security::remove_XSS($_GET['id'])
+    api_get_self() . '?company_id=' . Security::remove_XSS($_GET['company_id'])
 );
 $form->addHeader($plugin->get_lang('AddContratingCompanyDetailsQuota'));
 $form->addText('company_name', $plugin->get_lang('CompanyRuc'), false, [
@@ -92,6 +92,7 @@ if ($form->isSubmitted()) {
     $defaultCourseDetail = $formValues['course_detail'] ?? [];
 
     if (empty($defaultCourseDetail)) {
+        $courseDetailHasError = true;
         $courseDetailHasErrorClass = 'has-error';
         $courseDetailErrorMessage = $plugin->get_lang('CoursesConfigurationRequired');
     } else {
@@ -288,6 +289,12 @@ $form->addHtml(
                 addNewRow(parseInt(key), value.type, value.course, value.quota);
             }
         }
+
+        if (Object.keys(defaultCourseDetail)?.length === 0) {
+            // attach event
+            document.getElementById('add_course_session')
+                .dispatchEvent(new Event('click'));
+        }
     </script>
 EOT
 );
@@ -300,21 +307,23 @@ if ($form->validate() && $courseDetailHasError === false) {
 
     // Save cab
     $params = [
-        'contrating_company_id' => $id,
+        'contrating_company_id' => $companyId,
         'created_user_id' => api_get_user_id()
     ];
-    $plugin->contratingCompaniesQuotaCabModel()->save($params);
+    $cabId = $plugin->contratingCompaniesQuotaCabModel()->save($params);
 
-    // save det
-    foreach ($values['course_detail'] as $key => $value) {
-        $params = [
-            'cab_id' => $id,
-            'type_course_id' => $value['type'],
-            'course_id' => $value['course'],
-            'user_quota' => $value['quota'],
-            'created_user_id' => api_get_user_id(),
-        ];
-        $plugin->contratingCompaniesQuotaDetModel()->save($params);
+    if (false !== $cabId) {
+        // save det
+        foreach ($values['course_detail'] as $key => $value) {
+            $params = [
+                'cab_id' => $cabId,
+                'type_course_id' => $value['type'],
+                'course_id' => $value['course'],
+                'user_quota' => $value['quota'],
+                'created_user_id' => api_get_user_id(),
+            ];
+            $plugin->contratingCompaniesQuotaDetModel()->save($params);
+        }
     }
 
     $message = Display::return_message(
@@ -322,7 +331,7 @@ if ($form->validate() && $courseDetailHasError === false) {
         'success'
     );
 
-    $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?id=' . $id;
+    $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $companyId;
     header('Location: ' . $url);
 }
 
@@ -338,6 +347,6 @@ $tpl->assign(
 );
 $tpl->assign('message', $message);
 $tpl->assign('items', $items);
-$content = $tpl->fetch('proikos/view/proikos_contrating_company_detail.tpl');
+$content = $tpl->fetch('proikos/view/proikos_contrating_companies_quota_cab.tpl');
 $tpl->assign('content', $content);
 $tpl->display_one_col_template();

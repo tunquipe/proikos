@@ -2543,7 +2543,8 @@ EOT
         require_once __DIR__ . '/src/model/PluginProikosContratingCompaniesQuotaCab.php';
 
         return (new PluginProikosContratingCompaniesQuotaCab(
-            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB,
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET
         ));
     }
 

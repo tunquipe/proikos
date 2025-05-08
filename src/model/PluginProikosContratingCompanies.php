@@ -94,7 +94,7 @@ class PluginProikosContratingCompanies
                         null,
                         [],
                         ICON_SIZE_SMALL),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?id=' . $row['id']
+                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $row['id']
                 );
 
                 $list[] = [

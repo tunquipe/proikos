@@ -156,6 +156,6 @@ if ($isAdmin) {
 
 $tpl->assign('message', $message);
 $tpl->assign('contrating_companies', $contratingCompanies);
-$content = $tpl->fetch('proikos/view/proikos_contrating_company.tpl');
+$content = $tpl->fetch('proikos/view/proikos_contrating_companies.tpl');
 $tpl->assign('content', $content);
 $tpl->display_one_col_template();
