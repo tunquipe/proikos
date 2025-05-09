@@ -493,7 +493,8 @@ class ProikosPlugin extends Plugin
             'area' => $nameArea,
             'department' => $nameManagement,
             'headquarters' => $nameHeadquarters,
-            'code_reference' => $values['code_reference']
+            'code_reference' => $values['code_reference'],
+            'terms_conditions' => 1
         ];
         $id = Database::insert($table, $params);
         if ($id > 0) {
