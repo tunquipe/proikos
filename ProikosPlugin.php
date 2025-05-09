@@ -28,6 +28,8 @@ class ProikosPlugin extends Plugin
     const TABLE_PROIKOS_CONTRATING_COMPANIES = 'plugin_proikos_contrating_companies';
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB = 'plugin_proikos_contrating_companies_quota_cab';
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET = 'plugin_proikos_contrating_companies_quota_det';
+    const CATEGORY_ASINCRONO = 'ASINCRONO';
+    const CATEGORY_SINCRONO = 'SINCRONO';
     const EVENT_ADD_QUOTA = 'add_quota';
     const EVENT_USER_SUBSCRIPTION_TO_COURSE = 'user_subscription_to_course';
 
@@ -283,7 +285,8 @@ class ProikosPlugin extends Plugin
                     'area' => $row['area'],
                     'department' => $row['department'],
                     'headquarters' => $row['headquarters'],
-                    'code_reference' => $row['code_reference']
+                    'code_reference' => $row['code_reference'],
+                    'ruc_company' => $row['ruc_company']
                 ];
             }
         }
@@ -2560,8 +2563,8 @@ EOT
 
     public function getCRUDQuotaDet(FormValidator $form, $defaultCourseDetail = [])
     {
-        $asincrono = 'ASINCRONO';
-        $sincrono = 'SINCRONO';
+        $asincrono = self::CATEGORY_ASINCRONO;
+        $sincrono = self::CATEGORY_SINCRONO;
         $asyncCourses = CourseCategory::getCoursesInCategory($asincrono, '', false, false);
         $syncCourses = CourseCategory::getCoursesInCategory($sincrono, '', false, false);
 
@@ -2610,7 +2613,7 @@ EOT
                 $courseDetailErrorMessage = $this->get_lang('CoursesConfigurationRequired');
             } else {
                 foreach ($defaultCourseDetail as $key => $value) {
-                    if (empty($value['type']) || empty($value['course']) || empty($value['quota'])) {
+                    if (empty($value['type']) || empty($value['course']) || (empty($value['quota']) && $value['quota'] != 0) || $value['quota'] < 0) {
                         $courseDetailHasError = true;
                     }
                 }
@@ -2820,5 +2823,84 @@ EOT
         );
 
         return $courseDetailHasError;
+    }
+
+    public function getUserQuotaBySessionId($sessionId)
+    {
+        $proikosUser = $this->getInfoUserProikos(api_get_user_id());
+        if (empty($proikosUser)) {
+            return [
+                'success' => false,
+                'message' => 'El usuario no tiene una empresa contratante asociada'
+            ];
+        }
+
+        $coursesList = SessionManager::get_course_list_by_session_id($sessionId);
+        $firstCourse = [];
+        foreach ($coursesList as $course) {
+            $firstCourse = $course;
+            break;
+        }
+
+        if (empty($firstCourse)) {
+            return [
+                'success' => false,
+                'message' => 'No se encontraron cursos asociados a la sesión'
+            ];
+        }
+
+        $courseCode = $firstCourse['course_code'];
+        $courseInfo = api_get_course_info($courseCode);
+        $currentDate = date('Y-m-d');
+        $sql = "SELECT c.id, a.ruc, c.type_course_id, c.course_id, c.user_quota, DATE_FORMAT(b.validity_date, '%Y-%m-%d') AS formatted_input_validity_date
+        FROM " . self::TABLE_PROIKOS_CONTRATING_COMPANIES . " a
+        INNER JOIN " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB . " b ON a.id = b.contrating_company_id
+        INNER JOIN " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET . " c ON b.id = c.cab_id
+        WHERE a.ruc = '{$proikosUser['ruc_company']}'
+          AND c.type_course_id = '{$courseInfo['categoryCode']}'
+          AND c.course_id = {$courseInfo['real_id']}
+          AND c.user_quota > 0
+          AND a.status = 1
+          AND b.validity_date < '{$currentDate}'
+        LIMIT 1";
+
+        $result = Database::query($sql);
+
+        $detId = '';
+        $userQuota = 0;
+        $validityDate = '';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $detId = $row['id'];
+                $userQuota = $row['user_quota'];
+                $validityDate = $row['validity_date'];
+            }
+        }
+
+        if (empty($detId) || empty($userQuota) || $userQuota <= 0) {
+            return [
+                'success' => false,
+                'message' => 'No se encontró un cupo disponible para el usuario'
+            ];
+        }
+
+        if ($validityDate === '0000-00-00') {
+            return [
+                'success' => false,
+                'message' => 'El cupo no tiene una fecha de validez asignada'
+            ];
+        }
+
+        return [
+            'success' => true,
+            'det_id' => $detId,
+            'user_quota' => $userQuota
+        ];
+    }
+
+    public function useQuota($detId)
+    {
+        $sql = "UPDATE " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET . " SET user_quota = user_quota - 1 WHERE id = $detId AND user_quota > 0";
+        Database::query($sql);
     }
 }
