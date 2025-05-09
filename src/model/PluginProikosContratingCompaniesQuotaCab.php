@@ -167,8 +167,7 @@ class PluginProikosContratingCompaniesQuotaCab
         $table = Database::get_main_table($this->contratingCompaniesQuotaDet);
         $sql = "SELECT
             a.id,
-            a.type_course_id,
-            a.course_id,
+            a.session_category_id,
             a.user_quota,
             a.price_unit,
             DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
@@ -182,8 +181,7 @@ class PluginProikosContratingCompaniesQuotaCab
             while ($row = Database::fetch_array($result)) {
                 $items[] = [
                     'id' => $row['id'],
-                    'type' => $row['type_course_id'],
-                    'course' => $row['course_id'],
+                    'session_category_id' => $row['session_category_id'],
                     'quota' => $row['user_quota'],
                     'price_unit' => $row['price_unit']
                 ];

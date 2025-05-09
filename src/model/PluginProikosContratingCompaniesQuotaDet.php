@@ -34,12 +34,8 @@ class PluginProikosContratingCompaniesQuotaDet
         $table = \Database::get_main_table($this->table);
         $params = [];
 
-        if (isset($values['type_course_id'])) {
-            $params['type_course_id'] = $values['type_course_id'];
-        }
-
-        if (isset($values['course_id'])) {
-            $params['course_id'] = $values['course_id'];
+        if (isset($values['session_category_id'])) {
+            $params['session_category_id'] = $values['session_category_id'];
         }
 
         if (isset($values['user_quota'])) {

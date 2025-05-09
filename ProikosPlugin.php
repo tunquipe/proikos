@@ -236,8 +236,7 @@ class ProikosPlugin extends Plugin
         $sql = "CREATE TABLE IF NOT EXISTS " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET . " (
           id INT PRIMARY KEY AUTO_INCREMENT,
           cab_id INT,
-          type_course_id VARCHAR(50) NOT NULL,
-          course_id INT NOT NULL,
+          session_category_id INT NOT NULL,
           user_quota INT NOT NULL,
           price_unit DECIMAL(10,2) NULL,
           created_user_id INT NOT NULL,
@@ -2588,15 +2587,17 @@ EOT
             }
         }
 
-        $typeCourse = json_encode([
-            '0' => 'Seleccione un tipo de curso',
-            $asincrono => 'Asíncrono',
-            $sincrono => 'Síncrono'
-        ]);
-        $coursesByType = json_encode([
-            $asincrono => $asyncCoursesList,
-            $sincrono => $syncCoursesList
-        ]);
+        $sessionCategories = [
+            '0' => $this->get_lang('SelectSessionCategory'),
+        ];
+        $allSessionCategory = SessionManager::get_all_session_category();
+        if (!empty($allSessionCategory)) {
+            foreach ($allSessionCategory as $category) {
+                $sessionCategories[$category['id']] = $category['name'];
+            }
+        }
+        $sessionCategories = json_encode($sessionCategories);
+
         $deleteIcon = Display::return_icon(
             'delete.png',
             get_lang('Delete'),
@@ -2619,7 +2620,7 @@ EOT
                 $courseDetailErrorMessage = $this->get_lang('CoursesConfigurationRequired');
             } else {
                 foreach ($defaultCourseDetail as $key => $value) {
-                    if (empty($value['type']) || empty($value['course']) || (empty($value['quota']) && $value['quota'] != 0) || $value['quota'] < 0) {
+                    if (empty($value['session_category_id']) || (empty($value['quota']) && $value['quota'] != 0) || $value['quota'] < 0) {
                         $courseDetailHasError = true;
                     }
                 }
@@ -2657,8 +2658,7 @@ EOT
                 <table class="table table-striped" style="margin-bottom: 0px;">
                     <thead>
                         <tr>
-                            <th>{$this->get_lang('TypeCourse')}</th>
-                            <th style="width: 200px;">{$this->get_lang('Course')}</th>
+                            <th>{$this->get_lang('SessionCategory')}</th>
                             <th class="text-center">{$this->get_lang('PriceUnitAbr')}</th>
                             <th class="text-center">{$this->get_lang('ContratingCompanyUserQuota')}</th>
                             <th style="text-align: center;">
@@ -2672,7 +2672,6 @@ EOT
                     </tbody>
                     <tfoot style="display: none;">
                         <tr>
-                            <td></td>
                             <td colspan="2" style="text-align: right;">
                                 <label for="total_quota" class="control-label">
                                     Total Nº Cupos
@@ -2682,9 +2681,9 @@ EOT
                                 <input type="number" name="total_quota" id="total_quota" readonly class="form-control text-right">
                             </td>
                             <td></td>
+                            <td></td>
                         </tr>
                         <tr>
-                            <td></td>
                             <td colspan="2" style="text-align: right;">
                                 <label for="total_quota" class="control-label">
                                     {$this->get_lang('ContratingCompanyUserQuotaTotalPrice')}
@@ -2693,6 +2692,7 @@ EOT
                             <td>
                                  <input type="text" name="total_price" id="total_price" readonly class="form-control text-right">
                             </td>
+                            <td></td>
                             <td></td>
                         </tr>
                     </tfoot>
@@ -2704,41 +2704,31 @@ EOT
     </div>
     <script>
         let index = {$defaultIndex};
-        const typeCourse = JSON.parse('{$typeCourse}');
-        const courses = JSON.parse('{$coursesByType}');
+        const sessionCategories = JSON.parse('{$sessionCategories}');
 
-        function addNewRow(itemIndex = null, itemType = null, itemCourse = null, itemQuota = null, id = null, itemPriceUnitQuota = null) {
+        function addNewRow(itemIndex = null, itemType = null, itemQuota = null, id = null, itemPriceUnitQuota = null) {
             const tableBody = document.getElementById('course-detail-container');
             const newRow = document.createElement('tr');
             itemIndex = itemIndex === null ? index : itemIndex;
 
-            // ----- Create the select element for typeCourse -----
-            const typeCourseSelect = document.createElement('select');
-            typeCourseSelect.name = 'course_detail[' + itemIndex + '][type]';
-            typeCourseSelect.id = 'course_type';
-            typeCourseSelect.className = 'form-control';
-            typeCourseSelect.dataset.index = itemIndex;
-            for (const [value, text] of Object.entries(typeCourse)) {
+            // ----- Create the select element for session Category -----
+            const sessionCategoriesSelect = document.createElement('select');
+            sessionCategoriesSelect.name = 'course_detail[' + itemIndex + '][session_category_id]';
+            sessionCategoriesSelect.id = 'session_category_id';
+            sessionCategoriesSelect.className = 'form-control';
+            sessionCategoriesSelect.dataset.index = itemIndex;
+            for (const [value, text] of Object.entries(sessionCategories)) {
                 const option = document.createElement('option');
                 option.value = value;
                 option.textContent = text;
-                typeCourseSelect.appendChild(option);
+                sessionCategoriesSelect.appendChild(option);
             }
 
-            // ----- Create the select element for course -----
-            const courseSelect = document.createElement('select');
-            courseSelect.name = 'course_detail[' + itemIndex + '][course]';
-            courseSelect.id = 'course_session';
-            courseSelect.className = 'form-control';
-            courseSelect.innerHTML = '<option value="0">Seleccione un curso</option>';
             const inputIdHidden = id !== null ? (`<input type="hidden" name="course_detail[` + itemIndex + `][id]" value="` + id + `">`) : ``;
 
             newRow.innerHTML = `
                 <td>
-                    ` + typeCourseSelect.outerHTML + `
-                </td>
-                <td>
-                    ` + courseSelect.outerHTML + `
+                    ` + sessionCategoriesSelect.outerHTML + `
                 </td>
                 <td>
                     ` + inputIdHidden  + `
@@ -2784,40 +2774,15 @@ EOT
                 updateTotalPriceUnitQuota();
             });
 
-            const typeCourseSelectElement = newRow.querySelector('select[name="course_detail[' + itemIndex + '][type]"]');
-            typeCourseSelectElement.addEventListener('change', function() {
-                const selectedType = this.value;
-                const selfIndex = this.dataset.index;
-                const courseSelectElement = newRow.querySelector('select[name="course_detail[' + selfIndex + '][course]"]');
-
-                $(courseSelectElement).empty();
-                $(courseSelectElement).append(new Option('Seleccione un curso', '0'));
-                if (courses[selectedType]) {
-                    for (const [value, text] of Object.entries(courses[selectedType])) {
-                        $(courseSelectElement).append(new Option(text, value));
-                    }
-                }
-                $(courseSelectElement).selectpicker('refresh');
-            });
-
-            $(typeCourseSelectElement).selectpicker({
-                width: '200px'
+            const sessionCategorySelectElement = newRow.querySelector('select[name="course_detail[' + itemIndex + '][session_category_id]"]');
+            $(sessionCategorySelectElement).selectpicker({
+                width: '300px',
+                liveSearch: true
             });
 
             if (itemType != null) {
-                typeCourseSelectElement.value = itemType;
-                typeCourseSelectElement.dispatchEvent(new Event('change'));
-            }
-
-            const courseSelectElement = newRow.querySelector('select[name="course_detail[' + itemIndex + '][course]"]');
-            $(courseSelectElement).selectpicker({
-                liveSearch: true,
-                width: '285px',
-            });
-
-            if (itemCourse != null) {
-                courseSelectElement.value = itemCourse;
-                courseSelectElement.dispatchEvent(new Event('change'));
+                sessionCategorySelectElement.value = itemType;
+                sessionCategorySelectElement.dispatchEvent(new Event('change'));
             }
         }
 
@@ -2879,7 +2844,7 @@ EOT
         let defaultCourseDetail = JSON.parse('{$defaultCourseDetail}');
         if (Object.keys(defaultCourseDetail)?.length > 0) {
             for (const [key, value] of Object.entries(defaultCourseDetail)) {
-                addNewRow(parseInt(key), value.type, value.course, value.quota, value.id, value.price_unit);
+                addNewRow(parseInt(key), value.session_category_id, value.quota, value.id, value.price_unit);
             }
         }
 

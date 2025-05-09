@@ -80,8 +80,7 @@ if ($form->validate() && $courseDetailHasError === false) {
         foreach ($values['course_detail'] as $key => $value) {
             $params = [
                 'cab_id' => $cabId,
-                'type_course_id' => $value['type'],
-                'course_id' => $value['course'],
+                'session_category_id' => $value['session_category_id'],
                 'user_quota' => $value['quota'],
                 'price_unit' => $value['price_unit'] ?? 0,
                 'created_user_id' => api_get_user_id(),
