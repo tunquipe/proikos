@@ -66,6 +66,7 @@ class PluginProikosContratingCompaniesQuotaCab
             a.id,
             a.contrating_company_id,
             (SELECT SUM(user_quota) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) AS total_user_quota,
+            (SELECT CONCAT('S/ ', FORMAT(SUM(price_unit * user_quota), 2)) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) AS total_price_unit_quota,
             DATE_FORMAT(a.validity_date, '%Y-%m-%d') AS formatted_input_validity_date,
             DATE_FORMAT(a.validity_date, '%d-%m-%Y') AS formatted_validity_date,
             DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,

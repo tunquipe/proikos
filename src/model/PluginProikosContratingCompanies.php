@@ -40,7 +40,8 @@ class PluginProikosContratingCompanies
         $table = Database::get_main_table($this->table);
         $sql = "SELECT
                 a.*,
-                SUM(c.user_quota) AS total_user_quota
+                SUM(c.user_quota) AS total_user_quota,
+                CONCAT('S/ ', FORMAT(SUM(c.price_unit * c.user_quota), 2)) AS total_price_unit_quota
             FROM
                 $table a
             LEFT JOIN
@@ -103,6 +104,7 @@ class PluginProikosContratingCompanies
                     'ruc' => $row['ruc'],
                     'admin_name' => $row['admin_name'],
                     'total_user_quota' => $row['total_user_quota'],
+                    'total_price_unit_quota' => $row['total_price_unit_quota'],
                     'status' => $row['status'],
                     'actions' => $action
                 ];

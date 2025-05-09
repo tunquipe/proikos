@@ -104,4 +104,4 @@ $strings['Company_RUC'] = 'Empresa / RUC';
 $strings['Sede'] = 'Sede';
 $strings['TermsAndConditions'] = 'Términos y condiciones';
 $strings['PriceUnitAbr'] = 'P.U.';
-$strings['ContratingCompanyUserQuotaTotalPrice'] = 'Total a pagar';
+$strings['ContratingCompanyUserQuotaTotalPrice'] = 'Precio Total';

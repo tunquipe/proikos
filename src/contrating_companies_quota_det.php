@@ -48,14 +48,14 @@ $form->addText('company_admin_name', $plugin->get_lang('ContratingAdminName'), f
     'value' => $empresa['admin_name'],
     'disabled' => 'disabled'
 ]);
-$form->addText('company_total_user_quota', $plugin->get_lang('CompanyTotalUserQuota'), false, [
-    'value' => $empresa['total_user_quota'],
-    'disabled' => 'disabled'
-]);
 
 $form->addHeader($plugin->get_lang('EditContratingCompanyDetailsQuota'));
 $form->addText('cab_total_user_quota', $plugin->get_lang('ContratingCompanyUserQuota'), false, [
     'value' => $cabecera['total_user_quota'],
+    'disabled' => 'disabled'
+]);
+$form->addText('cab_total_price_unit_quota', $plugin->get_lang('ContratingCompanyUserQuotaTotalPrice'), false, [
+    'value' => $cabecera['total_price_unit_quota'],
     'disabled' => 'disabled'
 ]);
 $form->addText('cab_created_at', $plugin->get_lang('ContratingCompanyCreationDate'), false, [
