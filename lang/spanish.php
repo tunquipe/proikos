@@ -103,3 +103,5 @@ $strings['ContratingCompanyDetailsQuotaUpdated'] = 'La configuración de cupos f
 $strings['Company_RUC'] = 'Empresa / RUC';
 $strings['Sede'] = 'Sede';
 $strings['TermsAndConditions'] = 'Términos y condiciones';
+$strings['PriceUnitAbr'] = 'P.U.';
+$strings['ContratingCompanyUserQuotaTotalPrice'] = 'Total a pagar';

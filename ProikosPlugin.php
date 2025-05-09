@@ -235,6 +235,7 @@ class ProikosPlugin extends Plugin
           type_course_id VARCHAR(50) NOT NULL,
           course_id INT NOT NULL,
           user_quota INT NOT NULL,
+          price_unit DECIMAL(10,2) NULL,
           created_user_id INT NOT NULL,
           updated_user_id INT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -2654,7 +2655,8 @@ EOT
                         <tr>
                             <th>{$this->get_lang('TypeCourse')}</th>
                             <th style="width: 200px;">{$this->get_lang('Course')}</th>
-                            <th>{$this->get_lang('ContratingCompanyUserQuota')}</th>
+                            <th class="text-center">{$this->get_lang('PriceUnitAbr')}</th>
+                            <th class="text-center">{$this->get_lang('ContratingCompanyUserQuota')}</th>
                             <th style="text-align: center;">
                                 <button type="button" class="btn btn-primary" id="add_course_session">
                                     <i class="fa fa-plus"></i>
@@ -2667,13 +2669,25 @@ EOT
                     <tfoot style="display: none;">
                         <tr>
                             <td></td>
-                            <td style="text-align: right;">
+                            <td colspan="2" style="text-align: right;">
                                 <label for="total_quota" class="control-label">
                                     Total Nº Cupos
                                 </label>
                             </td>
                             <td>
-                                <input type="number" name="total_quota" id="total_quota" readonly class="form-control">
+                                <input type="number" name="total_quota" id="total_quota" readonly class="form-control text-right">
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td colspan="2" style="text-align: right;">
+                                <label for="total_quota" class="control-label">
+                                    Total a Pagar
+                                </label>
+                            </td>
+                            <td>
+                                 <input type="text" name="total_price" id="total_price" readonly class="form-control text-right">
                             </td>
                             <td></td>
                         </tr>
@@ -2689,7 +2703,7 @@ EOT
         const typeCourse = JSON.parse('{$typeCourse}');
         const courses = JSON.parse('{$coursesByType}');
 
-        function addNewRow(itemIndex = null, itemType = null, itemCourse = null, itemQuota = null, id = null) {
+        function addNewRow(itemIndex = null, itemType = null, itemCourse = null, itemQuota = null, id = null, itemPriceUnitQuota = null) {
             const tableBody = document.getElementById('course-detail-container');
             const newRow = document.createElement('tr');
             itemIndex = itemIndex === null ? index : itemIndex;
@@ -2724,7 +2738,10 @@ EOT
                 </td>
                 <td>
                     ` + inputIdHidden  + `
-                    <input type="number" name="course_detail[` + itemIndex + `][quota]" id="quota" class="form-control">
+                    <input type="number" name="course_detail[` + itemIndex + `][price_unit]" id="price_unit" class="form-control text-right">
+                </td>
+                <td>
+                    <input type="number" name="course_detail[` + itemIndex + `][quota]" id="quota" class="form-control text-right">
                 </td>
                 <td style="text-align: center;">
                     <a href="javascript:void(0);" id="remove_item_` + itemIndex + `">
@@ -2732,9 +2749,12 @@ EOT
                     </a>
                 </td>`;
             tableBody.appendChild(newRow);
+
+            // N. Quota
             const quotaInput = newRow.querySelector('input[name="course_detail[' + itemIndex + '][quota]"]');
             quotaInput.addEventListener('input', function() {
                 updateTotalQuota();
+                updateTotalPriceUnitQuota();
             });
 
             if (itemQuota != null) {
@@ -2742,10 +2762,22 @@ EOT
                 quotaInput.dispatchEvent(new Event('input'));
             }
 
+            // Price Quota
+            const priceUnitQuotaInput = newRow.querySelector('input[name="course_detail[' + itemIndex + '][price_unit]"]');
+            priceUnitQuotaInput.addEventListener('input', function() {
+                updateTotalPriceUnitQuota();
+            });
+
+            if (itemPriceUnitQuota != null) {
+                priceUnitQuotaInput.value = itemPriceUnitQuota;
+                priceUnitQuotaInput.dispatchEvent(new Event('input'));
+            }
+
             const deleteButton = newRow.querySelector('a[id="remove_item_' + itemIndex + '"]');
             deleteButton.addEventListener('click', function() {
                 tableBody.removeChild(newRow);
                 updateTotalQuota();
+                updateTotalPriceUnitQuota();
             });
 
             const typeCourseSelectElement = newRow.querySelector('select[name="course_detail[' + itemIndex + '][type]"]');
@@ -2765,7 +2797,7 @@ EOT
             });
 
             $(typeCourseSelectElement).selectpicker({
-                width: '285px'
+                width: '200px'
             });
 
             if (itemType != null) {
@@ -2776,7 +2808,7 @@ EOT
             const courseSelectElement = newRow.querySelector('select[name="course_detail[' + itemIndex + '][course]"]');
             $(courseSelectElement).selectpicker({
                 liveSearch: true,
-                width: '200px',
+                width: '285px',
             });
 
             if (itemCourse != null) {
@@ -2801,6 +2833,39 @@ EOT
             }
         }
 
+        function updateTotalPriceUnitQuota() {
+            const inputs = document.querySelectorAll('input[name^="course_detail"]');
+            const courseData = {};
+
+            inputs.forEach(input => {
+                const match = input.name.match(/course_detail\[(\d+)]\[(\w+)]/);
+                if (match) {
+                    const index = match[1];
+                    const key = match[2];
+
+                    if (!courseData[index]) {
+                        courseData[index] = {};
+                    }
+
+                    courseData[index][key] = parseFloat(input.value) || 0;
+                }
+            });
+
+            let total = 0;
+            for (const key in courseData) {
+                const price_unit = courseData[key].price_unit || 0;
+                const quota = courseData[key].quota || 0;
+                total += price_unit * quota;
+            }
+
+            const totalFormatted = new Intl.NumberFormat('es-PE', {
+                style: 'currency',
+                currency: 'PEN'
+              }).format(total);
+
+            document.getElementById('total_price').value = totalFormatted;
+        }
+
         document.getElementById('add_course_session').addEventListener('click', function() {
             addNewRow();
             index++;
@@ -2810,7 +2875,7 @@ EOT
         let defaultCourseDetail = JSON.parse('{$defaultCourseDetail}');
         if (Object.keys(defaultCourseDetail)?.length > 0) {
             for (const [key, value] of Object.entries(defaultCourseDetail)) {
-                addNewRow(parseInt(key), value.type, value.course, value.quota, value.id);
+                addNewRow(parseInt(key), value.type, value.course, value.quota, value.id, value.price_unit);
             }
         }
 

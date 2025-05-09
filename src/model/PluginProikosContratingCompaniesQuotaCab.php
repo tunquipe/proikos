@@ -92,6 +92,7 @@ class PluginProikosContratingCompaniesQuotaCab
             a.id,
             a.contrating_company_id,
             (SELECT SUM(user_quota) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) AS total_user_quota,
+            (SELECT CONCAT('S/ ', FORMAT(SUM(price_unit * user_quota), 2)) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) AS total_price_unit_quota,
             DATE_FORMAT(a.validity_date, '%d-%m-%Y') AS formatted_validity_date,
             DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
             CONCAT(b.lastname, ' ', b.firstname) AS user_name
@@ -168,6 +169,7 @@ class PluginProikosContratingCompaniesQuotaCab
             a.type_course_id,
             a.course_id,
             a.user_quota,
+            a.price_unit,
             DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
             CONCAT(b.lastname, ' ', b.firstname) AS user_name
             FROM $table a
@@ -181,7 +183,8 @@ class PluginProikosContratingCompaniesQuotaCab
                     'id' => $row['id'],
                     'type' => $row['type_course_id'],
                     'course' => $row['course_id'],
-                    'quota' => $row['user_quota']
+                    'quota' => $row['user_quota'],
+                    'price_unit' => $row['price_unit']
                 ];
             }
         }

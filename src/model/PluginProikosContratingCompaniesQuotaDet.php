@@ -50,6 +50,10 @@ class PluginProikosContratingCompaniesQuotaDet
             $params['updated_user_id'] = $values['updated_user_id'];
         }
 
+        if (isset($values['price_unit'])) {
+            $params['price_unit'] = $values['price_unit'];
+        }
+
         if (!empty($params)) {
             \Database::update(
                 $table,
