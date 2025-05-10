@@ -87,7 +87,7 @@ if ($form->validate() && $courseDetailHasError === false) {
     // update / save det
     foreach ($values['course_detail'] as $key => $value) {
         // update
-        if (isset($value['id'])) {
+        if (isset($value['id']) && !empty($value['id'])) {
             $itemsToUpdate[] = $value['id'];
             $params = [
                 'id' => $value['id'],

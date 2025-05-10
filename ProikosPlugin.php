@@ -28,6 +28,7 @@ class ProikosPlugin extends Plugin
     const TABLE_PROIKOS_CONTRATING_COMPANIES = 'plugin_proikos_contrating_companies';
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB = 'plugin_proikos_contrating_companies_quota_cab';
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET = 'plugin_proikos_contrating_companies_quota_det';
+    const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION = 'plugin_proikos_contrating_companies_quota_session';
     const CATEGORY_ASINCRONO = 'ASINCRONO';
     const CATEGORY_SINCRONO = 'SINCRONO';
     const CATEGORY_DESC = [
@@ -243,6 +244,14 @@ class ProikosPlugin extends Plugin
           updated_user_id INT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        );";
+        Database::query($sql);
+
+        $sql = "CREATE TABLE IF NOT EXISTS " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION . " (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            det_id INT,
+            session_id INT,
+            user_quota INT NOT NULL
         );";
         Database::query($sql);
 
@@ -2566,6 +2575,15 @@ EOT
         ));
     }
 
+    public function contratingCompaniesQuotaSessionModel()
+    {
+        require_once __DIR__ . '/src/model/PluginProikosContratingCompaniesQuotaSession.php';
+
+        return (new PluginProikosContratingCompaniesQuotaSession(
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION
+        ));
+    }
+
     public function getCRUDQuotaDet(FormValidator $form, $defaultCourseDetail = [])
     {
         $sessionCategories = [
@@ -2823,7 +2841,7 @@ EOT
 
         // Add initial row if needed
         let defaultCourseDetail = JSON.parse('{$defaultCourseDetail}');
-        if (Object.keys(defaultCourseDetail)?.length > 0) {
+        if (defaultCourseDetail && Object.keys(defaultCourseDetail)?.length > 0) {
             for (const [key, value] of Object.entries(defaultCourseDetail)) {
                 addNewRow(parseInt(key), value.session_category_id, value.quota, value.id, value.price_unit);
             }

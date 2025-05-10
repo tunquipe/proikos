@@ -66,26 +66,99 @@ if (empty($activeSessions)) {
     $activeSessions = [];
 }
 
-$sessionsList = json_encode($activeSessions);
+$sessionDistributions = [];
+if (!empty($detalle)) {
+    foreach ($detalle as $det) {
+        $sessionDistributions[$det['id']] = $plugin->contratingCompaniesQuotaSessionModel()->getDistributionByDetId($det['id']);
+    }
+}
+
+$sessionFormValues = [];
+$hasErrors = false;
+$erroMessage = 'Completar correctamente todos los campos';
 
 if ($form->isSubmitted()) {
     $formValues = $form->getSubmitValues();
-    $sessionConfig = $formValues['session'];
+    $sessionFormValues = $formValues['session'];
 
-    if (!empty($sessionConfig)) {
-        foreach ($sessionConfig as $key => $value) {
-            if (empty($value['session_id']) || empty($value['quota'])) {
-                continue;
+    if (!empty($sessionFormValues)) {
+        foreach ($sessionFormValues as $key => $value) {
+            if (empty($value['session_id']) || (empty($value['user_quota']) && $value['user_quota'] != 0) || $value['user_quota'] < 0) {
+                $hasErrors = true;
             }
-
-            // save
         }
     }
 }
 
-foreach ($detalle as $key => $det) {
-    $form->addHtml(<<<EOT
-        <div class="form-group">
+if ($form->validate() && false === $hasErrors) {
+    $sessionFormValues = $form->getSubmitValues();
+    $sessionFormValues = $sessionFormValues['session'];
+
+    $itemsToUpdate = [];
+    foreach ($sessionFormValues as $key => $value) {
+        // update
+        if (isset($value['id']) && !empty($value['id'])) {
+            $itemsToUpdate[] = $value['id'];
+            $plugin->contratingCompaniesQuotaSessionModel()->update([
+                'id' => $value['id'],
+                'session_id' => $value['session_id'],
+                'user_quota' => $value['user_quota']
+            ]);
+        } else {
+            // save
+            $plugin->contratingCompaniesQuotaSessionModel()->save([
+                'det_id' => $value['det_id'],
+                'session_id' => $value['session_id'],
+                'user_quota' => $value['user_quota']
+            ]);
+        }
+    }
+
+    // delete
+    // check details that are not in the $itemsToUpdate array
+    $itemsToDelete = [];
+    foreach ($sessionDistributions as $key => $value) {
+        foreach ($value as $session) {
+            if (!in_array($session['id'], $itemsToUpdate)) {
+                $itemsToDelete[] = $session['id'];
+            }
+        }
+    }
+    $plugin->contratingCompaniesQuotaSessionModel()->delete($itemsToDelete);
+
+    $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_assign_quota_to_session.php?company_id=' . $_GET['company_id'] . '&action=assign_quota_to_session&quota_cab_id=' . $_GET['quota_cab_id'];
+    header('Location: ' . $url);
+}
+
+$sessionsList = json_encode($activeSessions);
+$sessionFormValues = json_encode($sessionFormValues);
+$form->addHtml('<div id="root_asignar_cupos"></div>');
+
+$detalle = json_encode($detalle ?? []);
+$sessionDistributions = json_encode($sessionDistributions);
+$form->addHtml(<<<EOT
+<script>
+const detalle = JSON.parse('{$detalle}');
+const sessionsList = JSON.parse('{$sessionsList}');
+const sessionDistributions = JSON.parse('{$sessionDistributions}');
+let lastIndex = 0;
+
+const uuId = function() {
+    let now = new Date();
+    let time = now.getTime();
+
+    return 'id-' + time + Math.floor(Math.random() * 1000) + '-' + Math.floor(Math.random() * 1000);
+}
+
+if (detalle?.length > 0) {
+    const sessionDetailContainer = document.getElementById('root_asignar_cupos');
+    detalle.forEach((item, index) => {
+        const uniqueId = uuId();
+        const containerId = 'session_detail_container_' + uniqueId;
+        const tableBodyId = 'table_body_' + uniqueId;
+        const plusButtonId = 'plus_button_' + uniqueId;
+
+        sessionDetailContainer.innerHTML = `<div class="form-group" id="` + containerId + `">
             <div class="col-sm-2"></div>
             <div class="col-sm-8">
                 <div class="card">
@@ -97,38 +170,41 @@ foreach ($detalle as $key => $det) {
                                 <th></th>
                             </tr>
                             <tr>
-                                <th style="width: 500px;">{$det['category_name']}</th>
+                                <th style="width: 500px;">` + item.category_name + `</th>
                                 <th class="text-center" style="width: 150px;">
-                                    <input type="text" readonly class="form-control" value="{$det['quota']}" style="text-align: right;">
+                                    <input type="text" readonly class="form-control" value="` + item.quota + `" style="text-align: right;">
                                 </th>
                                 <th style="text-align: center;">
-                                    <button type="button" class="btn btn-primary" id="add_session" onclick="addNewRow(this,'{$key}', '{$det['id']}', '{$det['session_category_id']}')">
+                                    <button type="button" class="btn btn-primary" id="` + plusButtonId + `">
                                         <i class="fa fa-plus"></i>
                                     </button>
                                 </th>
                             </tr>
                         </thead>
-                        <tbody id="session_detail_container">
+                        <tbody id="` + tableBodyId + `">
                         </tbody>
                     </table>
                 </div>
             </div>
             <div class="col-sm-2"></div>
-        </div>
-        <script>
+        </div>`;
 
-        </script>
-EOT
-    );
+        sessionDistributions[item.id].forEach((session, distIndex) => {
+            addNewRow(distIndex, tableBodyId, item.session_category_id, session.det_id, session.id, session.session_id, session.user_quota);
+            lastIndex = distIndex;
+        });
+
+        document.getElementById(plusButtonId).addEventListener('click', function() {
+            lastIndex++;
+            const itemIndex = parseInt(lastIndex);
+            addNewRow(itemIndex, tableBodyId, item.session_category_id, item.id);
+        });
+    });
 }
-$form->addHtml(<<<EOT
-<script>
-const sessionsList = JSON.parse('{$sessionsList}');
 
-function addNewRow(self, itemIndex, detId, session_category_id) {
-    // filter sessionList where session_category_id is equal to session_category_id
-    const sessionsByCategory = sessionsList.filter(session => session.session_category_id == session_category_id);
-    const tableBody = self.closest('table').querySelector('tbody');
+function addNewRow(itemIndex, tableBodyId, itemSessionCategoryId, itemDetId = null, itemId = null, itemSessionId = null, itemUserQuota = null) {
+    const sessionsByCategory = sessionsList.filter(session => session.session_category_id == itemSessionCategoryId);
+    const tableBody = document.getElementById(tableBodyId);
     const newRow = document.createElement('tr');
     const sessionsSelect = document.createElement('select');
     sessionsSelect.name = 'session[' + itemIndex + '][session_id]';
@@ -147,8 +223,9 @@ function addNewRow(self, itemIndex, detId, session_category_id) {
             ` + sessionsSelect.outerHTML + `
         </td>
         <td>
-            <input type="hidden" name="session[` + itemIndex + `][det_id]" class="form-control text-right" value="` + detId +`">
-            <input type="number" name="session[` + itemIndex + `][quota]" class="form-control text-right">
+            <input type="hidden" name="session[` + itemIndex + `][id]" class="form-control text-right" value="` + ( itemId ?? '') +`">
+            <input type="hidden" name="session[` + itemIndex + `][det_id]" class="form-control text-right" value="` + ( itemDetId ?? '') +`">
+            <input type="number" name="session[` + itemIndex + `][user_quota]" class="form-control text-right">
         </td>
         <td style="text-align: center;">
             <a href="javascript:void(0);" id="remove_item_` + itemIndex + `">
@@ -157,11 +234,40 @@ function addNewRow(self, itemIndex, detId, session_category_id) {
         </td>`;
     tableBody.appendChild(newRow);
 
+    const deleteButton = newRow.querySelector('a[id="remove_item_' + itemIndex + '"]');
+    deleteButton.addEventListener('click', function() {
+        tableBody.removeChild(newRow);
+    });
+
     const sessionSelectElement = newRow.querySelector('select[name="session[' + itemIndex + '][session_id]"]');
     $(sessionSelectElement).selectpicker({
         width: '500px',
         liveSearch: true
     });
+
+    if (itemSessionId !== null) {
+        sessionSelectElement.value = itemSessionId;
+        sessionSelectElement.dispatchEvent(new Event('change'));
+    }
+
+    if (itemDetId !== null && itemSessionId != null) {
+        document.querySelector('input[name="session[' + itemIndex + '][det_id]"]').value = itemDetId;
+    }
+
+    if (itemSessionId !== null) {
+        document.querySelector('select[name="session[' + itemIndex + '][session_id]"]').value = itemSessionId;
+    }
+
+    if (itemUserQuota !== null) {
+        document.querySelector('input[name="session[' + itemIndex + '][user_quota]"]').value = itemUserQuota;
+    }
+}
+
+let sessionValues = JSON.parse('{$sessionFormValues}');
+if (sessionValues && Object.keys(sessionValues)?.length > 0) {
+    for (const [key, value] of Object.entries(sessionValues)) {
+        //addNewRow(parseInt(key));
+    }
 }
 </script>
 EOT
