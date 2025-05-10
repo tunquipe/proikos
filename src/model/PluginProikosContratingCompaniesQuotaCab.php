@@ -104,25 +104,24 @@ class PluginProikosContratingCompaniesQuotaCab
         $items = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
-
-                // edit action
-                $action = Display::url(
-                    Display::return_icon(
-                        'edit.png',
-                        null,
-                        [],
-                        ICON_SIZE_SMALL),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_det.php?company_id=' . $companyId . '&action=edit&quota_cab_id=' . $row['id']
-                );
-
                 // Assign quota to session
-                $action .= Display::url(
+                $action = Display::url(
                     Display::return_icon(
                         'session.png',
                         'Asignar cupos a sesiones',
                         [],
                         ICON_SIZE_SMALL),
                     api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_assign_quota_to_session.php?company_id=' . $companyId . '&action=assign_quota_to_session&quota_cab_id=' . $row['id']
+                );
+
+                // edit action
+                $action .= Display::url(
+                    Display::return_icon(
+                        'edit.png',
+                        null,
+                        [],
+                        ICON_SIZE_SMALL),
+                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_det.php?company_id=' . $companyId . '&action=edit&quota_cab_id=' . $row['id']
                 );
 
                 // delete action

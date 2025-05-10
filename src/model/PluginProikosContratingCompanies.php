@@ -69,6 +69,15 @@ class PluginProikosContratingCompanies
 
                 $action = Display::url(
                     Display::return_icon(
+                        'tickets.png',
+                        'Gestionar Cupos',
+                        [],
+                        ICON_SIZE_SMALL),
+                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $row['id']
+                );
+
+                $action .= Display::url(
+                    Display::return_icon(
                         'edit.png',
                         null,
                         [],
@@ -88,14 +97,6 @@ class PluginProikosContratingCompanies
                             addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
                             . "'" . ')) return false;',
                     ]
-                );
-                $action .= Display::url(
-                    Display::return_icon(
-                        'visible.png',
-                        null,
-                        [],
-                        ICON_SIZE_SMALL),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $row['id']
                 );
 
                 $list[] = [
