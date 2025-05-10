@@ -115,6 +115,16 @@ class PluginProikosContratingCompaniesQuotaCab
                     api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_det.php?company_id=' . $companyId . '&action=edit&quota_cab_id=' . $row['id']
                 );
 
+                // Assign quota to session
+                $action .= Display::url(
+                    Display::return_icon(
+                        'session.png',
+                        'Asignar cupos a sesiones',
+                        [],
+                        ICON_SIZE_SMALL),
+                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_assign_quota_to_session.php?company_id=' . $companyId . '&action=assign_quota_to_session&quota_cab_id=' . $row['id']
+                );
+
                 // delete action
                 $action .= Display::url(
                     Display::return_icon(
@@ -165,15 +175,18 @@ class PluginProikosContratingCompaniesQuotaCab
         }
 
         $table = Database::get_main_table($this->contratingCompaniesQuotaDet);
+        $sessionCategoryTable = Database::get_main_table(TABLE_MAIN_SESSION_CATEGORY);
         $sql = "SELECT
             a.id,
             a.session_category_id,
             a.user_quota,
             a.price_unit,
+            c.name AS category_name,
             DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
             CONCAT(b.lastname, ' ', b.firstname) AS user_name
             FROM $table a
             LEFT JOIN user b on a.created_user_id = b.user_id
+            INNER JOIN $sessionCategoryTable c ON a.session_category_id = c.id
             WHERE a.cab_id = $cabId";
         $result = Database::query($sql);
         $items = [];
@@ -182,6 +195,7 @@ class PluginProikosContratingCompaniesQuotaCab
                 $items[] = [
                     'id' => $row['id'],
                     'session_category_id' => $row['session_category_id'],
+                    'category_name' => $row['category_name'],
                     'quota' => $row['user_quota'],
                     'price_unit' => $row['price_unit']
                 ];

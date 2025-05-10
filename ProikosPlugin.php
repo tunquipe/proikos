@@ -2568,25 +2568,6 @@ EOT
 
     public function getCRUDQuotaDet(FormValidator $form, $defaultCourseDetail = [])
     {
-        $asincrono = self::CATEGORY_ASINCRONO;
-        $sincrono = self::CATEGORY_SINCRONO;
-        $asyncCourses = CourseCategory::getCoursesInCategory($asincrono, '', false, false);
-        $syncCourses = CourseCategory::getCoursesInCategory($sincrono, '', false, false);
-
-        $asyncCoursesList = [];
-        if (!empty($asyncCourses)) {
-            foreach ($asyncCourses as $course) {
-                $asyncCoursesList[$course['id']] = $course['title'];
-            }
-        }
-
-        $syncCoursesList = [];
-        if (!empty($syncCourses)) {
-            foreach ($syncCourses as $course) {
-                $syncCoursesList[$course['id']] = $course['title'];
-            }
-        }
-
         $sessionCategories = [
             '0' => $this->get_lang('SelectSessionCategory'),
         ];

@@ -107,3 +107,5 @@ $strings['PriceUnitAbr'] = 'Precio Unitario';
 $strings['ContratingCompanyUserQuotaTotalPrice'] = 'Precio Total';
 $strings['SessionCategory'] = 'Categoría de la sesión';
 $strings['SelectSessionCategory'] = 'Seleccionar categoría de la sesión';
+$strings['SelectSession'] = 'Seleccionar sesión';
+$strings['SetQuotaToSessions'] = 'Asignar cupos a sesiones';
