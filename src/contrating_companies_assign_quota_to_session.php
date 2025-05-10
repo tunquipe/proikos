@@ -76,6 +76,7 @@ if (!empty($detalle)) {
 $sessionFormValues = [];
 $hasErrors = false;
 $erroMessage = 'Completar correctamente todos los campos';
+$errorsMessage = [];
 
 if ($form->isSubmitted()) {
     $formValues = $form->getSubmitValues();
@@ -86,6 +87,9 @@ if ($form->isSubmitted()) {
             if (empty($value['session_id']) || (empty($value['user_quota']) && $value['user_quota'] != 0) || $value['user_quota'] < 0) {
                 $hasErrors = true;
             }
+
+            //$sessionInfo = api_get_session_info($value['session_id']);
+            //$maxUsers = $sessionInfo['maximum_users'] ?? 0;
         }
     }
 }

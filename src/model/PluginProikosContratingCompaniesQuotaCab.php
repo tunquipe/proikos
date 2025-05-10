@@ -117,8 +117,8 @@ class PluginProikosContratingCompaniesQuotaCab
                 // edit action
                 $action .= Display::url(
                     Display::return_icon(
-                        'edit.png',
-                        null,
+                        'visible.png',
+                        'Ver detalle',
                         [],
                         ICON_SIZE_SMALL),
                     api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_det.php?company_id=' . $companyId . '&action=edit&quota_cab_id=' . $row['id']

@@ -60,7 +60,9 @@ $form->addText('company_total_user_quota', $plugin->get_lang('CompanyTotalUserQu
 ]);
 
 $courseDetailHasError = $plugin->getCRUDQuotaDet($form);
-$form->addElement('date_picker', 'validity_date', $plugin->get_lang('Validity'));
+$form->addElement('date_picker', 'validity_date', $plugin->get_lang('Validity'), [
+    'value' => date('Y-m-d', strtotime('+6 months'))
+]);
 $form->addRule('validity_date', $plugin->get_lang('ValidityRequired'), 'required');
 $form->addButtonSave($plugin->get_lang('SaveContratingCompanyDetailsQuota'));
 

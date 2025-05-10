@@ -49,7 +49,7 @@ $form->addText('company_admin_name', $plugin->get_lang('ContratingAdminName'), f
     'disabled' => 'disabled'
 ]);
 
-$form->addHeader($plugin->get_lang('EditContratingCompanyDetailsQuota'));
+$form->addHeader($plugin->get_lang('ContratingCompanyDetailsQuota'));
 $form->addText('cab_total_user_quota', $plugin->get_lang('ContratingCompanyUserQuota'), false, [
     'value' => $cabecera['total_user_quota'],
     'disabled' => 'disabled'
@@ -66,12 +66,33 @@ $form->addText('cab_user_name', $plugin->get_lang('ContratingCompanyCreatedByUse
     'value' => $cabecera['user_name'],
     'disabled' => 'disabled'
 ]);
-$courseDetailHasError = $plugin->getCRUDQuotaDet($form, $detalle);
-$form->addElement('date_picker', 'validity_date', $plugin->get_lang('Validity'), [
-    'value' => $cabecera['formatted_input_validity_date']
+$courseDetailHasError = $plugin->getCRUDQuotaDet($form, $detalle, true);
+
+$meses = [
+    1 => 'Enero',
+    2 => 'Febrero',
+    3 => 'Marzo',
+    4 => 'Abril',
+    5 => 'Mayo',
+    6 => 'Junio',
+    7 => 'Julio',
+    8 => 'Agosto',
+    9 => 'Septiembre',
+    10 => 'Octubre',
+    11 => 'Noviembre',
+    12 => 'Diciembre'
+];
+
+// Formatea la fecha manualmente
+$fecha = strtotime($cabecera['formatted_input_validity_date']);
+$dia = date('j', $fecha);
+$mes = $meses[intval(date('n', $fecha))];
+$anio = date('Y', $fecha);
+$fechaFormateada = "$dia de $mes de $anio";
+$form->addElement('text', 'validity_date', $plugin->get_lang('Validity'), [
+    'value' => $fechaFormateada,
+    'disabled' => 'disabled'
 ]);
-$form->addRule('validity_date', $plugin->get_lang('ValidityRequired'), 'required');
-$form->addButtonSave($plugin->get_lang('SaveContratingCompanyDetailsQuota'));
 
 if ($form->validate() && $courseDetailHasError === false) {
     $values = $form->getSubmitValues();

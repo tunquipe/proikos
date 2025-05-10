@@ -99,6 +99,7 @@ $strings['CoursesConfigurationRequired'] = 'La configuración de los cursos es r
 $strings['CoursesConfigurationPleaseCompleteAllFields'] = 'Por favor completa todos los campos';
 $strings['ContratingCompanyValidityDate'] = 'Vigencia';
 $strings['EditContratingCompanyDetailsQuota'] = 'Editar configuración de cupos';
+$strings['ContratingCompanyDetailsQuota'] = 'Configuración de cupos';
 $strings['ContratingCompanyDetailsQuotaUpdated'] = 'La configuración de cupos fue actualizada';
 $strings['Company_RUC'] = 'Empresa / RUC';
 $strings['Sede'] = 'Sede';

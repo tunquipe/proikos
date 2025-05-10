@@ -2584,8 +2584,9 @@ EOT
         ));
     }
 
-    public function getCRUDQuotaDet(FormValidator $form, $defaultCourseDetail = [])
+    public function getCRUDQuotaDet(FormValidator $form, $defaultCourseDetail = [], $disableActions = false)
     {
+        $disableActions = $disableActions ? 1 : 0;
         $sessionCategories = [
             '0' => $this->get_lang('SelectSessionCategory'),
         ];
@@ -2702,8 +2703,13 @@ EOT
         <div class="col-sm-2"></div>
     </div>
     <script>
+        let disableActions = {$disableActions};
         let index = {$defaultIndex};
         const sessionCategories = JSON.parse('{$sessionCategories}');
+        const plusButton = document.getElementById('add_course_session');
+        if (1 == disableActions) {
+            plusButton.style.display = 'none';
+        }
 
         function addNewRow(itemIndex = null, itemType = null, itemQuota = null, id = null, itemPriceUnitQuota = null) {
             const tableBody = document.getElementById('course-detail-container');
@@ -2783,6 +2789,14 @@ EOT
                 sessionCategorySelectElement.value = itemType;
                 sessionCategorySelectElement.dispatchEvent(new Event('change'));
             }
+
+            if (1 == disableActions) {
+                deleteButton.style.display = 'none';
+                priceUnitQuotaInput.disabled = true;
+                quotaInput.disabled = true;
+                $(sessionCategorySelectElement).prop("disabled", true);
+                $(sessionCategorySelectElement).selectpicker('refresh');
+            }
         }
 
         function updateTotalQuota() {
@@ -2834,10 +2848,12 @@ EOT
             document.getElementById('total_price').value = totalFormatted;
         }
 
-        document.getElementById('add_course_session').addEventListener('click', function() {
-            addNewRow();
-            index++;
-        });
+        if (plusButton) {
+            plusButton.addEventListener('click', function() {
+                addNewRow();
+                index++;
+            });
+        }
 
         // Add initial row if needed
         let defaultCourseDetail = JSON.parse('{$defaultCourseDetail}');
@@ -2849,8 +2865,9 @@ EOT
 
         if (Object.keys(defaultCourseDetail)?.length === 0) {
             // attach event
-            document.getElementById('add_course_session')
-                .dispatchEvent(new Event('click'));
+            if (plusButton) {
+                plusButton.dispatchEvent(new Event('click'));
+            }
         }
     </script>
 EOT
