@@ -75,11 +75,41 @@ class PluginProikosContratingCompaniesQuotaCab
             LEFT JOIN user b on a.created_user_id = b.user_id
             WHERE a.id = $id";
         $result = Database::query($sql);
+
+        $data = [];
+        $month = [
+            1 => 'Enero',
+            2 => 'Febrero',
+            3 => 'Marzo',
+            4 => 'Abril',
+            5 => 'Mayo',
+            6 => 'Junio',
+            7 => 'Julio',
+            8 => 'Agosto',
+            9 => 'Septiembre',
+            10 => 'Octubre',
+            11 => 'Noviembre',
+            12 => 'Diciembre'
+        ];
+
         if (Database::num_rows($result) > 0) {
-            return Database::fetch_array($result);
+            while ($row = Database::fetch_array($result)) {
+                $fechaFormateada = '';
+
+                if (!empty($row['formatted_input_validity_date'])) {
+                    $fecha = strtotime($row['formatted_input_validity_date']);
+                    $dia = date('j', $fecha);
+                    $mes = $month[intval(date('n', $fecha))];
+                    $anio = date('Y', $fecha);
+                    $fechaFormateada = "$dia de $mes de $anio";
+                }
+
+                $row['vigency_date_es'] = $fechaFormateada;
+                $data[] = $row;
+            }
         }
 
-        return false;
+        return $data[0] ?? [];
     }
 
     public function getDataByCompanyId($companyId)

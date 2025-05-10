@@ -25,14 +25,23 @@ class PluginProikosContratingCompaniesQuotaSession
         return false;
     }
 
-    public function getDistributionByDetId($detId)
+    public function getDistributionByDetId($detId, $detSessionCategoryId)
     {
         if (empty($detId)) {
             return [];
         }
 
         $table = \Database::get_main_table($this->table);
-        $sql = "SELECT * FROM $table WHERE det_id = $detId";
+        $sessionCategoryTable = Database::get_main_table(TABLE_MAIN_SESSION_CATEGORY);
+        $sessionTable = Database::get_main_table(TABLE_MAIN_SESSION);
+        $sql = "SELECT a.*, b.name as category_name,
+        c.name as session_name, DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
+        CONCAT(d.lastname, ' ', d.firstname) AS user_name
+        FROM $table a
+        INNER JOIN $sessionCategoryTable b ON b.id = '$detSessionCategoryId'
+        INNER JOIN $sessionTable c ON c.id = a.session_id
+        LEFT JOIN user d on a.created_user_id = d.user_id
+        WHERE a.det_id = $detId";
         $result = Database::query($sql);
 
         $data = [];
@@ -43,6 +52,10 @@ class PluginProikosContratingCompaniesQuotaSession
                     'det_id' => $row['det_id'],
                     'session_id' => $row['session_id'],
                     'user_quota' => $row['user_quota'],
+                    'category_name' => $row['category_name'],
+                    'session_name' => $row['session_name'],
+                    'formatted_created_at' => $row['formatted_created_at'],
+                    'user_name' => $row['user_name']
                 ];
             }
         }

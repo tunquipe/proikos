@@ -33,6 +33,7 @@ $form = new FormValidator(
 );
 $form->addHeader($plugin->get_lang('Company'));
 $empresa = $plugin->contratingCompaniesModel()->getData($_GET['company_id']);
+$cabecera = $plugin->contratingCompaniesQuotaCabModel()->getData($_GET['quota_cab_id']);
 $form->addText('company_name', $plugin->get_lang('CompanyRuc'), false, [
     'value' => $empresa['ruc'],
     'disabled' => 'disabled'
@@ -47,6 +48,15 @@ $form->addText('company_admin_name', $plugin->get_lang('ContratingAdminName'), f
 ]);
 
 $form->addHeader($plugin->get_lang('Asignar cupos'));
+$form->addText('company_total_user_quota', $plugin->get_lang('ContratingCompanyUserQuota'), false, [
+    'value' => $cabecera['total_user_quota'],
+    'disabled' => 'disabled'
+]);
+$form->addElement('text', 'validity_date', $plugin->get_lang('Validity'), [
+    'value' => $cabecera['vigency_date_es'],
+    'disabled' => 'disabled'
+]);
+
 $deleteIcon = Display::return_icon(
     'delete.png',
     get_lang('Delete'),
@@ -69,7 +79,7 @@ if (empty($activeSessions)) {
 $sessionDistributions = [];
 if (!empty($detalle)) {
     foreach ($detalle as $det) {
-        $sessionDistributions[$det['id']] = $plugin->contratingCompaniesQuotaSessionModel()->getDistributionByDetId($det['id']);
+        $sessionDistributions[$det['id']] = $plugin->contratingCompaniesQuotaSessionModel()->getDistributionByDetId($det['id'], $det['session_category_id']);
     }
 }
 
@@ -98,37 +108,15 @@ if ($form->validate() && false === $hasErrors) {
     $sessionFormValues = $form->getSubmitValues();
     $sessionFormValues = $sessionFormValues['session'];
 
-    $itemsToUpdate = [];
     foreach ($sessionFormValues as $key => $value) {
-        // update
-        if (isset($value['id']) && !empty($value['id'])) {
-            $itemsToUpdate[] = $value['id'];
-            $plugin->contratingCompaniesQuotaSessionModel()->update([
-                'id' => $value['id'],
-                'session_id' => $value['session_id'],
-                'user_quota' => $value['user_quota']
-            ]);
-        } else {
-            // save
-            $plugin->contratingCompaniesQuotaSessionModel()->save([
-                'det_id' => $value['det_id'],
-                'session_id' => $value['session_id'],
-                'user_quota' => $value['user_quota']
-            ]);
-        }
+        // save
+        $plugin->contratingCompaniesQuotaSessionModel()->save([
+            'det_id' => $value['det_id'],
+            'session_id' => $value['session_id'],
+            'user_quota' => $value['user_quota'],
+            'created_user_id' => api_get_user_id()
+        ]);
     }
-
-    // delete
-    // check details that are not in the $itemsToUpdate array
-    $itemsToDelete = [];
-    foreach ($sessionDistributions as $key => $value) {
-        foreach ($value as $session) {
-            if (!in_array($session['id'], $itemsToUpdate)) {
-                $itemsToDelete[] = $session['id'];
-            }
-        }
-    }
-    $plugin->contratingCompaniesQuotaSessionModel()->delete($itemsToDelete);
 
     $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_assign_quota_to_session.php?company_id=' . $_GET['company_id'] . '&action=assign_quota_to_session&quota_cab_id=' . $_GET['quota_cab_id'];
     header('Location: ' . $url);
@@ -139,12 +127,10 @@ $sessionFormValues = json_encode($sessionFormValues);
 $form->addHtml('<div id="root_asignar_cupos"></div>');
 
 $detalle = json_encode($detalle ?? []);
-$sessionDistributions = json_encode($sessionDistributions);
 $form->addHtml(<<<EOT
 <script>
 const detalle = JSON.parse('{$detalle}');
 const sessionsList = JSON.parse('{$sessionsList}');
-const sessionDistributions = JSON.parse('{$sessionDistributions}');
 let lastIndex = 0;
 
 const uuId = function() {
@@ -162,7 +148,8 @@ if (detalle?.length > 0) {
         const tableBodyId = 'table_body_' + uniqueId;
         const plusButtonId = 'plus_button_' + uniqueId;
 
-        sessionDetailContainer.innerHTML = `<div class="form-group" id="` + containerId + `">
+        sessionDetailContainer.insertAdjacentHTML('beforeend',
+        `<div class="form-group" id="` + containerId + `">
             <div class="col-sm-2"></div>
             <div class="col-sm-8">
                 <div class="card">
@@ -174,15 +161,15 @@ if (detalle?.length > 0) {
                                 <th></th>
                             </tr>
                             <tr>
-                                <th style="width: 500px;">` + item.category_name + `</th>
-                                <th class="text-center" style="width: 150px;">
+                                <td style="width: 500px; vertical-align: middle;">` + item.category_name + `</td>
+                                <td class="text-center" style="width: 150px;">
                                     <input type="text" readonly class="form-control" value="` + item.quota + `" style="text-align: right;">
-                                </th>
-                                <th style="text-align: center;">
+                                </td>
+                                <td style="text-align: center;">
                                     <button type="button" class="btn btn-primary" id="` + plusButtonId + `">
                                         <i class="fa fa-plus"></i>
                                     </button>
-                                </th>
+                                </td>
                             </tr>
                         </thead>
                         <tbody id="` + tableBodyId + `">
@@ -191,12 +178,7 @@ if (detalle?.length > 0) {
                 </div>
             </div>
             <div class="col-sm-2"></div>
-        </div>`;
-
-        sessionDistributions[item.id].forEach((session, distIndex) => {
-            addNewRow(distIndex, tableBodyId, item.session_category_id, session.det_id, session.id, session.session_id, session.user_quota);
-            lastIndex = distIndex;
-        });
+        </div>`);
 
         document.getElementById(plusButtonId).addEventListener('click', function() {
             lastIndex++;
@@ -279,7 +261,17 @@ EOT
 
 $form->addButtonSave($plugin->get_lang('SaveContratingCompanyDetailsQuota'));
 
+$items = [];
+if (!empty($sessionDistributions)) {
+    foreach ($sessionDistributions as $key => $value) {
+        foreach ($value as $session) {
+            $items[] = $session;
+        }
+    }
+}
+
 $tpl->assign('form', $form->returnForm());
+$tpl->assign('items', $items);
 $content = $tpl->fetch('proikos/view/proikos_contrating_companies_assign_quota_to_session.tpl');
 $tpl->assign('content', $content);
 $tpl->display_one_col_template();

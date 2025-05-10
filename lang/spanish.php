@@ -89,6 +89,7 @@ $strings['CompanyTotalUserQuota'] = 'N° total de cupos';
 $strings['ContratingCompanyDetailsQuotaAdded'] = 'El número de cupos fue agregado';
 $strings['ContratingCompanyCreationDate'] = 'Fecha de creación';
 $strings['ContratingCompanyCreatedByUser'] = 'Creado por';
+$strings['ContratingCompanyAsignedByUser'] = 'Asignado por';
 $strings['ContratingCompanyQuotaZero'] = 'La empresa contratista no tiene cupos disponibles';
 $strings['ContratingAdminName'] = 'Administrador de contrato';
 $strings['TypeCourse'] = 'Tipo de Curso';

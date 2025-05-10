@@ -68,29 +68,8 @@ $form->addText('cab_user_name', $plugin->get_lang('ContratingCompanyCreatedByUse
 ]);
 $courseDetailHasError = $plugin->getCRUDQuotaDet($form, $detalle, true);
 
-$meses = [
-    1 => 'Enero',
-    2 => 'Febrero',
-    3 => 'Marzo',
-    4 => 'Abril',
-    5 => 'Mayo',
-    6 => 'Junio',
-    7 => 'Julio',
-    8 => 'Agosto',
-    9 => 'Septiembre',
-    10 => 'Octubre',
-    11 => 'Noviembre',
-    12 => 'Diciembre'
-];
-
-// Formatea la fecha manualmente
-$fecha = strtotime($cabecera['formatted_input_validity_date']);
-$dia = date('j', $fecha);
-$mes = $meses[intval(date('n', $fecha))];
-$anio = date('Y', $fecha);
-$fechaFormateada = "$dia de $mes de $anio";
 $form->addElement('text', 'validity_date', $plugin->get_lang('Validity'), [
-    'value' => $fechaFormateada,
+    'value' => $cabecera['vigency_date_es'],
     'disabled' => 'disabled'
 ]);
 
