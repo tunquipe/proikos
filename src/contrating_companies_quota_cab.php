@@ -89,6 +89,7 @@ if ($form->validate() && $courseDetailHasError === false) {
                 'session_category_id' => $value['session_category_id'],
                 'user_quota' => $value['quota'],
                 'price_unit' => $value['price_unit'] ?? 0,
+                'session_mode' => $value['session_mode'] ?? 0,
                 'created_user_id' => api_get_user_id(),
             ];
             $plugin->contratingCompaniesQuotaDetModel()->save($params);

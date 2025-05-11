@@ -4,11 +4,13 @@ class PluginProikosContratingCompaniesQuotaCab
 {
     private $table;
     private $contratingCompaniesQuotaDet;
+    private $sessionModes;
 
-    public function __construct($table, $contratingCompaniesQuotaDet)
+    public function __construct($table, $contratingCompaniesQuotaDet, $sessionModes)
     {
         $this->table = $table;
         $this->contratingCompaniesQuotaDet = $contratingCompaniesQuotaDet;
+        $this->sessionModes = $sessionModes;
     }
 
     public function save($values)
@@ -211,6 +213,7 @@ class PluginProikosContratingCompaniesQuotaCab
             a.session_category_id,
             a.user_quota,
             a.price_unit,
+            a.session_mode,
             c.name AS category_name,
             DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
             CONCAT(b.lastname, ' ', b.firstname) AS user_name
@@ -227,7 +230,9 @@ class PluginProikosContratingCompaniesQuotaCab
                     'session_category_id' => $row['session_category_id'],
                     'category_name' => $row['category_name'],
                     'quota' => $row['user_quota'],
-                    'price_unit' => $row['price_unit']
+                    'price_unit' => $row['price_unit'],
+                    'session_mode' => $row['session_mode'],
+                    'session_mode_name' => $this->sessionModes[$row['session_mode']] ?? '',
                 ];
             }
         }

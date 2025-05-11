@@ -2517,7 +2517,8 @@ EOT
 
         return (new PluginProikosContratingCompaniesQuotaCab(
             self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB,
-            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET,
+            self::CATEGORY_DESC
         ));
     }
 
@@ -2535,7 +2536,8 @@ EOT
         require_once __DIR__ . '/src/model/PluginProikosContratingCompaniesQuotaSession.php';
 
         return (new PluginProikosContratingCompaniesQuotaSession(
-            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION,
+            self::CATEGORY_DESC
         ));
     }
 
@@ -2552,6 +2554,14 @@ EOT
     public function getCRUDQuotaDet(FormValidator $form, $defaultCourseDetail = [], $disableActions = false)
     {
         $disableActions = $disableActions ? 1 : 0;
+
+        $sessionModes = [
+            '0' => $this->get_lang('Mode'),
+            '1' => self::CATEGORY_DESC[self::CATEGORY_ASINCRONO],
+            '2' => self::CATEGORY_DESC[self::CATEGORY_SINCRONO]
+        ];
+        $sessionModes = json_encode($sessionModes);
+
         $sessionCategories = [
             '0' => $this->get_lang('SelectSessionCategory'),
         ];
@@ -2585,7 +2595,7 @@ EOT
                 $courseDetailErrorMessage = $this->get_lang('CoursesConfigurationRequired');
             } else {
                 foreach ($defaultCourseDetail as $key => $value) {
-                    if (empty($value['session_category_id']) || (empty($value['quota']) && $value['quota'] != 0) || $value['quota'] < 0) {
+                    if (empty($value['session_mode']) || empty($value['session_category_id']) || (empty($value['quota']) && $value['quota'] != 0) || $value['quota'] < 0) {
                         $courseDetailHasError = true;
                     }
                 }
@@ -2623,6 +2633,7 @@ EOT
                 <table class="table table-striped" style="margin-bottom: 0px;">
                     <thead>
                         <tr>
+                            <th>{$this->get_lang('Mode')}</th>
                             <th>{$this->get_lang('SessionCategory')}</th>
                             <th class="text-center">{$this->get_lang('PriceUnitAbr')}</th>
                             <th class="text-center">{$this->get_lang('ContratingCompanyUserQuota')}</th>
@@ -2637,7 +2648,7 @@ EOT
                     </tbody>
                     <tfoot style="display: none;">
                         <tr>
-                            <td colspan="2" style="text-align: right;">
+                            <td colspan="3" style="text-align: right;">
                                 <label for="total_quota" class="control-label">
                                     Total Nº Cupos
                                 </label>
@@ -2649,7 +2660,7 @@ EOT
                             <td></td>
                         </tr>
                         <tr>
-                            <td colspan="2" style="text-align: right;">
+                            <td colspan="3" style="text-align: right;">
                                 <label for="total_quota" class="control-label">
                                     {$this->get_lang('ContratingCompanyUserQuotaTotalPrice')}
                                 </label>
@@ -2671,20 +2682,32 @@ EOT
         let disableActions = {$disableActions};
         let index = {$defaultIndex};
         const sessionCategories = JSON.parse('{$sessionCategories}');
+        const sessionModes = JSON.parse('{$sessionModes}');
         const plusButton = document.getElementById('add_course_session');
         if (1 == disableActions) {
             plusButton.style.display = 'none';
         }
 
-        function addNewRow(itemIndex = null, itemType = null, itemQuota = null, id = null, itemPriceUnitQuota = null) {
+        function addNewRow(itemIndex = null, itemSessionMode = null, itemType = null, itemQuota = null, id = null, itemPriceUnitQuota = null) {
             const tableBody = document.getElementById('course-detail-container');
             const newRow = document.createElement('tr');
             itemIndex = itemIndex === null ? index : itemIndex;
 
+            // ----- Create the select element for session mode -----
+            const sessionModeSelect = document.createElement('select');
+            sessionModeSelect.name = 'course_detail[' + itemIndex + '][session_mode]';
+            sessionModeSelect.className = 'form-control';
+            sessionModeSelect.dataset.index = itemIndex;
+            for (const [value, text] of Object.entries(sessionModes)) {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = text;
+                sessionModeSelect.appendChild(option);
+            }
+
             // ----- Create the select element for session Category -----
             const sessionCategoriesSelect = document.createElement('select');
             sessionCategoriesSelect.name = 'course_detail[' + itemIndex + '][session_category_id]';
-            sessionCategoriesSelect.id = 'session_category_id';
             sessionCategoriesSelect.className = 'form-control';
             sessionCategoriesSelect.dataset.index = itemIndex;
             for (const [value, text] of Object.entries(sessionCategories)) {
@@ -2697,6 +2720,9 @@ EOT
             const inputIdHidden = id !== null ? (`<input type="hidden" name="course_detail[` + itemIndex + `][id]" value="` + id + `">`) : ``;
 
             newRow.innerHTML = `
+                <td>
+                    ` + sessionModeSelect.outerHTML + `
+                </td>
                 <td>
                     ` + sessionCategoriesSelect.outerHTML + `
                 </td>
@@ -2744,6 +2770,17 @@ EOT
                 updateTotalPriceUnitQuota();
             });
 
+            const sessionModeSelectElement = newRow.querySelector('select[name="course_detail[' + itemIndex + '][session_mode]"]');
+            $(sessionModeSelectElement).selectpicker({
+                width: '120px',
+                liveSearch: true
+            });
+
+            if (itemSessionMode != null) {
+                sessionModeSelectElement.value = itemSessionMode;
+                sessionModeSelectElement.dispatchEvent(new Event('change'));
+            }
+
             const sessionCategorySelectElement = newRow.querySelector('select[name="course_detail[' + itemIndex + '][session_category_id]"]');
             $(sessionCategorySelectElement).selectpicker({
                 width: '300px',
@@ -2761,6 +2798,8 @@ EOT
                 quotaInput.disabled = true;
                 $(sessionCategorySelectElement).prop("disabled", true);
                 $(sessionCategorySelectElement).selectpicker('refresh');
+                $(sessionModeSelectElement).prop("disabled", true);
+                $(sessionModeSelectElement).selectpicker('refresh');
             }
         }
 
@@ -2824,7 +2863,7 @@ EOT
         let defaultCourseDetail = JSON.parse('{$defaultCourseDetail}');
         if (defaultCourseDetail && Object.keys(defaultCourseDetail)?.length > 0) {
             for (const [key, value] of Object.entries(defaultCourseDetail)) {
-                addNewRow(parseInt(key), value.session_category_id, value.quota, value.id, value.price_unit);
+                addNewRow(parseInt(key), value.session_mode, value.session_category_id, value.quota, value.id, value.price_unit);
             }
         }
 

@@ -4,6 +4,7 @@
     <thead>
     <tr>
         <th>ID</th>
+        <th class="text-center">{{ 'Mode'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="text-center">{{ 'Category'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="text-center">{{ 'Session'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="text-center">{{ 'ContratingCompanyUserQuota'|get_plugin_lang('ProikosPlugin') }}</th>
@@ -15,6 +16,7 @@
     {% for item in items %}
     <tr>
         <th scope="row">{{ item.id }}</th>
+        <td>{{ item.session_mode_name }}</td>
         <td>{{ item.category_name }}</td>
         <td>{{ item.session_name }}</td>
         <td class="text-right">{{ item.user_quota }}</td>

@@ -84,7 +84,7 @@ if (empty($activeSessions)) {
 $sessionDistributions = [];
 if (!empty($detalle)) {
     foreach ($detalle as $det) {
-        $sessionDistributions[$det['id']] = $plugin->contratingCompaniesQuotaSessionModel()->getDistributionByDetId($det['id'], $det['session_category_id']);
+        $sessionDistributions[$det['id']] = $plugin->contratingCompaniesQuotaSessionModel()->getDistributionByDetId($det['id'], $det['session_category_id'], $det['session_mode']);
     }
 }
 
@@ -240,12 +240,14 @@ if (detalle?.length > 0) {
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th style="width: 500px;">{$plugin->get_lang('SessionCategory')}</th>
+                                <th style="width: 200px;">{$plugin->get_lang('Mode')}</th>
+                                <th style="width: 300px;">{$plugin->get_lang('SessionCategory')}</th>
                                 <th class="text-center" style="width: 150px;">{$plugin->get_lang('ContratingCompanyUserQuota')}</th>
                                 <th></th>
                             </tr>
                             <tr>
-                                <td style="width: 500px; vertical-align: middle;">` + item.category_name + `</td>
+                                <td style="width: 200px; vertical-align: middle;">` + item.session_mode_name + `</td>
+                                <td style="width: 300px; vertical-align: middle;">` + item.category_name + `</td>
                                 <td class="text-center" style="width: 150px;">
                                     <input type="text" readonly class="form-control" value="` + item.quota + `" style="text-align: right;">
                                 </td>
@@ -268,7 +270,7 @@ if (detalle?.length > 0) {
         document.getElementById(plusButtonId).addEventListener('click', function() {
             lastIndex++;
             const itemIndex = parseInt(lastIndex);
-            addNewRow(itemIndex, tableBodyId, item.session_category_id, item.id);
+            addNewRow(itemIndex, tableBodyId, item.session_mode, item.session_category_id, item.id);
         });
 
         let sessionValues = JSON.parse('{$sessionFormValues}');
@@ -280,7 +282,7 @@ if (detalle?.length > 0) {
 
                 lastIndex++;
                 const itemIndex = parseInt(lastIndex);
-                addNewRow(itemIndex, tableBodyId, item.session_category_id, item.id, value.session_id, value.user_quota);
+                addNewRow(itemIndex, tableBodyId, item.session_mode, item.session_category_id, item.id, value.session_id, value.user_quota);
             }
         }
 
@@ -303,8 +305,8 @@ if (detalle?.length > 0) {
     });
 }
 
-function addNewRow(itemIndex, tableBodyId, itemSessionCategoryId, itemDetId = null, itemSessionId = null, itemUserQuota = null) {
-    const sessionsByCategory = sessionsList.filter(session => session.session_category_id == itemSessionCategoryId);
+function addNewRow(itemIndex, tableBodyId, itemSessionMode, itemSessionCategoryId, itemDetId = null, itemSessionId = null, itemUserQuota = null) {
+    const sessionsByCategory = sessionsList.filter(session => session.session_category_id == itemSessionCategoryId && session.session_mode == itemSessionMode);
     const tableBody = document.getElementById(tableBodyId);
     const newRow = document.createElement('tr');
     const sessionsSelect = document.createElement('select');
@@ -320,7 +322,7 @@ function addNewRow(itemIndex, tableBodyId, itemSessionCategoryId, itemDetId = nu
     });
 
     newRow.innerHTML = `
-        <td>
+        <td colspan="2">
             ` + sessionsSelect.outerHTML + `
         </td>
         <td>
@@ -360,13 +362,6 @@ function addNewRow(itemIndex, tableBodyId, itemSessionCategoryId, itemDetId = nu
 
     if (itemUserQuota !== null) {
         document.querySelector('input[name="session[' + itemIndex + '][user_quota]"]').value = itemUserQuota;
-    }
-}
-
-let sessionValues = JSON.parse('{$sessionFormValues}');
-if (sessionValues && Object.keys(sessionValues)?.length > 0) {
-    for (const [key, value] of Object.entries(sessionValues)) {
-        //addNewRow(parseInt(key));
     }
 }
 </script>

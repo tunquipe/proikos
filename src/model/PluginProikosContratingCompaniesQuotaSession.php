@@ -3,10 +3,12 @@
 class PluginProikosContratingCompaniesQuotaSession
 {
     private $table;
+    private $sessionModes;
 
-    public function __construct($table)
+    public function __construct($table, $sessionModes)
     {
         $this->table = $table;
+        $this->sessionModes = $sessionModes;
     }
 
     public function save($values)
@@ -25,7 +27,7 @@ class PluginProikosContratingCompaniesQuotaSession
         return false;
     }
 
-    public function getDistributionByDetId($detId, $detSessionCategoryId)
+    public function getDistributionByDetId($detId, $detSessionCategoryId, $sessionMode)
     {
         if (empty($detId)) {
             return [];
@@ -55,7 +57,8 @@ class PluginProikosContratingCompaniesQuotaSession
                     'category_name' => $row['category_name'],
                     'session_name' => $row['session_name'],
                     'formatted_created_at' => $row['formatted_created_at'],
-                    'user_name' => $row['user_name']
+                    'user_name' => $row['user_name'],
+                    'session_mode_name' => $this->sessionModes[$sessionMode] ?? '',
                 ];
             }
         }
