@@ -88,7 +88,6 @@ $hasErrors = false;
 $errorsMessage = [];
 
 if ($form->isSubmitted()) {
-    //2025-11-11
     // check if $cabecera['validity_date'] is greater than today
     $validityDate = DateTime::createFromFormat('Y-m-d', $cabecera['validity_date']);
     $today = new DateTime();
@@ -104,7 +103,7 @@ if ($form->isSubmitted()) {
     if (!empty($sessionFormValues)) {
         // check if session_id and user_quota are empty
         foreach ($sessionFormValues as $key => $value) {
-            if (empty($value['session_id']) || (empty($value['user_quota']) && $value['user_quota'] != 0) || $value['user_quota'] < 0) {
+            if (empty($value['session_id']) || empty($value['user_quota']) || $value['user_quota'] < 0) {
                 $hasErrors = true;
                 $errorsMessage[$value['det_id']][] = 'Completar correctamente todos los campos';
                 continue;
@@ -151,6 +150,20 @@ if ($form->isSubmitted()) {
                     if ($totalUserQuota > $quota) {
                         $hasErrors = true;
                         $errorsMessage[$detId][] = 'La suma de los cupos asignados a las sesiones no puede ser mayor a ' . $quota;
+                    }
+
+                    // check remaining user_quota
+                    if (isset($sessionDistributions[$detId])) {
+                        $totalUserQuotaAssigned = 0;
+                        foreach ($sessionDistributions[$detId] as $session) {
+                            $totalUserQuotaAssigned += $session['user_quota'];
+                        }
+
+                        $remainingUserQuota = $quota - $totalUserQuotaAssigned;
+                        if ($remainingUserQuota < $totalUserQuota) {
+                            $hasErrors = true;
+                            $errorsMessage[$detId][] = 'No hay suficientes cupos disponibles para asignar a las sesiones. Quedan ' . $remainingUserQuota . ' cupos disponibles';
+                        }
                     }
                 }
             }
