@@ -65,6 +65,7 @@ $strings['SessionStarDate'] = 'Fecha de inicio';
 $strings['CongratulationsYouPassedTheCourse'] = 'Felicidades, aprobaste el curso';
 $strings['SorryYouReachTheProperScore'] = 'Lamentable, no alcanzaste el puntaje adecuado';
 $strings['StakeholdersForRegistration'] = 'Stakeholders para inscripción';
+$strings['SessionMode'] = 'Modalidad de la sesión';
 $strings['MinCertScore'] = 'Puntaje Min Cert.';
 $strings['Score'] = 'Puntaje';
 $strings['Certificate'] = 'Certificado';
