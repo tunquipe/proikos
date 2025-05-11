@@ -30,11 +30,11 @@ class ProikosPlugin extends Plugin
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET = 'plugin_proikos_contrating_companies_quota_det';
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION = 'plugin_proikos_contrating_companies_quota_session';
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET = 'plugin_proikos_contrating_companies_quota_session_det';
-    const CATEGORY_ASINCRONO = 'ASINCRONO';
-    const CATEGORY_SINCRONO = 'SINCRONO';
+    const CATEGORY_ASINCRONO = 1;
+    const CATEGORY_SINCRONO = 2;
     const CATEGORY_DESC = [
-        self::CATEGORY_ASINCRONO => 'Asincrono',
-        self::CATEGORY_SINCRONO => 'Sincrono'
+        self::CATEGORY_ASINCRONO => 'Asincrónico',
+        self::CATEGORY_SINCRONO => 'Sincrónico'
     ];
     const EVENT_ADD_QUOTA = 'add_quota';
     const EVENT_USER_SUBSCRIPTION_TO_COURSE = 'user_subscription_to_course';
