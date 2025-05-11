@@ -2335,63 +2335,6 @@ class ProikosPlugin extends Plugin
         return $list;
     }
 
-    public function contratingCompanyQuotaManager() {
-        return (object) [
-            'subscribe_user' => function($userId, $userAdmin, $userInfo, $courseInfo) {
-                if (empty($userId)) {
-                    return false;
-                }
-                // get ruc_company from self::TABLE_PROIKOS_USERS then search in self::TABLE_PROIKOS_CONTRATING_COMPANIES
-                $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
-                $sql = "SELECT ruc_company FROM $table WHERE user_id = $userId";
-                $result = Database::query($sql);
-                $rucCompany = '';
-                if (Database::num_rows($result) > 0) {
-                    while ($row = Database::fetch_array($result)) {
-                        $rucCompany = $row['ruc_company'];
-                    }
-                }
-
-                if (empty($rucCompany)) {
-                    return false;
-                }
-
-                $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
-                $sql = "SELECT id FROM $table WHERE ruc = '$rucCompany'";
-                $result = Database::query($sql);
-                $id = '';
-                if (Database::num_rows($result) > 0) {
-                    while ($row = Database::fetch_array($result)) {
-                        $id = $row['id'];
-                    }
-                }
-
-                if (empty($id)) {
-                    return false;
-                }
-
-                $company = $this->contratingCompaniesModel()->getData($id);
-                if (empty($company)) {
-                    return false;
-                }
-
-                if ($company['total_user_quota'] <= 0) {
-                    return -1;
-                }
-
-//                $this->addContratingCompanyDetail([
-//                    'cab_id' => $id,
-//                    'user_id' => $userAdmin,
-//                    'user_quota' => -1,
-//                    'event' => self::EVENT_USER_SUBSCRIPTION_TO_COURSE,
-//                    'details' => 'El usuario ' . $userInfo['complete_name_with_username'] . ' ha sido registrado al curso ' . $courseInfo['name']
-//                ]);
-
-                return true;
-            }
-        ];
-    }
-
     public function getSpecificCourseFeature() {
         $coursesTarget = ['PTRA'];
         $courseInTarget = (isset($_GET['c']) && in_array($_GET['c'], $coursesTarget)) ||
