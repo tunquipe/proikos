@@ -90,6 +90,10 @@ if ($isAdmin) {
                 Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
                 api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php'
             );
+            $actionLinks .= Display::url(
+                Display::return_icon('home.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
+                api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php'
+            );
             $idContratingCompany = $_GET['id'] ?? null;
             $contratingCompany = $plugin->contratingCompaniesModel()->getData($idContratingCompany);
 

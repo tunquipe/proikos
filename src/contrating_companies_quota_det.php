@@ -21,6 +21,10 @@ $actionLinks .= Display::url(
     Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
     api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $_GET['company_id']
 );
+$actionLinks .= Display::url(
+    Display::return_icon('home.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
+    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php'
+);
 $tpl->assign(
     'actions',
     Display::toolbarAction('toolbar', [$actionLinks])
