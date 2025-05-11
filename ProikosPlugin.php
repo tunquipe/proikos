@@ -29,6 +29,7 @@ class ProikosPlugin extends Plugin
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB = 'plugin_proikos_contrating_companies_quota_cab';
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET = 'plugin_proikos_contrating_companies_quota_det';
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION = 'plugin_proikos_contrating_companies_quota_session';
+    const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET = 'plugin_proikos_contrating_companies_quota_session_det';
     const CATEGORY_ASINCRONO = 'ASINCRONO';
     const CATEGORY_SINCRONO = 'SINCRONO';
     const CATEGORY_DESC = [
@@ -252,6 +253,17 @@ class ProikosPlugin extends Plugin
             det_id INT,
             session_id INT,
             user_quota INT NOT NULL
+        );";
+        Database::query($sql);
+
+        $sql = "CREATE TABLE IF NOT EXISTS " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET . " (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            quota_session_id INT NOT NULL,
+            session_id INT,
+            user_id INT,
+            expiration_date DATE,
+            created_user_id INT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );";
         Database::query($sql);
 
@@ -2581,6 +2593,15 @@ EOT
 
         return (new PluginProikosContratingCompaniesQuotaSession(
             self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION
+        ));
+    }
+
+    public function contratingCompaniesQuotaSessionDetModel()
+    {
+        require_once __DIR__ . '/src/model/PluginProikosContratingCompaniesQuotaSessionDet.php';
+
+        return (new PluginProikosContratingCompaniesQuotaSessionDet(
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET
         ));
     }
 

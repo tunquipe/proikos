@@ -85,21 +85,75 @@ if (!empty($detalle)) {
 
 $sessionFormValues = [];
 $hasErrors = false;
-$erroMessage = 'Completar correctamente todos los campos';
 $errorsMessage = [];
 
 if ($form->isSubmitted()) {
+    //2025-11-11
+    // check if $cabecera['validity_date'] is greater than today
+    $validityDate = DateTime::createFromFormat('Y-m-d', $cabecera['validity_date']);
+    $today = new DateTime();
+    if ($validityDate < $today) {
+        $hasErrors = true;
+        $form->setElementError('validity_date', 'La fecha de vigencia no puede ser menor a la fecha actual');
+    }
+
     $formValues = $form->getSubmitValues();
     $sessionFormValues = $formValues['session'];
 
+    $sessionsInfoByDetId = [];
     if (!empty($sessionFormValues)) {
+        // check if session_id and user_quota are empty
         foreach ($sessionFormValues as $key => $value) {
             if (empty($value['session_id']) || (empty($value['user_quota']) && $value['user_quota'] != 0) || $value['user_quota'] < 0) {
                 $hasErrors = true;
+                $errorsMessage[$value['det_id']][] = 'Completar correctamente todos los campos';
+                continue;
             }
 
-            //$sessionInfo = api_get_session_info($value['session_id']);
-            //$maxUsers = $sessionInfo['maximum_users'] ?? 0;
+            if (
+                !isset($sessionsInfoByDetId[$value['det_id']][$value['session_id']])
+            ) {
+                $sessionInfo = api_get_session_info($value['session_id']);
+                $sessionsInfoByDetId[$value['det_id']][$value['session_id']] = [
+                    'maximum_users' => $sessionInfo['maximum_users'] ?? 0,
+                    'user_quota' => 0,
+                    'session_name' => $sessionInfo['name'] ?? '',
+                ];
+            }
+
+            $sessionsInfoByDetId[$value['det_id']][$value['session_id']]['user_quota'] = (
+                $sessionsInfoByDetId[$value['det_id']][$value['session_id']]['user_quota'] ?? 0
+            ) + $value['user_quota'];
+        }
+
+        foreach ($sessionsInfoByDetId as $detId => $sessionInfo) {
+            $totalUserQuota = 0;
+            foreach ($sessionInfo as $sessionId => $info) {
+                $totalUserQuota += $info['user_quota'];
+                // check if user_quota is greater than maximum_users
+                if ($info['user_quota'] > $info['maximum_users']) {
+                    $hasErrors = true;
+                    $errorsMessage[$detId][] =  $info['session_name'] . ' - Máximo de usuarios: ' . $info['maximum_users'];
+                }
+            }
+
+            // check if $info['user_quota'] is greater than detalle['quota']
+            if (!empty($detalle)) {
+                // Filter the $detalle array to find the matching det_id
+                $matchingDetalle = array_filter($detalle, function ($d) use ($detId) {
+                    return $d['id'] == $detId;
+                });
+                $matchingDetalle = reset($matchingDetalle);
+
+                // Get the first matching detalle
+                if (!empty($matchingDetalle)) {
+                    $quota = $matchingDetalle['quota'];
+                    if ($totalUserQuota > $quota) {
+                        $hasErrors = true;
+                        $errorsMessage[$detId][] = 'La suma de los cupos asignados a las sesiones no puede ser mayor a ' . $quota;
+                    }
+                }
+            }
         }
     }
 }
@@ -110,12 +164,23 @@ if ($form->validate() && false === $hasErrors) {
 
     foreach ($sessionFormValues as $key => $value) {
         // save
-        $plugin->contratingCompaniesQuotaSessionModel()->save([
+        $id = $plugin->contratingCompaniesQuotaSessionModel()->save([
             'det_id' => $value['det_id'],
             'session_id' => $value['session_id'],
             'user_quota' => $value['user_quota'],
             'created_user_id' => api_get_user_id()
         ]);
+
+        // quota_session_det
+        for ($i = 0; $i < $value['user_quota']; $i++) {
+            $plugin->contratingCompaniesQuotaSessionDetModel()->save([
+                'quota_session_id' => $id,
+                'session_id' => $value['session_id'],
+                'expiration_date' => $cabecera['validity_date'],
+                'created_user_id' => api_get_user_id()
+            ]);
+        }
+
     }
 
     $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_assign_quota_to_session.php?company_id=' . $_GET['company_id'] . '&action=assign_quota_to_session&quota_cab_id=' . $_GET['quota_cab_id'];
@@ -124,6 +189,7 @@ if ($form->validate() && false === $hasErrors) {
 
 $sessionsList = json_encode($activeSessions);
 $sessionFormValues = json_encode($sessionFormValues);
+$errorsMessage = json_encode($errorsMessage);
 $form->addHtml('<div id="root_asignar_cupos"></div>');
 
 $detalle = json_encode($detalle ?? []);
@@ -176,6 +242,7 @@ if (detalle?.length > 0) {
                         </tbody>
                     </table>
                 </div>
+                <div class="errors_message" id="errors_message_` + uniqueId + `"></div>
             </div>
             <div class="col-sm-2"></div>
         </div>`);
@@ -185,10 +252,40 @@ if (detalle?.length > 0) {
             const itemIndex = parseInt(lastIndex);
             addNewRow(itemIndex, tableBodyId, item.session_category_id, item.id);
         });
+
+        let sessionValues = JSON.parse('{$sessionFormValues}');
+        if (sessionValues && Object.keys(sessionValues)?.length > 0) {
+            for (const [key, value] of Object.entries(sessionValues)) {
+                if (item.id != value.det_id) {
+                    continue;
+                }
+
+                lastIndex++;
+                const itemIndex = parseInt(lastIndex);
+                addNewRow(itemIndex, tableBodyId, item.session_category_id, item.id, value.session_id, value.user_quota);
+            }
+        }
+
+        let errorsMessage = JSON.parse('{$errorsMessage}');
+        if (errorsMessage && Object.keys(errorsMessage)?.length > 0) {
+            for (const [key, value] of Object.entries(errorsMessage)) {
+                if (item.id != key) {
+                    continue;
+                }
+
+                let errorsMessageContainer = document.getElementById('errors_message_' + uniqueId);
+                if (errorsMessageContainer) {
+                    errorsMessageContainer.innerHTML = '';
+                    value.forEach((error) => {
+                        errorsMessageContainer.insertAdjacentHTML('beforeend', '<div class="alert alert-warning">' + error + '</div>');
+                    });
+                }
+            }
+        }
     });
 }
 
-function addNewRow(itemIndex, tableBodyId, itemSessionCategoryId, itemDetId = null, itemId = null, itemSessionId = null, itemUserQuota = null) {
+function addNewRow(itemIndex, tableBodyId, itemSessionCategoryId, itemDetId = null, itemSessionId = null, itemUserQuota = null) {
     const sessionsByCategory = sessionsList.filter(session => session.session_category_id == itemSessionCategoryId);
     const tableBody = document.getElementById(tableBodyId);
     const newRow = document.createElement('tr');
@@ -209,7 +306,6 @@ function addNewRow(itemIndex, tableBodyId, itemSessionCategoryId, itemDetId = nu
             ` + sessionsSelect.outerHTML + `
         </td>
         <td>
-            <input type="hidden" name="session[` + itemIndex + `][id]" class="form-control text-right" value="` + ( itemId ?? '') +`">
             <input type="hidden" name="session[` + itemIndex + `][det_id]" class="form-control text-right" value="` + ( itemDetId ?? '') +`">
             <input type="number" name="session[` + itemIndex + `][user_quota]" class="form-control text-right">
         </td>
