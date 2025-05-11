@@ -3,10 +3,12 @@
 class PluginProikosContratingCompaniesQuotaSessionDet
 {
     private $table;
+    private $userTable;
 
-    public function __construct($table)
+    public function __construct($table, $userTable)
     {
         $this->table = $table;
+        $this->userTable = $userTable;
     }
 
     public function save($values)
@@ -25,10 +27,38 @@ class PluginProikosContratingCompaniesQuotaSessionDet
         return false;
     }
 
-    public function getQuotaBySessionId($sessionId)
+    public function getQuotaBySessionId($sessionId, $userId)
     {
-        $table = \Database::get_main_table($this->table);
-        $sql = "SELECT * FROM $table WHERE session_id = $sessionId AND user_id IS NULL LIMIT 1";
+        $userTable = Database::get_main_table($this->userTable);
+        $sql = "SELECT ruc_company FROM $userTable WHERE user_id = $userId";
+        $result = Database::query($sql);
+        $rucCompany = '';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $rucCompany = $row['ruc_company'];
+            }
+        }
+
+        if (empty($rucCompany)) {
+            return [
+                'success' => false,
+                'message' => 'No se encontró el RUC de la empresa'
+            ];
+        }
+
+        $currentDate = date('Y-m-d');
+        $sql = "SELECT a.* FROM plugin_proikos_contrating_companies_quota_session_det a
+                INNER JOIN plugin_proikos_contrating_companies_quota_session b ON b.id = a.quota_session_id
+                INNER JOIN plugin_proikos_contrating_companies_quota_det c ON c.id = b.det_id
+                INNER JOIN plugin_proikos_contrating_companies_quota_cab d ON d.id = c.cab_id
+                INNER JOIN plugin_proikos_contrating_companies e ON e.id = d.contrating_company_id
+                WHERE a.session_id = $sessionId
+                AND e.ruc = '$rucCompany'
+                AND e.status = 1
+                AND d.validity_date > '$currentDate'
+                AND a.user_id IS NULL
+                ORDER BY a.id ASC
+                LIMIT 1;";
         $result = \Database::query($sql);
 
         $item = [];

@@ -2544,7 +2544,8 @@ EOT
         require_once __DIR__ . '/src/model/PluginProikosContratingCompaniesQuotaSessionDet.php';
 
         return (new PluginProikosContratingCompaniesQuotaSessionDet(
-            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET,
+            self::TABLE_PROIKOS_USERS
         ));
     }
 
