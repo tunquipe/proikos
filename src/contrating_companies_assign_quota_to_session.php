@@ -68,12 +68,13 @@ $deleteIcon = Display::return_icon(
     ICON_SIZE_SMALL
 );
 $detalle = $plugin->contratingCompaniesQuotaCabModel()->getDetails($_GET['quota_cab_id']);
+$today = date('Y-m-d');
 $activeSessions = SessionManager::getSessionsForAdmin(
     api_get_user_id(),
-    [],
+    ['where' => " 1 = 1 AND (  display_start_date >= '$today'  ) ", 'extra' => []],
     false,
     [],
-    'active'
+    'all'
 );
 
 if (empty($activeSessions)) {
