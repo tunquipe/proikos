@@ -66,6 +66,7 @@ $strings['CongratulationsYouPassedTheCourse'] = 'Felicidades, aprobaste el curso
 $strings['SorryYouReachTheProperScore'] = 'Lamentable, no alcanzaste el puntaje adecuado';
 $strings['StakeholdersForRegistration'] = 'Stakeholders para inscripción';
 $strings['AttachCertificate'] = 'Adjuntar certificados';
+$strings['RequestAttachCertificate'] = 'Solicitar adjuntar certificados';
 $strings['SessionMode'] = 'Modalidad de la sesión';
 $strings['Mode'] = 'Modalidad';
 $strings['MinCertScore'] = 'Puntaje Min Cert.';
