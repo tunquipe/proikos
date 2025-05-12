@@ -27,6 +27,34 @@ class PluginProikosContratingCompaniesQuotaSessionDet
         return false;
     }
 
+    public function getData()
+    {
+        $sql = "SELECT e.ruc, e.name as company_name, f.name as session_name,
+                DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS quota_created_at,
+                CONCAT(h.lastname, ' ', h.firstname) AS quota_created_by,
+                DATE_FORMAT(a.expiration_date, '%d-%m-%Y') AS quota_vigency_date,
+                CONCAT(g.lastname, ' ', g.firstname) AS student_name,
+                DATE_FORMAT(a.updated_at, '%d-%m-%Y %H:%i') AS student_subscription_date
+                FROM plugin_proikos_contrating_companies_quota_session_det a
+                INNER JOIN plugin_proikos_contrating_companies_quota_session b ON b.id = a.quota_session_id
+                INNER JOIN plugin_proikos_contrating_companies_quota_det c ON c.id = b.det_id
+                INNER JOIN plugin_proikos_contrating_companies_quota_cab d ON d.id = c.cab_id
+                INNER JOIN plugin_proikos_contrating_companies e ON e.id = d.contrating_company_id
+                INNER JOIN session f ON f.id = a.session_id
+                LEFT JOIN user g ON g.user_id = a.user_id
+                LEFT JOIN user h ON h.user_id = a.created_user_id
+                ORDER BY a.id ASC;";
+        $result = \Database::query($sql);
+        $data = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $data[] = $row;
+            }
+        }
+
+        return $data;
+    }
+
     public function getQuotaBySessionId($sessionId, $userId)
     {
         $userTable = Database::get_main_table($this->userTable);

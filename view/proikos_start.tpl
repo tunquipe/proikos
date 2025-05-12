@@ -46,7 +46,7 @@
     </div>
     <div class="col-md-3">
         <div class="tool-box">
-            <a href="{{ src_plugin }}src/users_management.php" class="tool">
+            <a href="{{ src_plugin }}src/reporting_quota_session_det.php" class="tool">
                 <img src="{{ src_plugin }}/images/report_quota.png" alt="">
                 <div class="tool-title">Reporte de cupones</div>
             </a>
