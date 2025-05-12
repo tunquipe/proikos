@@ -69,9 +69,25 @@ $deleteIcon = Display::return_icon(
 );
 $detalle = $plugin->contratingCompaniesQuotaCabModel()->getDetails($_GET['quota_cab_id']);
 $today = date('Y-m-d');
+$whereClause = "
+    1 = 1
+    AND (
+        display_start_date >= '$today'
+        OR (
+            display_start_date <= '$today'
+            AND (
+                display_end_date IS NULL
+                OR display_end_date >= '$today'
+            )
+        )
+    )
+";
 $activeSessions = SessionManager::getSessionsForAdmin(
     api_get_user_id(),
-    ['where' => " 1 = 1 AND (  display_start_date >= '$today'  ) ", 'extra' => []],
+    [
+        'where' => $whereClause,
+        'extra' => []
+    ],
     false,
     [],
     'all'
