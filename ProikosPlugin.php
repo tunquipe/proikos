@@ -36,6 +36,14 @@ class ProikosPlugin extends Plugin
         self::CATEGORY_ASINCRONO => 'Asincrónico',
         self::CATEGORY_SINCRONO => 'Sincrónico'
     ];
+    const ATTACH_CERTIFICATES = [
+        1 => 'Certificado Inducción',
+        2 => 'Certificado IPERC'
+    ];
+    const ATTACH_CERTIFICATES_FILE_MODE = [
+        1 => 'certificado-induccion',
+        2 => 'certificado-iperc'
+    ];
     const EVENT_ADD_QUOTA = 'add_quota';
     const EVENT_USER_SUBSCRIPTION_TO_COURSE = 'user_subscription_to_course';
 
@@ -2482,6 +2490,29 @@ EOT
         ];
     }
 
+    public function generateDownloadLinkAttachCertificates($userId, $sessionId)
+    {
+        $baseUploadDir = api_get_path(SYS_APP_PATH) . 'upload/proikos_user_documents/';
+        $userSessionDir = $baseUploadDir . $userId . '/' . $sessionId;
+
+        // if directory $userSessionDir exists and is not empty
+        if (is_dir($userSessionDir) && count(scandir($userSessionDir)) > 2) {
+            $downloadUrl = api_get_path(WEB_PATH) . 'plugin/proikos/src/ajax.php?action=download_user_uploaded_documents&user_id=' . $userId
+                . '&session_id=' . $sessionId;
+            $downloadCertUploadedLink = Display::url(
+                Display::return_icon('notebook.gif', get_lang('Descargar Certificados Adjuntos')),
+                $downloadUrl
+            );
+        } else {
+            $downloadCertUploadedLink = Display::url(
+                Display::return_icon('notebook_na.gif', get_lang('Descargar Certificados Adjuntos')),
+                ''
+            );
+        }
+
+        return $downloadCertUploadedLink;
+    }
+
     public function validEmail($email) {
         if (empty($email)) {
             return false;
@@ -2905,5 +2936,45 @@ EOT
         );
 
         return $courseDetailHasError;
+    }
+
+    public function renderModal()
+    {
+        if (!empty($_SESSION['proikos_modal_message'])) {
+            $message = addslashes($_SESSION['proikos_modal_message']);
+            echo <<<HTML
+                <div class="modal fade" id="proikos_modal" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header bg-warning text-dark">
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span aria-hidden="true">&times;</span><span class="sr-only">Cerrar</span>
+                        </button>
+                        <h5 class="modal-title">Advertencia</h5>
+                      </div>
+                      <div class="modal-body">
+                        {$message}
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <script>
+                  window.addEventListener('load', function () {
+                    $('#proikos_modal').modal('show');
+                  });
+                </script>
+HTML;
+
+            unset($_SESSION['proikos_modal_message']);
+        }
+    }
+
+    public function setModalMessage($message)
+    {
+        $_SESSION['proikos_modal_message'] = $message;
     }
 }
