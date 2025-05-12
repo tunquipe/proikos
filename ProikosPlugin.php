@@ -969,7 +969,7 @@ class ProikosPlugin extends Plugin
      * @throws \Doctrine\ORM\NoResultException
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function browseSessions($date = null, $limit = [], $returnQueryBuilder = false, $getCount = false, $code_reference = null, int $categoryID)
+    public function browseSessions($date = null, $limit = [], $returnQueryBuilder = false, $getCount = false, $code_reference = null, $categoryID)
     {
         $urlId = api_get_current_access_url_id();
         $em = Database::getManager();
