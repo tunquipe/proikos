@@ -198,6 +198,12 @@ if($action == 'second'){
                     goto init_form;
                 }
 
+                $numDocValidation = $plugin->validUserDNI($values['number_document']);
+                if (true !== $numDocValidation) {
+                    $form->setElementError('number_document', $numDocValidation);
+                    goto init_form;
+                }
+
                 $values['username'] = api_substr($values['number_document'], 0, USERNAME_MAX_LENGTH);
                 $values['official_code'] = 'PK'.$values['number_document'];
                 if (api_get_setting('allow_registration_as_teacher') === 'false') {

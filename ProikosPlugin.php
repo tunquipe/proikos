@@ -2500,6 +2500,29 @@ EOT
         return 'El correo electrónico ingresado ya existe en el sistema';
     }
 
+    public function validUserDNI($NumDoc)
+    {
+        if (empty($NumDoc)) {
+            return false;
+        }
+
+        $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $sql = "SELECT id FROM $table WHERE number_document = '$NumDoc'";
+        $result = Database::query($sql);
+        $userFound = '';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $userFound = $row['id'];
+            }
+        }
+
+        if (empty($userFound)) {
+            return true;
+        }
+
+        return 'El número de documento ingresado ya existe en el sistema';
+    }
+
     public function contratingCompaniesModel()
     {
         require_once __DIR__ . '/src/model/PluginProikosContratingCompanies.php';
