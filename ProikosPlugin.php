@@ -241,6 +241,7 @@ class ProikosPlugin extends Plugin
           session_category_id INT NOT NULL,
           user_quota INT NOT NULL,
           price_unit DECIMAL(10,2) NULL,
+          session_mode INT,
           created_user_id INT NOT NULL,
           updated_user_id INT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -252,7 +253,9 @@ class ProikosPlugin extends Plugin
             id INT PRIMARY KEY AUTO_INCREMENT,
             det_id INT,
             session_id INT,
-            user_quota INT NOT NULL
+            user_quota INT NOT NULL,
+            created_user_id INT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );";
         Database::query($sql);
 
@@ -263,7 +266,8 @@ class ProikosPlugin extends Plugin
             user_id INT,
             expiration_date DATE,
             created_user_id INT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP
         );";
         Database::query($sql);
 
