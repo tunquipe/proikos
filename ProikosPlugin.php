@@ -25,6 +25,48 @@ class ProikosPlugin extends Plugin
     const TABLE_PROIKOS_COMPANIES = 'plugin_proikos_companies';
     const TABLE_PROIKOS_MANAGERS = 'plugin_proikos_managers';
     const TABLE_PROIKOS_AREA_REF_MANAGEMENT = 'plugin_proikos_area_ref_management';
+    const TABLE_PROIKOS_CONTRATING_COMPANIES = 'plugin_proikos_contrating_companies';
+    const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB = 'plugin_proikos_contrating_companies_quota_cab';
+    const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET = 'plugin_proikos_contrating_companies_quota_det';
+    const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION = 'plugin_proikos_contrating_companies_quota_session';
+    const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET = 'plugin_proikos_contrating_companies_quota_session_det';
+    const CATEGORY_ASINCRONO = 1;
+    const CATEGORY_SINCRONO = 2;
+    const CATEGORY_DESC = [
+        self::CATEGORY_ASINCRONO => 'Asincrónico',
+        self::CATEGORY_SINCRONO => 'Sincrónico'
+    ];
+    const ATTACH_CERTIFICATES = [
+        1 => 'Certificado Inducción',
+        2 => 'Certificado IPERC'
+    ];
+    const ATTACH_CERTIFICATES_FILE_MODE = [
+        1 => 'certificado-induccion',
+        2 => 'certificado-iperc'
+    ];
+
+    const ATTACH_CERTIFICATES_ALTO_RIESGO = [
+        1 => 'Trabajos en Caliente',
+        2 => 'Trabajos en Altura',
+        3 => 'Trabajos con Energías Peligrosas',
+        4 => 'Trabajo en Espacio Confinado',
+        5 => 'Trabajos en Excavaciones',
+        6 => 'Trabajos en Gammagrafía',
+        7 => 'Trabajos de Inmmersión'
+    ];
+
+    const ATTACH_CERTIFICATES_ALTO_RIESGO_FILE_MODE = [
+        1 => 'trabajos-en-caliente',
+        2 => 'trabajos-en-altura',
+        3 => 'trabajos-con-energias-peligrosas',
+        4 => 'trabajo-en-espacio-confinado',
+        5 => 'trabajos-en-excavaciones',
+        6 => 'trabajos-en-gammagrafia',
+        7 => 'trabajos-de-inmmersion'
+    ];
+
+    const EVENT_ADD_QUOTA = 'add_quota';
+    const EVENT_USER_SUBSCRIPTION_TO_COURSE = 'user_subscription_to_course';
 
     protected function __construct()
     {
@@ -77,7 +119,10 @@ class ProikosPlugin extends Plugin
                 'plugin_proikos_managers',
                 'plugin_proikos_position',
                 'plugin_proikos_sector',
-                'plugin_proikos_users'
+                'plugin_proikos_users',
+                self::TABLE_PROIKOS_CONTRATING_COMPANIES,
+                self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB,
+                self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET
             ]
         );
 
@@ -200,6 +245,61 @@ class ProikosPlugin extends Plugin
 
         Database::query($sql);*/
 
+        $sql = "CREATE TABLE IF NOT EXISTS  " . self::TABLE_PROIKOS_CONTRATING_COMPANIES . " (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            ruc VARCHAR(20) UNIQUE NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            status VARCHAR(1) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        );";
+        Database::query($sql);
+
+        $sql = "CREATE TABLE IF NOT EXISTS " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB . " (
+          id INT PRIMARY KEY AUTO_INCREMENT,
+          contrating_company_id INT,
+          created_user_id INT NOT NULL,
+          validity_date DATE NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );";
+        Database::query($sql);
+
+        $sql = "CREATE TABLE IF NOT EXISTS " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET . " (
+          id INT PRIMARY KEY AUTO_INCREMENT,
+          cab_id INT,
+          session_category_id INT NOT NULL,
+          user_quota INT NOT NULL,
+          price_unit DECIMAL(10,2) NULL,
+          session_mode INT,
+          created_user_id INT NOT NULL,
+          updated_user_id INT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        );";
+        Database::query($sql);
+
+        $sql = "CREATE TABLE IF NOT EXISTS " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION . " (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            det_id INT,
+            session_id INT,
+            user_quota INT NOT NULL,
+            created_user_id INT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );";
+        Database::query($sql);
+
+        $sql = "CREATE TABLE IF NOT EXISTS " . self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET . " (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            quota_session_id INT NOT NULL,
+            session_id INT,
+            user_id INT,
+            expiration_date DATE,
+            created_user_id INT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP
+        );";
+        Database::query($sql);
+
     }
 
     public function uninstall()
@@ -243,7 +343,8 @@ class ProikosPlugin extends Plugin
                     'area' => $row['area'],
                     'department' => $row['department'],
                     'headquarters' => $row['headquarters'],
-                    'code_reference' => $row['code_reference']
+                    'code_reference' => $row['code_reference'],
+                    'ruc_company' => $row['ruc_company']
                 ];
             }
         }
@@ -422,6 +523,7 @@ class ProikosPlugin extends Plugin
             return false;
         }
         $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $rucCompany =  $values['ruc_company'];
         $nameCompany =  $values['name_company'];
         $namePosition = self::getPositionName($values['position_company']);
         $nameArea = self::getAreaName($values['area']);
@@ -440,6 +542,7 @@ class ProikosPlugin extends Plugin
             'age' => $values['age'],
             'gender' => $values['gender'],
             'instruction' => $values['instruction'],
+            'ruc_company' => $rucCompany,
             'name_company' => $nameCompany,
             'contact_manager' => $values['contact_manager'],
             'position_company' => $namePosition,
@@ -448,7 +551,8 @@ class ProikosPlugin extends Plugin
             'area' => $nameArea,
             'department' => $nameManagement,
             'headquarters' => $nameHeadquarters,
-            'code_reference' => $values['code_reference']
+            'code_reference' => $values['code_reference'],
+            'terms_conditions' => 1
         ];
         $id = Database::insert($table, $params);
         if ($id > 0) {
@@ -894,7 +998,7 @@ class ProikosPlugin extends Plugin
      * @throws \Doctrine\ORM\NoResultException
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function browseSessions($date = null, $limit = [], $returnQueryBuilder = false, $getCount = false, $code_reference = null, int $categoryID)
+    public function browseSessions($date = null, $limit = [], $returnQueryBuilder = false, $getCount = false, $code_reference = null, $categoryID)
     {
         $urlId = api_get_current_access_url_id();
         $em = Database::getManager();
@@ -946,6 +1050,11 @@ class ProikosPlugin extends Plugin
                 )
             );
         }
+
+        // only asincronico / sincronico
+        $qb->andWhere(
+            $qb->expr()->between('s.sessionMode', 1, 2)
+        );
 
         if ($getCount) {
             $qb->select('count(s)');
@@ -2223,5 +2332,708 @@ class ProikosPlugin extends Plugin
             }
         }
         return $list;
+    }
+
+    public function getUsers() {
+        $sql = "SELECT * FROM plugin_proikos_users";
+        $result = Database::query($sql);
+        $list = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $action = Display::url(
+                    Display::return_icon(
+                        'visible.png',
+                        null,
+                        [],
+                        ICON_SIZE_SMALL),
+                    api_get_path(WEB_PLUGIN_PATH)
+                );
+                $action .= Display::url(
+                    Display::return_icon(
+                        'lp.png',
+                        '',
+                        [],
+                        ICON_SIZE_SMALL
+                    ),
+                    api_get_path(WEB_PLUGIN_PATH)
+                );
+
+                $list[] = [
+                    'id' => $row['user_id'],
+                    'name' => $row['firstname'] . ' ' . $row['lastname'],
+                    'email' => $row['email'],
+                    'phone' => $row['phone'],
+                    'ruc' => $row['ruc_company'],
+                    'company' => $row['name_company'],
+                    'actions' => $action
+                ];
+            }
+        }
+
+        return $list;
+    }
+
+    public function getSpecificCourseFeature() {
+        $coursesTarget = ['PTRA'];
+        $courseInTarget = (isset($_GET['c']) && in_array($_GET['c'], $coursesTarget)) ||
+            (isset($_GET['cidReq']) && in_array($_GET['cidReq'], $coursesTarget));
+        $requireUploadMapFiles = !empty($_POST) && (
+                empty($_FILES['user_attachment_cert_ext']['tmp_name']) ||
+                empty($_FILES['user_attachment_dj']['tmp_name'])
+            );
+        $documentMap = [
+            'user_attachment_cert_ext' => 'certificado_externo',
+            'user_attachment_dj'       => 'declaracion_jurada'
+        ];
+
+        return (object)[
+            'courses_target' => $coursesTarget,
+            'course_in_target' => $courseInTarget,
+            'require_upload_map_files' => $requireUploadMapFiles,
+            'document_map' => $documentMap,
+            'validate_upload' => function () use ($courseInTarget, $requireUploadMapFiles) {
+                if ($courseInTarget && $requireUploadMapFiles) {
+                    return (
+                        '<div class="form-group alert alert-danger" role="alert" style="grid-column: span 2;">'.
+                        'Adjutar los documentos requeridos para la inscripción'
+                        .'</div>'
+                    );
+                }
+
+                return '';
+            },
+            'upload_buttons_ui' => function() use ($courseInTarget) {
+                if (!$courseInTarget) {
+                    return '';
+                }
+
+                return (
+                <<<EOT
+                    <br>
+                    <div class="form-group">
+                        <label for="user_attachment_cert_ext">Adjuntar certificado externo</label>
+                        <input type="file" name="user_attachment_cert_ext" id="user_attachment_cert_ext" class="form-control input_user_attachment" style="display: none;" />
+                        <button class="btn btn-default form-control user_attachment_doc" data-input="user_attachment_cert_ext" type="button">
+                            <em class="fa fa-paperclip"></em> Cargar archivo
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="user_attachment_dj">Adjuntar declaración jurada</label>
+                        <input type="file" name="user_attachment_dj" id="user_attachment_dj" class="form-control input_user_attachment" style="display: none;" />
+                        <button class="btn btn-default form-control user_attachment_doc" data-input="user_attachment_dj" type="button">
+                            <em class="fa fa-paperclip"></em> Cargar archivo
+                        </button>
+                    </div>
+
+                    <script>
+                        $(function () {
+                            const \$btnAdd = $('.user_attachment_doc');
+                            const \$input = $('.input_user_attachment');
+
+                            \$btnAdd.on('click', function (e) {
+                                e.preventDefault();
+                                const inputId = $(this).data('input');
+                                const \$inputRef = $('#' + inputId);
+                                \$inputRef.click();
+                            });
+
+                            \$input.on('change', function (e) {
+                                const name = $(this).attr('name');
+                                const fileName = e.target?.files[0]?.name;
+                                const \$btnAddRef = $('.user_attachment_doc[data-input="' + name + '"]');
+                                if (fileName) {
+                                    \$btnAddRef.html('<em class="fa fa-paperclip"></em> ' + fileName);
+                                } else {
+                                    \$btnAddRef.html('<em class="fa fa-paperclip"></em> Cargar archivo');
+                                }
+                            });
+                        });
+                    </script>
+EOT
+                );
+            },
+            'save_files' => function($user_id) use ($documentMap, $courseInTarget) {
+                if (!$courseInTarget) {
+                    return false;
+                }
+
+                $courseCode = $_GET['c'] ?? $_GET['cidReq'];
+                $baseUploadDir = api_get_path(SYS_APP_PATH) . 'upload/proikos_user_documents/';
+                $userCourseDir = $baseUploadDir . $user_id . '/' . $courseCode . '/';
+
+                if (!file_exists($userCourseDir)) {
+                    mkdir($userCourseDir, 0775, true);
+                }
+
+                foreach ($documentMap as $inputName => $documentName) {
+                    if (!empty($_FILES[$inputName]['tmp_name']) && $_FILES[$inputName]['error'] === UPLOAD_ERR_OK) {
+                        $originalName = basename($_FILES[$inputName]['name']);
+                        $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+                        $fileName = $documentName . '.' . $extension;
+                        $destination = $userCourseDir . $fileName;
+                        move_uploaded_file($_FILES[$inputName]['tmp_name'], $destination);
+                    }
+                }
+
+                return true;
+            },
+            'get_actions' => function($user_id) use ($courseInTarget) {
+                if (!$courseInTarget) {
+                    return '';
+                }
+
+                $courseCode = $_GET['c'] ?? $_GET['cidReq'];
+                $downloadCertificadoExternoButton = '';
+                $downloadDJButton = '';
+                $baseUploadDir = api_get_path(SYS_APP_PATH) . 'upload/proikos_user_documents/';
+                $userCourseDir = $baseUploadDir . $user_id . '/' . $courseCode;
+                $userCertificadoExterno = $userCourseDir . '/certificado_externo.*';
+                $userDeclaracionJurada = $userCourseDir . '/declaracion_jurada.*';
+
+                if (!empty(glob($userCertificadoExterno))) {
+                    $downloadLink = glob($userCertificadoExterno)[0];
+                    $filename = basename($downloadLink);
+                    $downloadUrl = api_get_path(WEB_PATH) . 'plugin/proikos/src/ajax.php?action=download_user_uploaded_documents&user_id=' . $user_id
+                        . '&course_code=' . urlencode($courseCode)
+                        . '&filename=' . urlencode($filename);
+                    $downloadCertificadoExternoButton = '<a class="btn btn-small btn-default" style="margin-left: 8px;" href="' . $downloadUrl . '">'.
+                        get_lang("Certificado Externo").'</a>';
+                }
+
+                if (!empty(glob($userDeclaracionJurada))) {
+                    $downloadLink = glob($userDeclaracionJurada)[0];
+                    $filename = basename($downloadLink);
+                    $downloadUrl = api_get_path(WEB_PATH) . 'plugin/proikos/src/ajax.php?action=download_user_uploaded_documents&user_id=' . $user_id
+                        . '&course_code=' . urlencode($courseCode)
+                        . '&filename=' . urlencode($filename);
+                    $downloadDJButton = '<a class="btn btn-small btn-default" style="margin-left: 8px;" href="' . $downloadUrl . '">'.
+                        get_lang("Declaración Jurada").'</a>';
+                }
+
+                return $downloadCertificadoExternoButton . $downloadDJButton;
+            }
+        ];
+    }
+
+    public function generateDownloadLinkAttachCertificates($userId, $userFullName, $sessionId)
+    {
+        $baseUploadDir = api_get_path(SYS_APP_PATH) . 'upload/proikos_user_documents/';
+        $userSessionDir = $baseUploadDir . $userId . '/' . $sessionId;
+
+        // if directory $userSessionDir exists and is not empty
+        if (is_dir($userSessionDir) && count(scandir($userSessionDir)) > 2) {
+            $downloadUrl = api_get_path(WEB_PATH) . 'plugin/proikos/src/ajax.php?action=download_user_uploaded_documents&user_id=' . $userId
+                . '&session_id=' . $sessionId . '&user_full_name=' . urlencode($userFullName);
+            $downloadCertUploadedLink = Display::url(
+                Display::return_icon('notebook.gif', get_lang('Descargar Certificados Adjuntos')),
+                $downloadUrl
+            );
+        } else {
+            $downloadCertUploadedLink = Display::url(
+                Display::return_icon('notebook_na.gif', get_lang('Descargar Certificados Adjuntos')),
+                ''
+            );
+        }
+
+        return $downloadCertUploadedLink;
+    }
+
+    public function validEmail($email) {
+        if (empty($email)) {
+            return false;
+        }
+
+        $table = Database::get_main_table(TABLE_MAIN_USER);
+        $sql = "SELECT email FROM $table WHERE email = '$email'";
+        $result = Database::query($sql);
+        $emailFound = '';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $emailFound = $row['email'];
+            }
+        }
+
+        if (empty($emailFound)) {
+            return true;
+        }
+
+        return 'El correo electrónico ingresado ya existe en el sistema';
+    }
+
+    public function validUserDNI($NumDoc)
+    {
+        if (empty($NumDoc)) {
+            return false;
+        }
+
+        $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $sql = "SELECT id FROM $table WHERE number_document = '$NumDoc'";
+        $result = Database::query($sql);
+        $userFound = '';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $userFound = $row['id'];
+            }
+        }
+
+        if (empty($userFound)) {
+            return true;
+        }
+
+        return 'El número de documento ingresado ya existe en el sistema';
+    }
+
+    public function contratingCompaniesModel()
+    {
+        require_once __DIR__ . '/src/model/PluginProikosContratingCompanies.php';
+
+        return (new PluginProikosContratingCompanies(
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES,
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB,
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET
+        ));
+    }
+
+    public function contratingCompaniesQuotaCabModel()
+    {
+        require_once __DIR__ . '/src/model/PluginProikosContratingCompaniesQuotaCab.php';
+
+        return (new PluginProikosContratingCompaniesQuotaCab(
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB,
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET,
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION,
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET,
+            self::CATEGORY_DESC
+        ));
+    }
+
+    public function contratingCompaniesQuotaDetModel()
+    {
+        require_once __DIR__ . '/src/model/PluginProikosContratingCompaniesQuotaDet.php';
+
+        return (new PluginProikosContratingCompaniesQuotaDet(
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET
+        ));
+    }
+
+    public function contratingCompaniesQuotaSessionModel()
+    {
+        require_once __DIR__ . '/src/model/PluginProikosContratingCompaniesQuotaSession.php';
+
+        return (new PluginProikosContratingCompaniesQuotaSession(
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION,
+            self::CATEGORY_DESC
+        ));
+    }
+
+    public function contratingCompaniesQuotaSessionDetModel()
+    {
+        require_once __DIR__ . '/src/model/PluginProikosContratingCompaniesQuotaSessionDet.php';
+
+        return (new PluginProikosContratingCompaniesQuotaSessionDet(
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET,
+            self::TABLE_PROIKOS_USERS
+        ));
+    }
+
+    public function getCRUDQuotaDet(FormValidator $form, $defaultCourseDetail = [], $disableActions = false)
+    {
+        $disableActions = $disableActions ? 1 : 0;
+
+        $sessionModes = [
+            '0' => $this->get_lang('Mode'),
+            '1' => self::CATEGORY_DESC[self::CATEGORY_ASINCRONO],
+            '2' => self::CATEGORY_DESC[self::CATEGORY_SINCRONO]
+        ];
+        $sessionModes = json_encode($sessionModes);
+
+        $sessionCategories = [
+            '0' => $this->get_lang('SelectSessionCategory'),
+        ];
+        $allSessionCategory = SessionManager::get_all_session_category();
+        if (!empty($allSessionCategory)) {
+            foreach ($allSessionCategory as $category) {
+                $sessionCategories[$category['id']] = $category['name'];
+            }
+        }
+        $sessionCategories = json_encode($sessionCategories);
+
+        $deleteIcon = Display::return_icon(
+            'delete.png',
+            get_lang('Delete'),
+            [],
+            ICON_SIZE_SMALL
+        );
+
+        $defaultIndex = 0;
+        $courseDetailHasError = false;
+        $courseDetailHasErrorClass = '';
+        $courseDetailErrorMessage = '';
+
+        if ($form->isSubmitted()) {
+            $formValues = $form->getSubmitValues();
+            $defaultCourseDetail = $formValues['course_detail'] ?? [];
+
+            if (empty($defaultCourseDetail)) {
+                $courseDetailHasError = true;
+                $courseDetailHasErrorClass = 'has-error';
+                $courseDetailErrorMessage = $this->get_lang('CoursesConfigurationRequired');
+            } else {
+                foreach ($defaultCourseDetail as $key => $value) {
+                    if (empty($value['session_mode']) || empty($value['session_category_id']) || (empty($value['quota']) && $value['quota'] != 0) || $value['quota'] < 0) {
+                        $courseDetailHasError = true;
+                    }
+                }
+
+                if ($courseDetailHasError) {
+                    $courseDetailHasErrorClass = 'has-error';
+                    $courseDetailErrorMessage = $this->get_lang('CoursesConfigurationPleaseCompleteAllFields');
+                }
+            }
+        }
+
+        if (!empty($defaultCourseDetail)) {
+            foreach ($defaultCourseDetail as $key => $value) {
+                if ($key > $defaultIndex) {
+                    $defaultIndex = $key;
+                }
+            }
+
+            if ($defaultIndex >= 0) {
+                $defaultIndex += 1;
+            }
+        }
+
+        $defaultCourseDetail = json_encode($defaultCourseDetail);
+
+        $form->addHtml(
+            <<<EOT
+    <div class="form-group {$courseDetailHasErrorClass}">
+        <label for="configure_courses" class="col-sm-2 control-label">
+            <span class="form_required">*</span>
+            Configurar Cupos
+        </label>
+        <div class="col-sm-8">
+            <div class="card">
+                <table class="table table-striped" style="margin-bottom: 0px;">
+                    <thead>
+                        <tr>
+                            <th>{$this->get_lang('Mode')}</th>
+                            <th>{$this->get_lang('SessionCategory')}</th>
+                            <th class="text-center">{$this->get_lang('PriceUnitAbr')}</th>
+                            <th class="text-center">{$this->get_lang('ContratingCompanyUserQuota')}</th>
+                            <th style="text-align: center;">
+                                <button type="button" class="btn btn-primary" id="add_course_session">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="course-detail-container">
+                    </tbody>
+                    <tfoot style="display: none;">
+                        <tr>
+                            <td colspan="3" style="text-align: right;">
+                                <label for="total_quota" class="control-label">
+                                    Total Nº Cupos
+                                </label>
+                            </td>
+                            <td>
+                                <input type="number" name="total_quota" id="total_quota" readonly class="form-control text-right">
+                            </td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="text-align: right;">
+                                <label for="total_quota" class="control-label">
+                                    {$this->get_lang('ContratingCompanyUserQuotaTotalPrice')}
+                                </label>
+                            </td>
+                            <td>
+                                 <input type="text" name="total_price" id="total_price" readonly class="form-control text-right">
+                            </td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <span class="help-inline help-block">{$courseDetailErrorMessage}</span>
+        </div>
+        <div class="col-sm-2"></div>
+    </div>
+    <script>
+        let disableActions = {$disableActions};
+        let index = {$defaultIndex};
+        const sessionCategories = JSON.parse('{$sessionCategories}');
+        const sessionModes = JSON.parse('{$sessionModes}');
+        const plusButton = document.getElementById('add_course_session');
+        if (1 == disableActions) {
+            plusButton.style.display = 'none';
+        }
+
+        function addNewRow(itemIndex = null, itemSessionMode = null, itemType = null, itemQuota = null, id = null, itemPriceUnitQuota = null) {
+            const tableBody = document.getElementById('course-detail-container');
+            const newRow = document.createElement('tr');
+            itemIndex = itemIndex === null ? index : itemIndex;
+
+            // ----- Create the select element for session mode -----
+            const sessionModeSelect = document.createElement('select');
+            sessionModeSelect.name = 'course_detail[' + itemIndex + '][session_mode]';
+            sessionModeSelect.className = 'form-control';
+            sessionModeSelect.dataset.index = itemIndex;
+            for (const [value, text] of Object.entries(sessionModes)) {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = text;
+                sessionModeSelect.appendChild(option);
+            }
+
+            // ----- Create the select element for session Category -----
+            const sessionCategoriesSelect = document.createElement('select');
+            sessionCategoriesSelect.name = 'course_detail[' + itemIndex + '][session_category_id]';
+            sessionCategoriesSelect.className = 'form-control';
+            sessionCategoriesSelect.dataset.index = itemIndex;
+            for (const [value, text] of Object.entries(sessionCategories)) {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = text;
+                sessionCategoriesSelect.appendChild(option);
+            }
+
+            const inputIdHidden = id !== null ? (`<input type="hidden" name="course_detail[` + itemIndex + `][id]" value="` + id + `">`) : ``;
+
+            newRow.innerHTML = `
+                <td>
+                    ` + sessionModeSelect.outerHTML + `
+                </td>
+                <td>
+                    ` + sessionCategoriesSelect.outerHTML + `
+                </td>
+                <td>
+                    ` + inputIdHidden  + `
+                    <input type="number" name="course_detail[` + itemIndex + `][price_unit]" id="price_unit" class="form-control text-right">
+                </td>
+                <td>
+                    <input type="number" name="course_detail[` + itemIndex + `][quota]" id="quota" class="form-control text-right">
+                </td>
+                <td style="text-align: center;">
+                    <a href="javascript:void(0);" id="remove_item_` + itemIndex + `">
+                        {$deleteIcon}
+                    </a>
+                </td>`;
+            tableBody.appendChild(newRow);
+
+            // N. Quota
+            const quotaInput = newRow.querySelector('input[name="course_detail[' + itemIndex + '][quota]"]');
+            quotaInput.addEventListener('input', function() {
+                updateTotalQuota();
+                updateTotalPriceUnitQuota();
+            });
+
+            if (itemQuota != null) {
+                quotaInput.value = itemQuota;
+                quotaInput.dispatchEvent(new Event('input'));
+            }
+
+            // Price Quota
+            const priceUnitQuotaInput = newRow.querySelector('input[name="course_detail[' + itemIndex + '][price_unit]"]');
+            priceUnitQuotaInput.addEventListener('input', function() {
+                updateTotalPriceUnitQuota();
+            });
+
+            if (itemPriceUnitQuota != null) {
+                priceUnitQuotaInput.value = itemPriceUnitQuota;
+                priceUnitQuotaInput.dispatchEvent(new Event('input'));
+            }
+
+            const deleteButton = newRow.querySelector('a[id="remove_item_' + itemIndex + '"]');
+            deleteButton.addEventListener('click', function() {
+                tableBody.removeChild(newRow);
+                updateTotalQuota();
+                updateTotalPriceUnitQuota();
+            });
+
+            const sessionModeSelectElement = newRow.querySelector('select[name="course_detail[' + itemIndex + '][session_mode]"]');
+            $(sessionModeSelectElement).selectpicker({
+                width: '120px',
+                liveSearch: true
+            });
+
+            if (itemSessionMode != null) {
+                sessionModeSelectElement.value = itemSessionMode;
+                sessionModeSelectElement.dispatchEvent(new Event('change'));
+            }
+
+            const sessionCategorySelectElement = newRow.querySelector('select[name="course_detail[' + itemIndex + '][session_category_id]"]');
+            $(sessionCategorySelectElement).selectpicker({
+                width: '300px',
+                liveSearch: true
+            });
+
+            if (itemType != null) {
+                sessionCategorySelectElement.value = itemType;
+                sessionCategorySelectElement.dispatchEvent(new Event('change'));
+            }
+
+            if (1 == disableActions) {
+                deleteButton.style.display = 'none';
+                priceUnitQuotaInput.disabled = true;
+                quotaInput.disabled = true;
+                $(sessionCategorySelectElement).prop("disabled", true);
+                $(sessionCategorySelectElement).selectpicker('refresh');
+                $(sessionModeSelectElement).prop("disabled", true);
+                $(sessionModeSelectElement).selectpicker('refresh');
+            }
+        }
+
+        function updateTotalQuota() {
+            const quotaInputs = document.querySelectorAll('input[name^="course_detail["][name$="[quota]"]');
+            let totalQuota = 0;
+            quotaInputs.forEach(input => {
+                const quotaValue = parseInt(input.value) || 0;
+                totalQuota += quotaValue;
+            });
+            document.getElementById('total_quota').value = totalQuota;
+
+            if (totalQuota > 0) {
+                document.querySelector('tfoot').style.display = 'table-row-group';
+            } else {
+                document.querySelector('tfoot').style.display = 'none';
+            }
+        }
+
+        function updateTotalPriceUnitQuota() {
+            const inputs = document.querySelectorAll('input[name^="course_detail"]');
+            const courseData = {};
+
+            inputs.forEach(input => {
+                const match = input.name.match(/course_detail\[(\d+)]\[(\w+)]/);
+                if (match) {
+                    const index = match[1];
+                    const key = match[2];
+
+                    if (!courseData[index]) {
+                        courseData[index] = {};
+                    }
+
+                    courseData[index][key] = parseFloat(input.value) || 0;
+                }
+            });
+
+            let total = 0;
+            for (const key in courseData) {
+                const price_unit = courseData[key].price_unit || 0;
+                const quota = courseData[key].quota || 0;
+                total += price_unit * quota;
+            }
+
+            const totalFormatted = new Intl.NumberFormat('es-PE', {
+                style: 'currency',
+                currency: 'PEN'
+              }).format(total);
+
+            document.getElementById('total_price').value = totalFormatted;
+        }
+
+        if (plusButton) {
+            plusButton.addEventListener('click', function() {
+                addNewRow();
+                index++;
+            });
+        }
+
+        // Add initial row if needed
+        let defaultCourseDetail = JSON.parse('{$defaultCourseDetail}');
+        if (defaultCourseDetail && Object.keys(defaultCourseDetail)?.length > 0) {
+            for (const [key, value] of Object.entries(defaultCourseDetail)) {
+                addNewRow(parseInt(key), value.session_mode, value.session_category_id, value.quota, value.id, value.price_unit);
+            }
+        }
+
+        if (Object.keys(defaultCourseDetail)?.length === 0) {
+            // attach event
+            if (plusButton) {
+                plusButton.dispatchEvent(new Event('click'));
+            }
+        }
+    </script>
+EOT
+        );
+
+        return $courseDetailHasError;
+    }
+
+    public function renderModal()
+    {
+        if (!empty($_SESSION['proikos_modal_message'])) {
+            $message = addslashes($_SESSION['proikos_modal_message']);
+            $img = api_get_path(WEB_PLUGIN_PATH).'proikos/images/company-without-quotas.png';
+            echo <<<HTML
+                <style>
+                    .modal-backdrop-custom {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, 0.6);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 1000;
+                    }
+
+                    #imageModal img {
+                        width: 500px;
+                        max-width: 100%;
+                        max-height: 100%;
+                        display: block;
+                    }
+                </style>
+                <div id="imageModal" class="modal-backdrop-custom">
+                    <img src="$img" alt="Imagen" />
+                </div>
+                <script>
+                    document.getElementById('imageModal').addEventListener('click', function () {
+                        this.style.display = 'none';
+                    });
+                </script>
+HTML;
+
+            unset($_SESSION['proikos_modal_message']);
+        }
+    }
+
+    public function setModalMessage($message)
+    {
+        $_SESSION['proikos_modal_message'] = $message;
+    }
+
+    public function updateUserMetadata($userId, $metadata)
+    {
+        // convert metadata to JSON
+        $metadataJson = json_encode($metadata);
+
+        // get the old metadata and merge with the new one
+        $sql = "SELECT metadata FROM ".Database::get_main_table(self::TABLE_PROIKOS_USERS)." WHERE user_id = $userId";
+        $result = Database::query($sql);
+        if (Database::num_rows($result) > 0) {
+            $row = Database::fetch_array($result);
+
+            $mergedMetadata = $metadata;
+            if (!empty($row['metadata']) && $row['metadata'] != 'null') {
+                $oldMetadata = json_decode($row['metadata'], true);
+                $mergedMetadata = array_merge($oldMetadata, $metadata);
+            }
+
+            $metadataJson = json_encode($mergedMetadata);
+        }
+
+        // update the metadata in the database
+        $sql = "UPDATE ".Database::get_main_table(self::TABLE_PROIKOS_USERS)." SET metadata = '$metadataJson' WHERE user_id = $userId";
+        Database::query($sql);
     }
 }
