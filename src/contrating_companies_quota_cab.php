@@ -64,17 +64,16 @@ $form->addText('company_total_user_quota', $plugin->get_lang('CompanyTotalUserQu
 ]);
 
 $courseDetailHasError = $plugin->getCRUDQuotaDet($form);
-$form->addElement('date_picker', 'validity_date', $plugin->get_lang('Validity'), [
-    'value' => date('Y-m-d', strtotime('+6 months'))
-]);
-$form->addRule('validity_date', $plugin->get_lang('ValidityRequired'), 'required');
-
 $form->addElement('select', 'validity_select', '', [
     '+3 months' => '3 meses',
     '+6 months' => '6 meses',
     '+1 year' => '1 año',
     '+2 years' => '2 años',
 ]);
+$form->addElement('date_picker', 'validity_date', $plugin->get_lang('Validity'), [
+    'value' => date('Y-m-d', strtotime('+6 months'))
+]);
+$form->addRule('validity_date', $plugin->get_lang('ValidityRequired'), 'required');
 
 // set default value to validity_select
 $form->setDefaults([
