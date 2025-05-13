@@ -22,18 +22,9 @@ $title = isset($_GET['action']) && $_GET['action'] === 'register' ?
 if($action == 'second'){
             $entitySelect = $_POST['entity'];
             $picture = $plugin->getPictureEntity($entitySelect);
-            $SpecificCourseFeature = $plugin->getSpecificCourseFeature();
             $formAction = api_get_self().'?action='.Security::remove_XSS('register');
             $formAttributes = [];
-            if ($SpecificCourseFeature->course_in_target) {
-                $formAction = api_get_self() . '?' . 'action='.Security::remove_XSS('register') .'&c=' . Security::remove_XSS($_GET['c']) . '&e=' . Security::remove_XSS($_GET['e']);
-                $formAttributes = [
-                    'enctype' => 'multipart/form-data',
-                ];
-            }
-
             $form = new FormValidator('registration-two', 'post', $formAction, '', $formAttributes, FormValidator::LAYOUT_INLINE);
-            $form->addHtml(($SpecificCourseFeature->validate_upload)());
             $form->addHtml('<div class="panel panel-default">
                     <div class="panel-heading panel-user">
                         <h3 class="panel-title">' . $plugin->get_lang('PersonalInformation') . '</h3>
@@ -134,7 +125,6 @@ if($action == 'second'){
             $areaSelect = $form->addSelect('area', $plugin->get_lang('Sede'), $area);
             $form->setRequired($areaSelect);
             $form->addHtml('</div>');
-            $form->addHtml(($SpecificCourseFeature->upload_buttons_ui)());
 
             //$departments = $plugin->getPetroManagement();
             //$departmentsSelect = $form->addSelect('department', [$plugin->get_lang('Department')], $departments);
@@ -188,9 +178,6 @@ if($action == 'second'){
 
             if ($form->validate()) {
                 $values = $form->getSubmitValues(1);
-                if ($SpecificCourseFeature->course_in_target && $SpecificCourseFeature->require_upload_map_files) {
-                    goto init_form;
-                }
 
                 $emailValidation = $plugin->validEmail($values['email']);
                 if (true !== $emailValidation) {
@@ -259,7 +246,6 @@ if($action == 'second'){
                 if ($user_id) {
                     $values['user_id'] = $user_id;
                     $plugin->saveInfoUserProikos($values);
-                    ($SpecificCourseFeature->save_files)($user_id);
                 }
 
                 /* SESSION REGISTERING */
