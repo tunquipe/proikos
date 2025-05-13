@@ -1051,6 +1051,11 @@ class ProikosPlugin extends Plugin
             );
         }
 
+        // only asincronico / sincronico
+        $qb->andWhere(
+            $qb->expr()->between('s.sessionMode', 1, 2)
+        );
+
         if ($getCount) {
             $qb->select('count(s)');
         }
