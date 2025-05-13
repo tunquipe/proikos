@@ -2970,30 +2970,36 @@ EOT
     {
         if (!empty($_SESSION['proikos_modal_message'])) {
             $message = addslashes($_SESSION['proikos_modal_message']);
+            $img = api_get_path(WEB_PLUGIN_PATH).'proikos/images/company-without-quotas.png';
             echo <<<HTML
-                <div class="modal fade" id="proikos_modal" tabindex="-1" aria-hidden="true">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header bg-warning text-dark">
-                        <button type="button" class="close" data-dismiss="modal">
-                            <span aria-hidden="true">&times;</span><span class="sr-only">Cerrar</span>
-                        </button>
-                        <h5 class="modal-title">Advertencia</h5>
-                      </div>
-                      <div class="modal-body">
-                        {$message}
-                      </div>
-                      <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <style>
+                    .modal-backdrop-custom {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, 0.6);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 1000;
+                    }
 
+                    #imageModal img {
+                        width: 500px;
+                        max-width: 100%;
+                        max-height: 100%;
+                        display: block;
+                    }
+                </style>
+                <div id="imageModal" class="modal-backdrop-custom">
+                    <img src="$img" alt="Imagen" />
+                </div>
                 <script>
-                  window.addEventListener('load', function () {
-                    $('#proikos_modal').modal('show');
-                  });
+                    document.getElementById('imageModal').addEventListener('click', function () {
+                        this.style.display = 'none';
+                    });
                 </script>
 HTML;
 
