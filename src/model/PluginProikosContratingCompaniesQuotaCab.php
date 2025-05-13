@@ -132,6 +132,15 @@ class PluginProikosContratingCompaniesQuotaCab
             a.contrating_company_id,
             (SELECT SUM(user_quota) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) AS total_user_quota,
             (SELECT CONCAT('S/ ', FORMAT(SUM(price_unit * user_quota), 2)) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) AS total_price_unit_quota,
+            (
+                 SELECT GROUP_CONCAT(DISTINCT
+                 CASE session_mode
+                   WHEN 1 THEN 'Asincrónico'
+                   WHEN 2 THEN 'Sincrónico'
+                 END
+                 ORDER BY session_mode SEPARATOR ', ') AS modalidades
+                 FROM plugin_proikos_contrating_companies_quota_det where cab_id = a.id
+            ) AS modalidades,
             DATE_FORMAT(a.validity_date, '%d-%m-%Y') AS formatted_validity_date,
             DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
             CONCAT(b.lastname, ' ', b.firstname) AS user_name
