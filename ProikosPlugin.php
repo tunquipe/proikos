@@ -44,6 +44,27 @@ class ProikosPlugin extends Plugin
         1 => 'certificado-induccion',
         2 => 'certificado-iperc'
     ];
+
+    const ATTACH_CERTIFICATES_ALTO_RIESGO = [
+        1 => 'Trabajos en Caliente',
+        2 => 'Trabajos en Altura',
+        3 => 'Trabajos con Energías Peligrosas',
+        4 => 'Trabajo en Espacio Confinado',
+        5 => 'Trabajos en Excavaciones',
+        6 => 'Trabajos en Gammagrafía',
+        7 => 'Trabajos de Inmmersión'
+    ];
+
+    const ATTACH_CERTIFICATES_ALTO_RIESGO_FILE_MODE = [
+        1 => 'trabajos-en-caliente',
+        2 => 'trabajos-en-altura',
+        3 => 'trabajos-con-energias-peligrosas',
+        4 => 'trabajo-en-espacio-confinado',
+        5 => 'trabajos-en-excavaciones',
+        6 => 'trabajos-en-gammagrafia',
+        7 => 'trabajos-de-inmmersion'
+    ];
+
     const EVENT_ADD_QUOTA = 'add_quota';
     const EVENT_USER_SUBSCRIPTION_TO_COURSE = 'user_subscription_to_course';
 
@@ -2976,5 +2997,30 @@ HTML;
     public function setModalMessage($message)
     {
         $_SESSION['proikos_modal_message'] = $message;
+    }
+
+    public function updateUserMetadata($userId, $metadata)
+    {
+        // convert metadata to JSON
+        $metadataJson = json_encode($metadata);
+
+        // get the old metadata and merge with the new one
+        $sql = "SELECT metadata FROM ".Database::get_main_table(self::TABLE_PROIKOS_USERS)." WHERE user_id = $userId";
+        $result = Database::query($sql);
+        if (Database::num_rows($result) > 0) {
+            $row = Database::fetch_array($result);
+
+            $mergedMetadata = $metadata;
+            if (!empty($row['metadata']) && $row['metadata'] != 'null') {
+                $oldMetadata = json_decode($row['metadata'], true);
+                $mergedMetadata = array_merge($oldMetadata, $metadata);
+            }
+
+            $metadataJson = json_encode($mergedMetadata);
+        }
+
+        // update the metadata in the database
+        $sql = "UPDATE ".Database::get_main_table(self::TABLE_PROIKOS_USERS)." SET metadata = '$metadataJson' WHERE user_id = $userId";
+        Database::query($sql);
     }
 }

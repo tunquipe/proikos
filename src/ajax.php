@@ -249,8 +249,11 @@ if ($action) {
                 mkdir($userCourseDir, 0775, true);
             }
 
-            $documentMap = $plugin::ATTACH_CERTIFICATES_FILE_MODE;
-            foreach ($documentMap as $inputName => $documentName) {
+            $userData = [
+                'attachments' => [],
+            ];
+            $documentMapAttachCertificates = $plugin::ATTACH_CERTIFICATES_FILE_MODE;
+            foreach ($documentMapAttachCertificates as $inputName => $documentName) {
                 $uploadedFile = $_FILES['certificate_' . $inputName];
                 if (!empty($uploadedFile) && !empty($uploadedFile['tmp_name']) && $uploadedFile['error'] === UPLOAD_ERR_OK) {
                     $originalName = basename($uploadedFile['name']);
@@ -266,9 +269,46 @@ if ($action) {
                         }
                     }
 
+                    $userData['attachments'][] = [
+                        'session_id' => $sessionId,
+                        'request_attach_certificates' => [
+                            $inputName => $plugin::ATTACH_CERTIFICATES[$inputName],
+                        ],
+                    ];
+
                     move_uploaded_file($uploadedFile['tmp_name'], $destination);
                 }
             }
+
+            $documentMapAttachCertificatesAltoRiesgo = $plugin::ATTACH_CERTIFICATES_ALTO_RIESGO_FILE_MODE;
+            foreach ($documentMapAttachCertificatesAltoRiesgo as $inputName => $documentName) {
+                $uploadedFile = $_FILES['optional_certificate_' . $inputName];
+                if (!empty($uploadedFile) && !empty($uploadedFile['tmp_name']) && $uploadedFile['error'] === UPLOAD_ERR_OK) {
+                    $originalName = basename($uploadedFile['name']);
+                    $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+                    $fileName = $documentName . '.' . $extension;
+                    $destination = $userCourseDir . $fileName;
+
+                    // remove all files with the same name
+                    $files = glob($userCourseDir . $documentName . '.*');
+                    foreach ($files as $file) {
+                        if (is_file($file)) {
+                            unlink($file);
+                        }
+                    }
+
+                    $userData['attachments'][] = [
+                        'session_id' => $sessionId,
+                        'optional_request_attach_certificates' => [
+                            $inputName => $plugin::ATTACH_CERTIFICATES_ALTO_RIESGO[$inputName],
+                        ],
+                    ];
+
+                    move_uploaded_file($uploadedFile['tmp_name'], $destination);
+                }
+            }
+
+            $plugin->updateUserMetadata($userId, $userData);
 
             $response = [
                 'success' => true,
