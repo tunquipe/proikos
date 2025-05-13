@@ -2602,6 +2602,8 @@ EOT
         return (new PluginProikosContratingCompaniesQuotaCab(
             self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB,
             self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET,
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION,
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET,
             self::CATEGORY_DESC
         ));
     }

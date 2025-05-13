@@ -4,12 +4,17 @@ class PluginProikosContratingCompaniesQuotaCab
 {
     private $table;
     private $contratingCompaniesQuotaDet;
+    private $contratingCompaniesQuotaSession;
+    private $contratingCompaniesQuotaSessionDet;
     private $sessionModes;
 
-    public function __construct($table, $contratingCompaniesQuotaDet, $sessionModes)
+    public function __construct($table, $contratingCompaniesQuotaDet, $contratingCompaniesQuotaSession,
+                                $contratingCompaniesQuotaSessionDet, $sessionModes)
     {
         $this->table = $table;
         $this->contratingCompaniesQuotaDet = $contratingCompaniesQuotaDet;
+        $this->contratingCompaniesQuotaSession = $contratingCompaniesQuotaSession;
+        $this->contratingCompaniesQuotaSessionDet = $contratingCompaniesQuotaSessionDet;
         $this->sessionModes = $sessionModes;
     }
 
@@ -189,6 +194,42 @@ class PluginProikosContratingCompaniesQuotaCab
         );
 
         if ($result) {
+            // select $this->contratingCompaniesQuotaDet where cab_id = $id
+            $sql = "SELECT id FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = $id";
+            $result = Database::query($sql);
+            $detIds = [];
+            if (Database::num_rows($result) > 0) {
+                while ($row = Database::fetch_array($result)) {
+                    $detIds[] = $row['id'];
+                }
+            }
+
+            if (!empty($detIds)) {
+                $detIds = implode(',', $detIds);
+
+                // select $this->contratingCompaniesQuotaSession where det_id in $ids
+                $sql = "SELECT id FROM " . $this->contratingCompaniesQuotaSession . " WHERE det_id IN ($detIds)";
+                $result = Database::query($sql);
+                $sessionIds = [];
+                if (Database::num_rows($result) > 0) {
+                    while ($row = Database::fetch_array($result)) {
+                        $sessionIds[] = $row['id'];
+                    }
+                }
+
+                // delete from $this->contratingCompaniesQuotaSessionDet where quota_session_id in $sessionIds
+                if (!empty($sessionIds)) {
+                    $sessionIds = implode(',', $sessionIds);
+                    $sql = "DELETE FROM " . $this->contratingCompaniesQuotaSessionDet . " WHERE quota_session_id IN ($sessionIds)";
+                    Database::query($sql);
+                }
+
+                // delete from $this->contratingCompaniesQuotaSession where det_id in $ids
+                $sql = "DELETE FROM " . $this->contratingCompaniesQuotaSession . " WHERE det_id IN ($detIds)";
+                Database::query($sql);
+            }
+
+            // Delete det
             Database::delete(
                 $this->contratingCompaniesQuotaDet,
                 ['cab_id = ?' => $id]
