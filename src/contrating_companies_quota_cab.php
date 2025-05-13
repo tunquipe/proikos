@@ -68,6 +68,64 @@ $form->addElement('date_picker', 'validity_date', $plugin->get_lang('Validity'),
     'value' => date('Y-m-d', strtotime('+6 months'))
 ]);
 $form->addRule('validity_date', $plugin->get_lang('ValidityRequired'), 'required');
+
+$form->addElement('select', 'validity_select', '', [
+    '+3 months' => '3 meses',
+    '+6 months' => '6 meses',
+    '+1 year' => '1 año',
+    '+2 years' => '2 años',
+]);
+
+// set default value to validity_select
+$form->setDefaults([
+    'validity_select' => '+6 months',
+]);
+
+$form->addElement('html', <<<EOD
+<style>
+#validity_date_alt_text {
+    text-transform: lowercase;
+}
+</style>
+<script>
+    $(document).ready(function () {
+        const select = $('[name="validity_select"]');
+        const dateInput = $('[name="validity_date"]');
+
+        select.on('change', function () {
+            const offset = $(this).val();
+            const now = new Date();
+            let targetDate = new Date(now);
+
+            if (offset === '+3 months') {
+                targetDate.setMonth(now.getMonth() + 3);
+            } else if (offset === '+6 months') {
+                targetDate.setMonth(now.getMonth() + 6);
+            } else if (offset === '+1 year') {
+                targetDate.setFullYear(now.getFullYear() + 1);
+            } else if (offset === '+2 years') {
+                targetDate.setFullYear(now.getFullYear() + 2);
+            }
+
+            const yyyy = targetDate.getFullYear();
+            const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
+            const dd = String(targetDate.getDate()).padStart(2, '0');
+            const formatted = yyyy + '-' + mm + '-' + dd;
+
+            dateInput.val(formatted);
+            dateInput.datepicker('setDate', formatted); // Notificar al datepicker
+
+            // trigger change event
+            dateInput.trigger('change');
+        });
+    });
+</script>
+EOD
+);
+
+
+
+
 $form->addButtonSave($plugin->get_lang('SaveContratingCompanyDetailsQuota'));
 
 if ($form->validate() && $courseDetailHasError === false) {
