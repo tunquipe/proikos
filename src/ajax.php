@@ -208,7 +208,7 @@ if ($action) {
 
             // Generate zip with all files in the directory
             $zip = new ZipArchive();
-            $zipFileName = 'user_documents_' . $userId . '_' . $sessionId . '.zip';
+            $zipFileName = ($_GET['user_full_name'] ?? ('user_documents_' . $userId . '_' . $sessionId)) . '.zip';
             $zipFilePath = $basePath . $zipFileName;
             if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
                 header("HTTP/1.0 500 Internal Server Error");
