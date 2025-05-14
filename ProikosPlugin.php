@@ -3029,11 +3029,23 @@ HTML;
                 $mergedMetadata = array_merge($oldMetadata, $metadata);
             }
 
-            $metadataJson = json_encode($mergedMetadata);
+            $metadataJson = json_encode($mergedMetadata, JSON_UNESCAPED_UNICODE);
         }
 
         // update the metadata in the database
         $sql = "UPDATE ".Database::get_main_table(self::TABLE_PROIKOS_USERS)." SET metadata = '$metadataJson' WHERE user_id = $userId";
         Database::query($sql);
+    }
+
+    public function getUserMetadata($userId)
+    {
+        $sql = "SELECT metadata FROM ".Database::get_main_table(self::TABLE_PROIKOS_USERS)." WHERE user_id = $userId";
+        $result = Database::query($sql);
+        if (Database::num_rows($result) > 0) {
+            $row = Database::fetch_array($result);
+            return json_decode($row['metadata'], true);
+        }
+
+        return [];
     }
 }
