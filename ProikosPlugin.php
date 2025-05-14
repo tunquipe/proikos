@@ -405,7 +405,22 @@ class ProikosPlugin extends Plugin
         }
         return $list;
     }
+    public function deleteEntity($idEntity): bool
+    {
+        if (empty($idEntity)) {
+            return false;
+        }
+        $idMeet = (int) $idEntity;
+        $tableEntity = Database::get_main_table(self::TABLE_PROIKOS_ENTITY);
+        $sql = "DELETE FROM $tableEntity WHERE id = $idEntity";
+        $result = Database::query($sql);
 
+        if (Database::affected_rows($result) != 1) {
+            return false;
+        }
+
+        return true;
+    }
     public function createEntity($values){
         if (!is_array($values)) {
             return false;

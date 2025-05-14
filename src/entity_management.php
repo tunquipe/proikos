@@ -32,6 +32,14 @@ if($isAdmin){
     $tpl->assign('entities', $entities);
 
     switch ($action) {
+        case 'delete':
+            $idEntity = $_GET['id'] ?? null;
+            $res = $plugin->deleteEntity($idEntity);
+            if ($res) {
+                $url = api_get_path(WEB_PLUGIN_PATH).'proikos/src/entity_management.php';
+                header('Location: '.$url);
+            }
+            break;
         case 'create':
             $actionLinks = Display::url(
                 Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),

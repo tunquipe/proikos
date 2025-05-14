@@ -135,8 +135,8 @@ if($action == 'second'){
             $form->addHtml('</div></div>');
             $form->addHidden('code_reference', $entitySelect);
 
-            $termsAndConditionsAccepted = isset($_POST) && $_POST['check_terms_and_conditions'] == 1;
-            $form->addHtml('<div class="form-check terms_conditions_container">
+    $termsAndConditionsAccepted = isset($_POST['check_terms_and_conditions']) && $_POST['check_terms_and_conditions'] == 1;
+    $form->addHtml('<div class="form-check terms_conditions_container">
                   <input name="check_terms_and_conditions" class="form-check-input" type="checkbox" value="1" id="check_terms_and_conditions" ' . ($termsAndConditionsAccepted ? 'checked' : '') . '>
                   <label class="form-check-label" for="check_terms_and_conditions">
                     <a href="' . api_get_path(WEB_PLUGIN_PATH) . 'proikos/files/proikos_terminos_y_condiciones.pdf" target="_blank" id="link_term_and_conditions">
@@ -298,27 +298,43 @@ if($action == 'second'){
 }
 
 $entities = $plugin->getListEntity();
-$listEntity = [];
-foreach ($entities as $entity){
-    $listEntity[] = [
-        'value' => $entity['code_reference'],
-        'display_text' => $entity['name_entity'],
-        'display_img' => '<img width="150px" src="'.$entity['picture'].'">'
-    ];
+$form = new FormValidator('registration-one', 'post', api_get_self().'?action='.Security::remove_XSS('second'), '', [], FormValidator::LAYOUT_INLINE);
+
+if(count($entities) == 1){
+    $company = $entities[0];
+    $logoPicture = Display::img($company['picture'],$company['business_name']);
+    $html = "<div class='logo-company text-center' style='
+    border: 1px solid #cdcdcd;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    background: #e9fffa;
+'>".$logoPicture."</div>";
+    $html .= "<p>Esta a punto de registrarte en la plataforma virtual de <strong>".$company['business_name']."</strong> con <strong>RUC ".$company['ruc']."</strong></p>";
+    $form->addHtml($html);
+    $form->addHidden('entity', $company['code_reference']);
+} else {
+    $listEntity = [];
+    foreach ($entities as $entity){
+        $listEntity[] = [
+            'value' => $entity['code_reference'],
+            'display_text' => $entity['name_entity'],
+            'display_img' => '<img width="150px" src="'.$entity['picture'].'">'
+        ];
+    }
+    $group = $plugin->formGenerateElementsGroup($form, $listEntity, 'entity',true);
+// SearchEnabledComment
+    $groupEntity = $form->addGroup(
+        $group,
+        'entity',
+        [$plugin->get_lang('ChooseTheEntity')],
+        null,
+        false
+    );
+
 }
 
-$form = new FormValidator('registration-one', 'post', api_get_self().'?action='.Security::remove_XSS('second'), '', [], FormValidator::LAYOUT_INLINE);
-$group = $plugin->formGenerateElementsGroup($form, $listEntity, 'entity',true);
-// SearchEnabledComment
-$groupEntity = $form->addGroup(
-    $group,
-    'entity',
-    [$plugin->get_lang('ChooseTheEntity')],
-    null,
-    false
-);
-
 $form->addButton('next', $plugin->get_lang('Next'), null, 'primary', 'btn-block');
+
 // Custom pages
 if (CustomPages::enabled() && CustomPages::exists(CustomPages::REGISTRATION)) {
     CustomPages::display(
