@@ -30,6 +30,7 @@ class ProikosPlugin extends Plugin
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET = 'plugin_proikos_contrating_companies_quota_det';
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION = 'plugin_proikos_contrating_companies_quota_session';
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET = 'plugin_proikos_contrating_companies_quota_session_det';
+    const TABLE_PLUGIN_EASY_CERTIFICATE_SEND = 'plugin_easycertificate_send';
     const CATEGORY_ASINCRONO = 1;
     const CATEGORY_SINCRONO = 2;
     const CATEGORY_DESC = [
@@ -3325,5 +3326,171 @@ HTML;
         ];
 
         return $this->smowlFormLink($monitoringEndpoint, $jwtParams, $getParams);
+    }
+
+    public function getData($from, $number_of_items, $column, $direction, $keyword = null, $onlyQuantity = false)
+    {
+        $table_session_rel_user = Database::get_main_table(TABLE_MAIN_SESSION_USER);
+        $table_session = Database::get_main_table(TABLE_MAIN_SESSION);
+        $table_user = Database::get_main_table(TABLE_MAIN_USER);
+        $table_session_rel_course = Database::get_main_table(TABLE_MAIN_SESSION_COURSE);
+        $table_course = Database::get_main_table(TABLE_MAIN_COURSE);
+        $table_plugin_proikos_users = self::TABLE_PROIKOS_USERS;
+        $table_plugin_easycertificate_send = self::TABLE_PLUGIN_EASY_CERTIFICATE_SEND;
+        $table_track_e_exercises = Database::get_main_table(TABLE_STATISTIC_TRACK_E_EXERCISES);
+        $table_c_quiz = Database::get_course_table(TABLE_QUIZ_TEST);
+        $table_track_e_course_access = Database::get_main_table(TABLE_STATISTIC_TRACK_E_COURSE_ACCESS);
+
+        $sortable_columns = [
+            's.display_end_date',
+            'sru.id',
+            'c.title',
+            'u.lastname',
+            'ppu.number_document',
+            'entrance_quiz.score',
+            'practical_quiz.score',
+            'exit_quiz.score',
+        ];
+
+        $order_by = isset($sortable_columns[$column]) ? $sortable_columns[$column] : 's.display_end_date';
+        $direction = strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC';
+
+        $sql = "
+            SELECT 
+                u.id AS user_id,
+                DATE(s.display_end_date) AS fecha_ex,
+                SEC_TO_TIME((
+                    SELECT SUM(UNIX_TIMESTAMP(logout_course_date) - UNIX_TIMESTAMP(login_course_date))
+                    FROM $table_track_e_course_access
+                    WHERE
+                        UNIX_TIMESTAMP(logout_course_date) > UNIX_TIMESTAMP(login_course_date) AND
+                        c_id = c.id AND
+                        session_id = sru.session_id AND
+                        user_id = u.id
+                )) AS nro_horz,
+                c.title AS nombre_curso,
+                CONCAT(u.firstname, ' ', u.lastname) AS nombre_apellido,
+                COALESCE(
+                    CASE 
+                        WHEN ppu.type_document = 1 THEN ppu.number_document
+                        ELSE NULL
+                    END, 
+                    'N/A'
+                ) AS dni,
+                COALESCE(ppu.name_company, 'EMPRESA NO ASIGNADA') AS empresa,
+                COALESCE(ppu.headquarters, 'N/A') AS sede,
+
+                CASE 
+                    WHEN sru.relation_type = 2 THEN 'RFTL'
+                    ELSE ROUND(COALESCE(entrance_quiz.score, 0), 1)
+                END AS ex_entrada,
+
+                ROUND(COALESCE(practical_quiz.score, 0), 1) AS ex_practico,
+                ROUND(COALESCE(exit_quiz.score, 0), 1) AS ex_salida,
+
+                ROUND(
+                    (COALESCE(entrance_quiz.score, 0) * 0.1) +
+                    (COALESCE(practical_quiz.score, 0) * 0.6) +
+                    (COALESCE(exit_quiz.score, 0) * 0.3)
+                , 1) AS nota_final,
+
+                CASE 
+                    WHEN ((COALESCE(entrance_quiz.score, 0) * 0.1) +
+                        (COALESCE(practical_quiz.score, 0) * 0.6) +
+                        (COALESCE(exit_quiz.score, 0) * 0.3)) >= 11 THEN 'APROBADO'
+                    ELSE 'DESAPROBADO'
+                END AS estado,
+
+                CASE 
+                    WHEN pecs.certificate_id IS NOT NULL 
+                        AND CURRENT_DATE >= pecs.created_at 
+                        AND (pecs.reminder_15_sent_at IS NULL OR CURRENT_DATE <= pecs.reminder_15_sent_at)
+                    THEN 'VIGENTE'
+                    ELSE 'CADUCADO'
+                END AS observacion
+
+            FROM {$table_session_rel_user} sru
+            INNER JOIN {$table_session} s ON s.id = sru.session_id
+            INNER JOIN {$table_user} u ON u.id = sru.user_id
+            INNER JOIN {$table_session_rel_course} src ON src.session_id = s.id
+            INNER JOIN {$table_course} c ON c.id = src.c_id
+            INNER JOIN {$table_plugin_proikos_users} ppu ON ppu.user_id = u.id
+            LEFT JOIN {$table_plugin_easycertificate_send} pecs ON pecs.user_id = u.id 
+                AND pecs.session_id = s.id
+                AND (pecs.course_id = src.c_id OR pecs.course_id IS NULL)
+            LEFT JOIN (
+                SELECT te.exe_user_id, te.session_id,
+                    MAX(te.exe_result / te.exe_weighting * 100) AS score
+                FROM {$table_track_e_exercises} te
+                INNER JOIN {$table_c_quiz} q ON q.id = te.exe_exo_id
+                WHERE q.title LIKE '%Entrada%' OR q.title LIKE '%Entrance%'
+                GROUP BY te.exe_user_id, te.session_id
+            ) entrance_quiz ON entrance_quiz.exe_user_id = u.id AND entrance_quiz.session_id = s.id
+            LEFT JOIN (
+                SELECT te.exe_user_id, te.session_id,
+                    MAX(te.exe_result / te.exe_weighting * 100) AS score
+                FROM {$table_track_e_exercises} te
+                INNER JOIN {$table_c_quiz} q ON q.id = te.exe_exo_id
+                WHERE q.title LIKE '%Práctic%' OR q.title LIKE '%Practical%'
+                GROUP BY te.exe_user_id, te.session_id
+            ) practical_quiz ON practical_quiz.exe_user_id = u.id AND practical_quiz.session_id = s.id
+            LEFT JOIN (
+                SELECT te.exe_user_id, te.session_id,
+                    MAX(te.exe_result / te.exe_weighting * 100) AS score
+                FROM {$table_track_e_exercises} te
+                INNER JOIN {$table_c_quiz} q ON q.id = te.exe_exo_id
+                WHERE q.title LIKE '%Salida%' OR q.title LIKE '%Exit%' OR q.title LIKE '%Final%'
+                GROUP BY te.exe_user_id, te.session_id
+            ) exit_quiz ON exit_quiz.exe_user_id = u.id AND exit_quiz.session_id = s.id
+            WHERE sru.relation_type IN (0, 2)
+        ";
+
+        if (!empty($keyword)) {
+            $keyword = Database::escape_string($keyword);
+            $sql .= " AND CONCAT(u.firstname, ' ', u.lastname) LIKE '%$keyword%' ";
+        }
+
+        $sql .= " ORDER BY $order_by $direction";
+
+        if (isset($from) && isset($number_of_items) && !$onlyQuantity) {
+            $sql .= " LIMIT $from, $number_of_items";
+        }
+
+        $result = Database::query($sql);
+        $numRows = Database::num_rows($result);
+
+        if ($onlyQuantity) {
+            return $numRows;
+        }
+
+        $list = [];
+        while ($row = Database::fetch_array($result)) {
+            $estado = $row['estado'] === 'APROBADO'
+                ? '<span style="color: #016B1F;">' . $row['estado'] . '</span>'
+                : '<span style="color: #D10E1E;">' . $row['estado'] . '</span>';
+
+            $observacion = $row['observacion'] === 'VIGENTE'
+                ? '<span style="color: #016B1F;">' . $row['observacion'] . '</span>'
+                : '<span style="color: #D10E1E;">' . $row['observacion'] . '</span>';
+
+            $list[] = [
+                $row['user_id'],
+                $row['fecha_ex'],
+                $row['nro_horz'],
+                $row['nombre_curso'],
+                $row['nombre_apellido'],
+                $row['dni'],
+                $row['empresa'],
+                $row['sede'],
+                $row['ex_entrada'],
+                $row['ex_practico'],
+                $row['ex_salida'],
+                $row['nota_final'],
+                $estado,
+                $observacion
+            ];
+        }
+
+        return $list;
     }
 }

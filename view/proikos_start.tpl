@@ -52,4 +52,12 @@
             </a>
         </div>
     </div>
+    <div class="col-md-3">
+        <div class="tool-box">
+            <a href="{{ src_plugin }}src/data_report.php" class="tool">
+                <img src="{{ src_plugin }}/images/data_report.png" alt="">
+                <div class="tool-title">Data</div>
+            </a>
+        </div>
+    </div>
 </div>
