@@ -2204,6 +2204,7 @@ class ProikosPlugin extends Plugin
                     gsl.id,
                     gc.course_code,
                     gc.certif_min_score,
+                    gc.require_all_quizzes,
                     gc.weight,
                     gc.session_id,
                     gsl.category_id,
@@ -2224,6 +2225,7 @@ class ProikosPlugin extends Plugin
                     'id' => $row['id'],
                     'course_code' => $row['course_code'],
                     'certif_min_score' => (int)$row['certif_min_score'],
+                    'require_all_quizzes' => (int)$row['require_all_quizzes'],
                     'weight' => (double)$row['weight'],
                     'session_id' => $row['session_id'],
                     'category_id' => $row['category_id'],
@@ -2981,6 +2983,197 @@ EOT
         return $courseDetailHasError;
     }
 
+
+    public static function checkUserQuizCompletion($userId, $categoryId)
+    {
+        // Validate input parameters
+        $userId = intval($userId);
+        $categoryId = intval($categoryId);
+
+        if (empty($userId) || empty($categoryId)) {
+            return [
+                'passed' => false,
+                'reason' => 'Invalid parameters',
+                'total_quizzes' => 0,
+                'completed_count' => 0,
+                'incomplete_count' => 0,
+                'incomplete_quizzes' => [],
+                'error' => true
+            ];
+        }
+
+        // Load the gradebook category
+        $category = Category::load($categoryId);
+
+        if (empty($category) || !isset($category[0])) {
+            return [
+                'passed' => false,
+                'reason' => 'Category not found',
+                'total_quizzes' => 0,
+                'completed_count' => 0,
+                'incomplete_count' => 0,
+                'incomplete_quizzes' => [],
+                'error' => true
+            ];
+        }
+
+        $category = $category[0];
+
+        // Check if require_all_quizzes is enabled for this category
+        if (!$category->get_require_all_quizzes()) {
+            return [
+                'passed' => true,
+                'reason' => 'Quiz requirement not enabled for this category',
+                'total_quizzes' => 0,
+                'completed_count' => 0,
+                'incomplete_count' => 0,
+                'incomplete_quizzes' => [],
+                'require_all_quizzes' => false
+            ];
+        }
+
+        // Get course information
+        $courseCode = $category->get_course_code();
+        $sessionId = $category->get_session_id();
+        $courseInfo = api_get_course_info($courseCode);
+
+        if (empty($courseInfo)) {
+            return [
+                'passed' => false,
+                'reason' => 'Course not found',
+                'total_quizzes' => 0,
+                'completed_count' => 0,
+                'incomplete_count' => 0,
+                'incomplete_quizzes' => [],
+                'error' => true
+            ];
+        }
+
+        $courseId = $courseInfo['real_id'];
+
+        // Get all active quizzes in the course
+        $tbl_quiz = Database::get_course_table(TABLE_QUIZ_TEST);
+
+        // Build SQL query to get all active quizzes
+        $sql = "SELECT DISTINCT iid as id, title, description
+                FROM $tbl_quiz
+                WHERE c_id = $courseId
+                AND active = 1";
+
+        // Add session filter if we're in a session context
+        if (!empty($sessionId)) {
+            $sql .= " AND (session_id = $sessionId OR session_id = 0 OR session_id IS NULL)";
+        } else {
+            // If not in a session, only get quizzes not tied to any session
+            $sql .= " AND (session_id = 0 OR session_id IS NULL)";
+        }
+
+        $sql .= " ORDER BY title";
+
+        $result = Database::query($sql);
+        $allQuizzes = [];
+
+        while ($row = Database::fetch_array($result, 'ASSOC')) {
+            $allQuizzes[$row['id']] = [
+                'id' => $row['id'],
+                'title' => $row['title'],
+                'description' => $row['description']
+            ];
+        }
+
+        $totalQuizzes = count($allQuizzes);
+
+        // If no quizzes exist, consider it as passed
+        if ($totalQuizzes == 0) {
+            return [
+                'passed' => true,
+                'reason' => 'No quizzes in course',
+                'total_quizzes' => 0,
+                'completed_count' => 0,
+                'incomplete_count' => 0,
+                'incomplete_quizzes' => []
+            ];
+        }
+
+        // Get completed quizzes for the user
+        $tbl_track_exercises = Database::get_main_table(TABLE_STATISTIC_TRACK_E_EXERCISES);
+
+        $sql = "SELECT DISTINCT exe_exo_id, MAX(exe_result) as best_score, MAX(exe_date) as last_attempt
+                FROM $tbl_track_exercises
+                WHERE exe_user_id = $userId
+                AND c_id = $courseId
+                AND status != 'incomplete'";
+
+        // Add session filter if applicable
+        if (!empty($sessionId)) {
+            $sql .= " AND session_id = $sessionId";
+        } else {
+            $sql .= " AND (session_id = 0 OR session_id IS NULL)";
+        }
+
+        $sql .= " GROUP BY exe_exo_id";
+
+        $result = Database::query($sql);
+        $completedQuizzes = [];
+        while ($row = Database::fetch_array($result, 'ASSOC')) {
+            $completedQuizzes[$row['exe_exo_id']] = [
+                'best_score' => $row['best_score'],
+                'last_attempt' => $row['last_attempt']
+            ];
+        }
+
+        $completedCount = count($completedQuizzes);
+
+        // Find incomplete quizzes
+        $incompleteQuizzes = [];
+        foreach ($allQuizzes as $quizId => $quizInfo) {
+            if (!isset($completedQuizzes[$quizId])) {
+                $incompleteQuizzes[$quizId] = $quizInfo;
+            }
+        }
+
+        $incompleteCount = $totalQuizzes - $completedCount;
+
+        // Determine pass/fail status
+        $passed = ($incompleteCount == 0);
+
+        // Build the result array
+        $result = [
+            'passed' => $passed,
+            'reason' => $passed ? 'All quizzes completed' : 'Incomplete quizzes',
+            'total_quizzes' => $totalQuizzes,
+            'completed_count' => $completedCount,
+            'incomplete_count' => $incompleteCount,
+            'incomplete_quizzes' => $incompleteQuizzes,
+            'completed_quizzes' => $completedQuizzes,
+            'percentage' => $totalQuizzes > 0 ? round(($completedCount / $totalQuizzes) * 100, 2) : 100,
+            'course_code' => $courseCode,
+            'course_id' => $courseId,
+            'session_id' => $sessionId,
+            'category_id' => $categoryId,
+            'user_id' => $userId,
+            'require_all_quizzes' => true
+        ];
+
+        // Add detailed message
+        if (!$passed) {
+            $quizList = [];
+            foreach ($incompleteQuizzes as $quiz) {
+                $quizList[] = $quiz['title'];
+            }
+            $result['message'] = sprintf(
+                    get_lang('YouMustCompleteAllQuizzesFirst'),
+                    $incompleteCount,
+                    $totalQuizzes
+                ) . ': ' . implode(', ', $quizList);
+        } else {
+            $result['message'] = get_lang('AllQuizzesCompleted');
+        }
+
+        return $result;
+    }
+
+
     public function renderModal()
     {
         if (!empty($_SESSION['proikos_modal_message'])) {
@@ -3044,11 +3237,108 @@ HTML;
                 $mergedMetadata = array_merge($oldMetadata, $metadata);
             }
 
-            $metadataJson = json_encode($mergedMetadata);
+            $metadataJson = json_encode($mergedMetadata, JSON_UNESCAPED_UNICODE);
         }
 
         // update the metadata in the database
         $sql = "UPDATE ".Database::get_main_table(self::TABLE_PROIKOS_USERS)." SET metadata = '$metadataJson' WHERE user_id = $userId";
         Database::query($sql);
+    }
+
+    public function getUserMetadata($userId)
+    {
+        $sql = "SELECT metadata FROM ".Database::get_main_table(self::TABLE_PROIKOS_USERS)." WHERE user_id = $userId";
+        $result = Database::query($sql);
+        if (Database::num_rows($result) > 0) {
+            $row = Database::fetch_array($result);
+            return json_decode($row['metadata'], true);
+        }
+
+        return [];
+    }
+
+    public function smowlFormLink(
+        string $endpoint,
+        array $jwtParams,
+        array $getParams = []
+    ): string {
+        global $_configuration;
+        $jwtParams['activityType'] = $_configuration['smowltech']['activityType'];
+        $jwtParams['entityKey'] = $_configuration['smowltech']['entityKey'];
+        $payload = [
+            "iss" => 'smowl_custom_integration',
+            "aud" => 'proikos',
+            "iat" => time(),
+            "exp" => time() + 3600 * 12, // 12 hours expiration
+            "data" => $jwtParams
+        ];
+
+        $getParams['entityName'] = $_configuration['smowltech']['entityName'];
+        $getParams['token'] = \Firebase\JWT\JWT::encode($payload, $_configuration['smowltech']['jwtSecret'], 'HS256');
+
+        // If there is "token" and "entityName",they should be the first parameters
+        if (isset($getParams['token']) && isset($getParams['entityName'])) {
+            $token = $getParams['token'];
+            $entityName = $getParams['entityName'];
+            unset($getParams['token'], $getParams['entityName']);
+            $getParams = ['token' => $token, 'entityName' => $entityName] + $getParams;
+        }
+
+        // If there is activityUrl or Course_link, it should be the last parameter
+        if (isset($getParams['activityUrl'])) {
+            $activityUrl = $getParams['activityUrl'];
+            unset($getParams['activityUrl']);
+            $getParams['activityUrl'] = $activityUrl;
+        }
+
+        if (isset($getParams['Course_link'])) {
+            $activityUrl = $getParams['Course_link'];
+            unset($getParams['Course_link']);
+            $getParams['Course_link'] = $activityUrl;
+        }
+
+        return $endpoint . '?' . http_build_query($getParams);
+    }
+
+    public function smowlRegistrationEndpoint(
+        $userId, $userName, $userEmail, $lang, $activityUrl, $sessionId, $exerciseId
+    ): string
+    {
+        $registrationEndpoint = 'https://swl.smowltech.net/register/';
+        $jwtParams = [
+            'userId' => $userId,
+            'activityId' => $exerciseId,
+            'activityContainerId' => $sessionId
+        ];
+        $getParams = [
+            'userName' => $userName,
+            'userEmail' => $userEmail,
+            'lang' => $lang,
+            'type' => 0,
+            'activityUrl' => $activityUrl
+        ];
+
+        return $this->smowlFormLink($registrationEndpoint, $jwtParams, $getParams);
+    }
+
+    public function smowlMonitoringEndpoint(
+        $userId, $userName, $userEmail, $lang, $sessionId, $exerciseId
+    ): string
+    {
+        $monitoringEndpoint = 'https://swl.smowltech.net/monitor/';
+        $jwtParams = [
+            'userId' => $userId,
+            'activityId' => $exerciseId,
+            'activityContainerId' => $sessionId,
+            'isMonitoring' => 1
+        ];
+        $getParams = [
+            'userName' => $userName,
+            'userEmail' => $userEmail,
+            'lang' => $lang,
+            'type' => 0
+        ];
+
+        return $this->smowlFormLink($monitoringEndpoint, $jwtParams, $getParams);
     }
 }
