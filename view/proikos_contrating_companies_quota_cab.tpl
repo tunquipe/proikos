@@ -3,6 +3,7 @@
     <thead>
     <tr>
         <th>ID</th>
+        <th>{{ 'Modalidades Configuradas'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="text-center">{{ 'ContratingCompanyUserQuota'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="text-center">{{ 'ContratingCompanyUserQuotaTotalPrice'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'ContratingCompanyValidityDate'|get_plugin_lang('ProikosPlugin') }}</th>
@@ -15,6 +16,7 @@
     {% for item in items %}
     <tr>
         <th scope="row">{{ item.id }}</th>
+        <td>{{ item.modalidades }}</td>
         <td class="text-center">{{ item.total_user_quota }}</td>
         <td class="text-center">{{ item.total_price_unit_quota }}</td>
         <td>{{ item.formatted_validity_date }}</td>

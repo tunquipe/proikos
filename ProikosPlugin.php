@@ -36,6 +36,35 @@ class ProikosPlugin extends Plugin
         self::CATEGORY_ASINCRONO => 'Asincrónico',
         self::CATEGORY_SINCRONO => 'Sincrónico'
     ];
+    const ATTACH_CERTIFICATES = [
+        1 => 'Certificado Inducción',
+        2 => 'Certificado IPERC'
+    ];
+    const ATTACH_CERTIFICATES_FILE_MODE = [
+        1 => 'certificado-induccion',
+        2 => 'certificado-iperc'
+    ];
+
+    const ATTACH_CERTIFICATES_ALTO_RIESGO = [
+        1 => 'Trabajos en Caliente',
+        2 => 'Trabajos en Altura',
+        3 => 'Trabajos con Energías Peligrosas',
+        4 => 'Trabajo en Espacio Confinado',
+        5 => 'Trabajos en Excavaciones',
+        6 => 'Trabajos en Gammagrafía',
+        7 => 'Trabajos de Inmmersión'
+    ];
+
+    const ATTACH_CERTIFICATES_ALTO_RIESGO_FILE_MODE = [
+        1 => 'trabajos-en-caliente',
+        2 => 'trabajos-en-altura',
+        3 => 'trabajos-con-energias-peligrosas',
+        4 => 'trabajo-en-espacio-confinado',
+        5 => 'trabajos-en-excavaciones',
+        6 => 'trabajos-en-gammagrafia',
+        7 => 'trabajos-de-inmmersion'
+    ];
+
     const EVENT_ADD_QUOTA = 'add_quota';
     const EVENT_USER_SUBSCRIPTION_TO_COURSE = 'user_subscription_to_course';
 
@@ -1021,6 +1050,11 @@ class ProikosPlugin extends Plugin
                 )
             );
         }
+
+        // only asincronico / sincronico
+        $qb->andWhere(
+            $qb->expr()->between('s.sessionMode', 1, 2)
+        );
 
         if ($getCount) {
             $qb->select('count(s)');
@@ -2484,6 +2518,29 @@ EOT
         ];
     }
 
+    public function generateDownloadLinkAttachCertificates($userId, $userFullName, $sessionId)
+    {
+        $baseUploadDir = api_get_path(SYS_APP_PATH) . 'upload/proikos_user_documents/';
+        $userSessionDir = $baseUploadDir . $userId . '/' . $sessionId;
+
+        // if directory $userSessionDir exists and is not empty
+        if (is_dir($userSessionDir) && count(scandir($userSessionDir)) > 2) {
+            $downloadUrl = api_get_path(WEB_PATH) . 'plugin/proikos/src/ajax.php?action=download_user_uploaded_documents&user_id=' . $userId
+                . '&session_id=' . $sessionId . '&user_full_name=' . urlencode($userFullName);
+            $downloadCertUploadedLink = Display::url(
+                Display::return_icon('notebook.gif', get_lang('Descargar Certificados Adjuntos')),
+                $downloadUrl
+            );
+        } else {
+            $downloadCertUploadedLink = Display::url(
+                Display::return_icon('notebook_na.gif', get_lang('Descargar Certificados Adjuntos')),
+                ''
+            );
+        }
+
+        return $downloadCertUploadedLink;
+    }
+
     public function validEmail($email) {
         if (empty($email)) {
             return false;
@@ -2547,6 +2604,8 @@ EOT
         return (new PluginProikosContratingCompaniesQuotaCab(
             self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB,
             self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET,
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION,
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET,
             self::CATEGORY_DESC
         ));
     }
@@ -2909,6 +2968,7 @@ EOT
         return $courseDetailHasError;
     }
 
+
     public static function checkUserQuizCompletion($userId, $categoryId)
     {
         // Validate input parameters
@@ -3098,4 +3158,172 @@ EOT
         return $result;
     }
 
+
+    public function renderModal()
+    {
+        if (!empty($_SESSION['proikos_modal_message'])) {
+            $message = addslashes($_SESSION['proikos_modal_message']);
+            $img = api_get_path(WEB_PLUGIN_PATH).'proikos/images/company-without-quotas.png';
+            echo <<<HTML
+                <style>
+                    .modal-backdrop-custom {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, 0.6);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 1000;
+                    }
+
+                    #imageModal img {
+                        width: 500px;
+                        max-width: 100%;
+                        max-height: 100%;
+                        display: block;
+                    }
+                </style>
+                <div id="imageModal" class="modal-backdrop-custom">
+                    <img src="$img" alt="Imagen" />
+                </div>
+                <script>
+                    document.getElementById('imageModal').addEventListener('click', function () {
+                        this.style.display = 'none';
+                    });
+                </script>
+HTML;
+
+            unset($_SESSION['proikos_modal_message']);
+        }
+    }
+
+    public function setModalMessage($message)
+    {
+        $_SESSION['proikos_modal_message'] = $message;
+    }
+
+    public function updateUserMetadata($userId, $metadata)
+    {
+        // convert metadata to JSON
+        $metadataJson = json_encode($metadata);
+
+        // get the old metadata and merge with the new one
+        $sql = "SELECT metadata FROM ".Database::get_main_table(self::TABLE_PROIKOS_USERS)." WHERE user_id = $userId";
+        $result = Database::query($sql);
+        if (Database::num_rows($result) > 0) {
+            $row = Database::fetch_array($result);
+
+            $mergedMetadata = $metadata;
+            if (!empty($row['metadata']) && $row['metadata'] != 'null') {
+                $oldMetadata = json_decode($row['metadata'], true);
+                $mergedMetadata = array_merge($oldMetadata, $metadata);
+            }
+
+            $metadataJson = json_encode($mergedMetadata, JSON_UNESCAPED_UNICODE);
+        }
+
+        // update the metadata in the database
+        $sql = "UPDATE ".Database::get_main_table(self::TABLE_PROIKOS_USERS)." SET metadata = '$metadataJson' WHERE user_id = $userId";
+        Database::query($sql);
+    }
+
+    public function getUserMetadata($userId)
+    {
+        $sql = "SELECT metadata FROM ".Database::get_main_table(self::TABLE_PROIKOS_USERS)." WHERE user_id = $userId";
+        $result = Database::query($sql);
+        if (Database::num_rows($result) > 0) {
+            $row = Database::fetch_array($result);
+            return json_decode($row['metadata'], true);
+        }
+
+        return [];
+    }
+
+    public function smowlFormLink(
+        string $endpoint,
+        array $jwtParams,
+        array $getParams = []
+    ): string {
+        global $_configuration;
+        $jwtParams['activityType'] = $_configuration['smowltech']['activityType'];
+        $jwtParams['entityKey'] = $_configuration['smowltech']['entityKey'];
+        $payload = [
+            "iss" => 'smowl_custom_integration',
+            "aud" => 'proikos',
+            "iat" => time(),
+            "exp" => time() + 3600 * 12, // 12 hours expiration
+            "data" => $jwtParams
+        ];
+
+        $getParams['entityName'] = $_configuration['smowltech']['entityName'];
+        $getParams['token'] = \Firebase\JWT\JWT::encode($payload, $_configuration['smowltech']['jwtSecret'], 'HS256');
+
+        // If there is "token" and "entityName",they should be the first parameters
+        if (isset($getParams['token']) && isset($getParams['entityName'])) {
+            $token = $getParams['token'];
+            $entityName = $getParams['entityName'];
+            unset($getParams['token'], $getParams['entityName']);
+            $getParams = ['token' => $token, 'entityName' => $entityName] + $getParams;
+        }
+
+        // If there is activityUrl or Course_link, it should be the last parameter
+        if (isset($getParams['activityUrl'])) {
+            $activityUrl = $getParams['activityUrl'];
+            unset($getParams['activityUrl']);
+            $getParams['activityUrl'] = $activityUrl;
+        }
+
+        if (isset($getParams['Course_link'])) {
+            $activityUrl = $getParams['Course_link'];
+            unset($getParams['Course_link']);
+            $getParams['Course_link'] = $activityUrl;
+        }
+
+        return $endpoint . '?' . http_build_query($getParams);
+    }
+
+    public function smowlRegistrationEndpoint(
+        $userId, $userName, $userEmail, $lang, $activityUrl, $sessionId, $exerciseId
+    ): string
+    {
+        $registrationEndpoint = 'https://swl.smowltech.net/register/';
+        $jwtParams = [
+            'userId' => $userId,
+            'activityId' => $exerciseId,
+            'activityContainerId' => $sessionId
+        ];
+        $getParams = [
+            'userName' => $userName,
+            'userEmail' => $userEmail,
+            'lang' => $lang,
+            'type' => 0,
+            'activityUrl' => $activityUrl
+        ];
+
+        return $this->smowlFormLink($registrationEndpoint, $jwtParams, $getParams);
+    }
+
+    public function smowlMonitoringEndpoint(
+        $userId, $userName, $userEmail, $lang, $sessionId, $exerciseId
+    ): string
+    {
+        $monitoringEndpoint = 'https://swl.smowltech.net/monitor/';
+        $jwtParams = [
+            'userId' => $userId,
+            'activityId' => $exerciseId,
+            'activityContainerId' => $sessionId,
+            'isMonitoring' => 1
+        ];
+        $getParams = [
+            'userName' => $userName,
+            'userEmail' => $userEmail,
+            'lang' => $lang,
+            'type' => 0
+        ];
+
+        return $this->smowlFormLink($monitoringEndpoint, $jwtParams, $getParams);
+    }
 }

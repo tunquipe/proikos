@@ -115,4 +115,66 @@ class PluginProikosContratingCompaniesQuotaSessionDet
         $sql = "UPDATE " . $this->table . " SET user_id = $userId WHERE id = $id";
         Database::query($sql);
     }
+
+    public function companySessionsWithQuota($userId)
+    {
+        $userTable = Database::get_main_table($this->userTable);
+        $sql = "SELECT ruc_company FROM $userTable WHERE user_id = $userId";
+        $result = Database::query($sql);
+        $rucCompany = '';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $rucCompany = $row['ruc_company'];
+            }
+        }
+
+        if (empty($rucCompany)) {
+            return [
+                'success' => false,
+                'message' => 'No se encontró el RUC de la empresa'
+            ];
+        }
+
+        $currentDate = date('Y-m-d');
+        // Sesiones asincronicas
+        $sql = "SELECT COUNT(*) as count FROM plugin_proikos_contrating_companies_quota_det c
+                INNER JOIN plugin_proikos_contrating_companies_quota_cab d ON d.id = c.cab_id
+                INNER JOIN plugin_proikos_contrating_companies e ON e.id = d.contrating_company_id
+                WHERE e.ruc = '$rucCompany'
+                AND e.status = 1
+                AND c.session_mode = 1
+                AND d.validity_date > '$currentDate';";
+        $result = \Database::query($sql);
+        $countAsincrono = 0;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $countAsincrono += $row['count'];
+            }
+        }
+
+        // Sesiones sincrónicas
+        $sql = "SELECT COUNT(*) as count FROM plugin_proikos_contrating_companies_quota_det c
+                INNER JOIN plugin_proikos_contrating_companies_quota_cab d ON d.id = c.cab_id
+                INNER JOIN plugin_proikos_contrating_companies e ON e.id = d.contrating_company_id
+                WHERE e.ruc = '$rucCompany'
+                AND e.status = 1
+                AND c.session_mode = 2
+                AND d.validity_date > '$currentDate';";
+        $result = \Database::query($sql);
+        $countSincrono = 0;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $countSincrono += $row['count'];
+            }
+        }
+
+        return [
+            'success' => true,
+            'message' => 'Cupos disponibles',
+            'data' => [
+                'asincrono' => $countAsincrono,
+                'sincrono' => $countSincrono
+            ]
+        ];
+    }
 }

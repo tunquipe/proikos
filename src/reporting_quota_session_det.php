@@ -13,7 +13,7 @@ if (!$allow) {
 $actionLinks = '';
 $actionLinks .= Display::url(
     Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
-    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php'
+    api_get_path(WEB_PLUGIN_PATH) . 'proikos/start.php'
 );
 
 $tool_name = 'Reporte de administración de cupones';

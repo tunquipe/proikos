@@ -4,12 +4,17 @@ class PluginProikosContratingCompaniesQuotaCab
 {
     private $table;
     private $contratingCompaniesQuotaDet;
+    private $contratingCompaniesQuotaSession;
+    private $contratingCompaniesQuotaSessionDet;
     private $sessionModes;
 
-    public function __construct($table, $contratingCompaniesQuotaDet, $sessionModes)
+    public function __construct($table, $contratingCompaniesQuotaDet, $contratingCompaniesQuotaSession,
+                                $contratingCompaniesQuotaSessionDet, $sessionModes)
     {
         $this->table = $table;
         $this->contratingCompaniesQuotaDet = $contratingCompaniesQuotaDet;
+        $this->contratingCompaniesQuotaSession = $contratingCompaniesQuotaSession;
+        $this->contratingCompaniesQuotaSessionDet = $contratingCompaniesQuotaSessionDet;
         $this->sessionModes = $sessionModes;
     }
 
@@ -127,6 +132,15 @@ class PluginProikosContratingCompaniesQuotaCab
             a.contrating_company_id,
             (SELECT SUM(user_quota) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) AS total_user_quota,
             (SELECT CONCAT('S/ ', FORMAT(SUM(price_unit * user_quota), 2)) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) AS total_price_unit_quota,
+            (
+                 SELECT GROUP_CONCAT(DISTINCT
+                 CASE session_mode
+                   WHEN 1 THEN 'Asincrónico'
+                   WHEN 2 THEN 'Sincrónico'
+                 END
+                 ORDER BY session_mode SEPARATOR ', ') AS modalidades
+                 FROM plugin_proikos_contrating_companies_quota_det where cab_id = a.id
+            ) AS modalidades,
             DATE_FORMAT(a.validity_date, '%d-%m-%Y') AS formatted_validity_date,
             DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
             CONCAT(b.lastname, ' ', b.firstname) AS user_name
@@ -189,6 +203,42 @@ class PluginProikosContratingCompaniesQuotaCab
         );
 
         if ($result) {
+            // select $this->contratingCompaniesQuotaDet where cab_id = $id
+            $sql = "SELECT id FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = $id";
+            $result = Database::query($sql);
+            $detIds = [];
+            if (Database::num_rows($result) > 0) {
+                while ($row = Database::fetch_array($result)) {
+                    $detIds[] = $row['id'];
+                }
+            }
+
+            if (!empty($detIds)) {
+                $detIds = implode(',', $detIds);
+
+                // select $this->contratingCompaniesQuotaSession where det_id in $ids
+                $sql = "SELECT id FROM " . $this->contratingCompaniesQuotaSession . " WHERE det_id IN ($detIds)";
+                $result = Database::query($sql);
+                $sessionIds = [];
+                if (Database::num_rows($result) > 0) {
+                    while ($row = Database::fetch_array($result)) {
+                        $sessionIds[] = $row['id'];
+                    }
+                }
+
+                // delete from $this->contratingCompaniesQuotaSessionDet where quota_session_id in $sessionIds
+                if (!empty($sessionIds)) {
+                    $sessionIds = implode(',', $sessionIds);
+                    $sql = "DELETE FROM " . $this->contratingCompaniesQuotaSessionDet . " WHERE quota_session_id IN ($sessionIds)";
+                    Database::query($sql);
+                }
+
+                // delete from $this->contratingCompaniesQuotaSession where det_id in $ids
+                $sql = "DELETE FROM " . $this->contratingCompaniesQuotaSession . " WHERE det_id IN ($detIds)";
+                Database::query($sql);
+            }
+
+            // Delete det
             Database::delete(
                 $this->contratingCompaniesQuotaDet,
                 ['cab_id = ?' => $id]

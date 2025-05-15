@@ -196,23 +196,125 @@ if ($action) {
             break;
         case 'download_user_uploaded_documents':
             $userId = (int) $_GET['user_id'];
-            $courseCode = basename($_GET['course_code']);
-            $filename = basename($_GET['filename']);
+            $sessionId = $_GET['session_id'];
             $basePath = api_get_path(SYS_APP_PATH) . 'upload/proikos_user_documents/';
-            $filePath = $basePath . $userId . '/' . $courseCode . '/' . $filename;
+            $dirPath = $basePath . $userId . '/' . $sessionId;
 
-            if (!file_exists($filePath)) {
+            if (!is_dir($dirPath)) {
                 header("HTTP/1.0 404 Not Found");
-                echo "Archivo no encontrado.";
+                echo "Directorio no encontrado.";
                 exit;
             }
 
-            header('Content-Description: File Transfer');
-            header('Content-Type: application/octet-stream');
-            header('Content-Disposition: attachment; filename="' . $filename . '"');
-            header('Content-Length: ' . filesize($filePath));
-            readfile($filePath);
+            // Generate zip with all files in the directory
+            $zip = new ZipArchive();
+            $zipFileName = ($_GET['user_full_name'] ?? ('user_documents_' . $userId . '_' . $sessionId)) . '.zip';
+            $zipFilePath = $basePath . $zipFileName;
+            if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+                header("HTTP/1.0 500 Internal Server Error");
+                echo "Error al crear el archivo zip.";
+                exit;
+            }
+
+            $files = glob($dirPath . '/*'); // Get all files in the directory
+            foreach ($files as $file) {
+                if (is_file($file)) {
+                    $zip->addFile($file, basename($file)); // Add file to zip
+                }
+            }
+            $zip->close();
+
+            // Set headers for download
+            header('Content-Type: application/zip');
+            header('Content-Disposition: attachment; filename="' . $zipFileName . '"');
+            header('Content-Length: ' . filesize($zipFilePath));
+            header('Content-Transfer-Encoding: binary');
+            readfile($zipFilePath);
+
             exit;
+            break;
+        case 'upload_user_certificates':
+            $userId = api_get_user_id();
+            $sessionId = $_GET['session_id'] ?? null;
+
+            if (empty($sessionId)) {
+                echo json_encode(['error' => 'Session ID is required']);
+                exit;
+            }
+
+            $baseUploadDir = api_get_path(SYS_APP_PATH) . 'upload/proikos_user_documents/';
+            $userCourseDir = $baseUploadDir . $userId . '/' . $sessionId . '/';
+
+            if (!file_exists($userCourseDir)) {
+                mkdir($userCourseDir, 0775, true);
+            }
+
+            $userData = [
+                'attachments' => [],
+            ];
+            $documentMapAttachCertificates = $plugin::ATTACH_CERTIFICATES_FILE_MODE;
+            foreach ($documentMapAttachCertificates as $inputName => $documentName) {
+                $uploadedFile = $_FILES['certificate_' . $inputName];
+                if (!empty($uploadedFile) && !empty($uploadedFile['tmp_name']) && $uploadedFile['error'] === UPLOAD_ERR_OK) {
+                    $originalName = basename($uploadedFile['name']);
+                    $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+                    $fileName = $documentName . '.' . $extension;
+                    $destination = $userCourseDir . $fileName;
+
+                    // remove all files with the same name
+                    $files = glob($userCourseDir . $documentName . '.*');
+                    foreach ($files as $file) {
+                        if (is_file($file)) {
+                            unlink($file);
+                        }
+                    }
+
+                    $userData['attachments'][] = [
+                        'session_id' => $sessionId,
+                        'request_attach_certificates' => [
+                            $inputName => $plugin::ATTACH_CERTIFICATES[$inputName],
+                        ],
+                    ];
+
+                    move_uploaded_file($uploadedFile['tmp_name'], $destination);
+                }
+            }
+
+            $documentMapAttachCertificatesAltoRiesgo = $plugin::ATTACH_CERTIFICATES_ALTO_RIESGO_FILE_MODE;
+            foreach ($documentMapAttachCertificatesAltoRiesgo as $inputName => $documentName) {
+                $uploadedFile = $_FILES['optional_certificate_' . $inputName];
+                if (!empty($uploadedFile) && !empty($uploadedFile['tmp_name']) && $uploadedFile['error'] === UPLOAD_ERR_OK) {
+                    $originalName = basename($uploadedFile['name']);
+                    $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+                    $fileName = $documentName . '.' . $extension;
+                    $destination = $userCourseDir . $fileName;
+
+                    // remove all files with the same name
+                    $files = glob($userCourseDir . $documentName . '.*');
+                    foreach ($files as $file) {
+                        if (is_file($file)) {
+                            unlink($file);
+                        }
+                    }
+
+                    $userData['attachments'][] = [
+                        'session_id' => $sessionId,
+                        'optional_request_attach_certificates' => [
+                            $inputName => $plugin::ATTACH_CERTIFICATES_ALTO_RIESGO[$inputName],
+                        ],
+                    ];
+
+                    move_uploaded_file($uploadedFile['tmp_name'], $destination);
+                }
+            }
+
+            $plugin->updateUserMetadata($userId, $userData);
+
+            $response = [
+                'success' => true,
+                'message' => 'Archivos subidos correctamente.',
+            ];
+
             break;
     }
 }
