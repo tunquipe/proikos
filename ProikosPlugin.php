@@ -2155,6 +2155,7 @@ class ProikosPlugin extends Plugin
                     gsl.id,
                     gc.course_code,
                     gc.certif_min_score,
+                    gc.require_all_quizzes,
                     gc.weight,
                     gc.session_id,
                     gsl.category_id,
@@ -2175,6 +2176,7 @@ class ProikosPlugin extends Plugin
                     'id' => $row['id'],
                     'course_code' => $row['course_code'],
                     'certif_min_score' => (int)$row['certif_min_score'],
+                    'require_all_quizzes' => (int)$row['require_all_quizzes'],
                     'weight' => (double)$row['weight'],
                     'session_id' => $row['session_id'],
                     'category_id' => $row['category_id'],
@@ -2906,4 +2908,194 @@ EOT
 
         return $courseDetailHasError;
     }
+
+    public static function checkUserQuizCompletion($userId, $categoryId)
+    {
+        // Validate input parameters
+        $userId = intval($userId);
+        $categoryId = intval($categoryId);
+
+        if (empty($userId) || empty($categoryId)) {
+            return [
+                'passed' => false,
+                'reason' => 'Invalid parameters',
+                'total_quizzes' => 0,
+                'completed_count' => 0,
+                'incomplete_count' => 0,
+                'incomplete_quizzes' => [],
+                'error' => true
+            ];
+        }
+
+        // Load the gradebook category
+        $category = Category::load($categoryId);
+
+        if (empty($category) || !isset($category[0])) {
+            return [
+                'passed' => false,
+                'reason' => 'Category not found',
+                'total_quizzes' => 0,
+                'completed_count' => 0,
+                'incomplete_count' => 0,
+                'incomplete_quizzes' => [],
+                'error' => true
+            ];
+        }
+
+        $category = $category[0];
+
+        // Check if require_all_quizzes is enabled for this category
+        if (!$category->get_require_all_quizzes()) {
+            return [
+                'passed' => true,
+                'reason' => 'Quiz requirement not enabled for this category',
+                'total_quizzes' => 0,
+                'completed_count' => 0,
+                'incomplete_count' => 0,
+                'incomplete_quizzes' => [],
+                'require_all_quizzes' => false
+            ];
+        }
+
+        // Get course information
+        $courseCode = $category->get_course_code();
+        $sessionId = $category->get_session_id();
+        $courseInfo = api_get_course_info($courseCode);
+
+        if (empty($courseInfo)) {
+            return [
+                'passed' => false,
+                'reason' => 'Course not found',
+                'total_quizzes' => 0,
+                'completed_count' => 0,
+                'incomplete_count' => 0,
+                'incomplete_quizzes' => [],
+                'error' => true
+            ];
+        }
+
+        $courseId = $courseInfo['real_id'];
+
+        // Get all active quizzes in the course
+        $tbl_quiz = Database::get_course_table(TABLE_QUIZ_TEST);
+
+        // Build SQL query to get all active quizzes
+        $sql = "SELECT DISTINCT iid as id, title, description
+                FROM $tbl_quiz
+                WHERE c_id = $courseId
+                AND active = 1";
+
+        // Add session filter if we're in a session context
+        if (!empty($sessionId)) {
+            $sql .= " AND (session_id = $sessionId OR session_id = 0 OR session_id IS NULL)";
+        } else {
+            // If not in a session, only get quizzes not tied to any session
+            $sql .= " AND (session_id = 0 OR session_id IS NULL)";
+        }
+
+        $sql .= " ORDER BY title";
+
+        $result = Database::query($sql);
+        $allQuizzes = [];
+
+        while ($row = Database::fetch_array($result, 'ASSOC')) {
+            $allQuizzes[$row['id']] = [
+                'id' => $row['id'],
+                'title' => $row['title'],
+                'description' => $row['description']
+            ];
+        }
+
+        $totalQuizzes = count($allQuizzes);
+
+        // If no quizzes exist, consider it as passed
+        if ($totalQuizzes == 0) {
+            return [
+                'passed' => true,
+                'reason' => 'No quizzes in course',
+                'total_quizzes' => 0,
+                'completed_count' => 0,
+                'incomplete_count' => 0,
+                'incomplete_quizzes' => []
+            ];
+        }
+
+        // Get completed quizzes for the user
+        $tbl_track_exercises = Database::get_main_table(TABLE_STATISTIC_TRACK_E_EXERCISES);
+
+        $sql = "SELECT DISTINCT exe_exo_id, MAX(exe_result) as best_score, MAX(exe_date) as last_attempt
+                FROM $tbl_track_exercises
+                WHERE exe_user_id = $userId
+                AND c_id = $courseId
+                AND status != 'incomplete'";
+
+        // Add session filter if applicable
+        if (!empty($sessionId)) {
+            $sql .= " AND session_id = $sessionId";
+        } else {
+            $sql .= " AND (session_id = 0 OR session_id IS NULL)";
+        }
+
+        $sql .= " GROUP BY exe_exo_id";
+
+        $result = Database::query($sql);
+        $completedQuizzes = [];
+        while ($row = Database::fetch_array($result, 'ASSOC')) {
+            $completedQuizzes[$row['exe_exo_id']] = [
+                'best_score' => $row['best_score'],
+                'last_attempt' => $row['last_attempt']
+            ];
+        }
+
+        $completedCount = count($completedQuizzes);
+
+        // Find incomplete quizzes
+        $incompleteQuizzes = [];
+        foreach ($allQuizzes as $quizId => $quizInfo) {
+            if (!isset($completedQuizzes[$quizId])) {
+                $incompleteQuizzes[$quizId] = $quizInfo;
+            }
+        }
+
+        $incompleteCount = $totalQuizzes - $completedCount;
+
+        // Determine pass/fail status
+        $passed = ($incompleteCount == 0);
+
+        // Build the result array
+        $result = [
+            'passed' => $passed,
+            'reason' => $passed ? 'All quizzes completed' : 'Incomplete quizzes',
+            'total_quizzes' => $totalQuizzes,
+            'completed_count' => $completedCount,
+            'incomplete_count' => $incompleteCount,
+            'incomplete_quizzes' => $incompleteQuizzes,
+            'completed_quizzes' => $completedQuizzes,
+            'percentage' => $totalQuizzes > 0 ? round(($completedCount / $totalQuizzes) * 100, 2) : 100,
+            'course_code' => $courseCode,
+            'course_id' => $courseId,
+            'session_id' => $sessionId,
+            'category_id' => $categoryId,
+            'user_id' => $userId,
+            'require_all_quizzes' => true
+        ];
+
+        // Add detailed message
+        if (!$passed) {
+            $quizList = [];
+            foreach ($incompleteQuizzes as $quiz) {
+                $quizList[] = $quiz['title'];
+            }
+            $result['message'] = sprintf(
+                    get_lang('YouMustCompleteAllQuizzesFirst'),
+                    $incompleteCount,
+                    $totalQuizzes
+                ) . ': ' . implode(', ', $quizList);
+        } else {
+            $result['message'] = get_lang('AllQuizzesCompleted');
+        }
+
+        return $result;
+    }
+
 }
