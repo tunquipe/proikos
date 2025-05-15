@@ -3340,6 +3340,7 @@ HTML;
         $table_track_e_exercises = Database::get_main_table(TABLE_STATISTIC_TRACK_E_EXERCISES);
         $table_c_quiz = Database::get_course_table(TABLE_QUIZ_TEST);
         $table_track_e_course_access = Database::get_main_table(TABLE_STATISTIC_TRACK_E_COURSE_ACCESS);
+        $table_gradebook_certificate = Database::get_main_table(TABLE_MAIN_GRADEBOOK_CERTIFICATE);
 
         $sortable_columns = [
             's.display_end_date',
@@ -3397,7 +3398,13 @@ HTML;
                 CASE
                     WHEN ((COALESCE(entrance_quiz.score, 0) * 0.1) +
                         (COALESCE(practical_quiz.score, 0) * 0.6) +
-                        (COALESCE(exit_quiz.score, 0) * 0.3)) >= 11 THEN 'APROBADO'
+                        (COALESCE(exit_quiz.score, 0) * 0.3)) >= 11
+                        AND EXISTS (
+                            SELECT 1
+                            FROM $table_gradebook_certificate gc
+                            WHERE gc.user_id = u.id AND gc.cat_id = src.c_id
+                        )
+                    THEN 'APROBADO'
                     ELSE 'DESAPROBADO'
                 END AS estado,
 
