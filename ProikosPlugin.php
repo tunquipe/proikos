@@ -3379,7 +3379,7 @@ HTML;
                     'N/A'
                 ) AS dni,
                 COALESCE(ppu.name_company, 'EMPRESA NO ASIGNADA') AS empresa,
-                COALESCE(ppu.headquarters, 'N/A') AS sede,
+                COALESCE(ppu.area, 'N/A') AS sede,
 
                 CASE
                     WHEN sru.relation_type = 2 THEN 'RFTL'
