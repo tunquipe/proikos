@@ -4,7 +4,14 @@ require_once __DIR__ . '/../config.php';
 $action = $_GET['action'] ?? null;
 
 $plugin = ProikosPlugin::create();
-
+// ────── helper interno para nombres seguros ──────────────────────
+function sanitize_filename(string $name): string
+{
+    // Convierte espacios y acentos, luego solo deja letras, números, _ y -
+    $name = iconv('UTF-8', 'ASCII//TRANSLIT', $name);
+    $name = preg_replace('/[^A-Za-z0-9_\-]/', '_', $name);
+    return trim($name, '_');
+}
 if ($action) {
 
     switch ($action) {
@@ -194,6 +201,63 @@ if ($action) {
                 exit;
             }
             break;
+        case 'download_session_uploaded_documents':
+
+            $sessionId = (int) ($_GET['session_id'] ?? 0);
+            if ($sessionId === 0) {
+                header("HTTP/1.0 400 Bad Request");
+                exit('Parámetro session_id inválido.');
+            }
+            $basePath = api_get_path(SYS_APP_PATH) . 'upload/proikos_user_documents/';
+            $users = SessionManager::get_users_by_session($sessionId); // ← tu helper
+            if (empty($users)) {
+                header("HTTP/1.0 404 Not Found");
+                exit('No hay usuarios en esta sesión.');
+            }
+
+            $zip = new ZipArchive();
+            $zipFileName = 'session_' . $sessionId . '_user_documents.zip';
+            $zipFilePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $zipFileName;
+
+            if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+                header("HTTP/1.0 500 Internal Server Error");
+                exit('No se pudo crear el archivo ZIP.');
+            }
+
+            $totalFilesAdded = 0;
+
+            foreach ($users as $u) {
+                $userId = (int) $u['user_id'];
+                $userFolderPath = $basePath . $userId . '/' . $sessionId;
+
+                if (!is_dir($userFolderPath)) {
+                    continue;
+                }
+
+                $zipInnerFolder = $userId . '_' . sanitize_filename($u['lastname'] . '_' . $u['firstname']);
+
+                foreach (glob($userFolderPath . '/*') as $file) {
+                    if (is_file($file)) {
+                        $zip->addFile($file, $zipInnerFolder . '/' . basename($file));
+                        $totalFilesAdded++;
+                    }
+                }
+            }
+
+            $zip->close();
+
+            if ($totalFilesAdded === 0) {
+                @unlink($zipFilePath);
+                header("HTTP/1.0 404 Not Found");
+                exit('No se encontraron documentos para ningún usuario.');
+            }
+
+            header('Content-Type: application/zip');
+            header('Content-Disposition: attachment; filename="' . $zipFileName . '"');
+            header('Content-Length: ' . filesize($zipFilePath));
+            readfile($zipFilePath);
+            @unlink($zipFilePath);
+            exit;
         case 'download_user_uploaded_documents':
             $userId = (int) $_GET['user_id'];
             $sessionId = $_GET['session_id'];

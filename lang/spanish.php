@@ -118,3 +118,4 @@ $strings['SelectSession'] = 'Seleccionar sesión';
 $strings['SetQuotaToSessions'] = 'Asignar cupos a sesiones';
 $strings['StudentName'] = 'Nombre del estudiante';
 $strings['StudentSubscriptionDate'] = 'Fecha de inscripción';
+$strings['DownloadAllAttachedCertificates'] = 'Descargar todos los certificados adjuntos';
