@@ -3048,4 +3048,89 @@ HTML;
 
         return [];
     }
+
+    public function smowlFormLink(
+        string $endpoint,
+        array $jwtParams,
+        array $getParams = []
+    ): string {
+        global $_configuration;
+        $jwtParams['activityType'] = $_configuration['smowltech']['activityType'];
+        $jwtParams['entityKey'] = $_configuration['smowltech']['entityKey'];
+        $payload = [
+            "iss" => 'smowl_custom_integration',
+            "aud" => 'proikos',
+            "iat" => time(),
+            "exp" => time() + 3600 * 12, // 12 hours expiration
+            "data" => $jwtParams
+        ];
+
+        $getParams['entityName'] = $_configuration['smowltech']['entityName'];
+        $getParams['token'] = \Firebase\JWT\JWT::encode($payload, $_configuration['smowltech']['jwtSecret'], 'HS256');
+
+        // If there is "token" and "entityName",they should be the first parameters
+        if (isset($getParams['token']) && isset($getParams['entityName'])) {
+            $token = $getParams['token'];
+            $entityName = $getParams['entityName'];
+            unset($getParams['token'], $getParams['entityName']);
+            $getParams = ['token' => $token, 'entityName' => $entityName] + $getParams;
+        }
+
+        // If there is activityUrl or Course_link, it should be the last parameter
+        if (isset($getParams['activityUrl'])) {
+            $activityUrl = $getParams['activityUrl'];
+            unset($getParams['activityUrl']);
+            $getParams['activityUrl'] = $activityUrl;
+        }
+
+        if (isset($getParams['Course_link'])) {
+            $activityUrl = $getParams['Course_link'];
+            unset($getParams['Course_link']);
+            $getParams['Course_link'] = $activityUrl;
+        }
+
+        return $endpoint . '?' . http_build_query($getParams);
+    }
+
+    public function smowlRegistrationEndpoint(
+        $userId, $userName, $userEmail, $lang, $activityUrl, $sessionId, $exerciseId
+    ): string
+    {
+        $registrationEndpoint = 'https://swl.smowltech.net/register/';
+        $jwtParams = [
+            'userId' => $userId,
+            'activityId' => $exerciseId,
+            'activityContainerId' => $sessionId
+        ];
+        $getParams = [
+            'userName' => $userName,
+            'userEmail' => $userEmail,
+            'lang' => $lang,
+            'type' => 0,
+            'activityUrl' => $activityUrl
+        ];
+
+        return $this->smowlFormLink($registrationEndpoint, $jwtParams, $getParams);
+    }
+
+    public function smowlMonitoringEndpoint(
+        $userId, $userName, $userEmail, $lang, $sessionId, $exerciseId
+    ): string
+    {
+        $monitoringEndpoint = 'https://swl.smowltech.net/monitor/';
+        $jwtParams = [
+            'userId' => $userId,
+            'activityId' => $exerciseId,
+            'activityContainerId' => $sessionId,
+            'isMonitoring' => 1
+        ];
+        $getParams = [
+            'userName' => $userName,
+            'userEmail' => $userEmail,
+            'lang' => $lang,
+            'type' => 0
+        ];
+
+        return $this->smowlFormLink($monitoringEndpoint, $jwtParams, $getParams);
+    }
 }
