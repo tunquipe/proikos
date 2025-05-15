@@ -3356,7 +3356,7 @@ HTML;
         $direction = strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC';
 
         $sql = "
-            SELECT 
+            SELECT
                 u.id AS user_id,
                 DATE(s.display_end_date) AS fecha_ex,
                 SEC_TO_TIME((
@@ -3371,16 +3371,16 @@ HTML;
                 c.title AS nombre_curso,
                 CONCAT(u.firstname, ' ', u.lastname) AS nombre_apellido,
                 COALESCE(
-                    CASE 
+                    CASE
                         WHEN ppu.type_document = 1 THEN ppu.number_document
                         ELSE NULL
-                    END, 
+                    END,
                     'N/A'
                 ) AS dni,
                 COALESCE(ppu.name_company, 'EMPRESA NO ASIGNADA') AS empresa,
                 COALESCE(ppu.headquarters, 'N/A') AS sede,
 
-                CASE 
+                CASE
                     WHEN sru.relation_type = 2 THEN 'RFTL'
                     ELSE ROUND(COALESCE(entrance_quiz.score, 0), 1)
                 END AS ex_entrada,
@@ -3394,16 +3394,16 @@ HTML;
                     (COALESCE(exit_quiz.score, 0) * 0.3)
                 , 1) AS nota_final,
 
-                CASE 
+                CASE
                     WHEN ((COALESCE(entrance_quiz.score, 0) * 0.1) +
                         (COALESCE(practical_quiz.score, 0) * 0.6) +
                         (COALESCE(exit_quiz.score, 0) * 0.3)) >= 11 THEN 'APROBADO'
                     ELSE 'DESAPROBADO'
                 END AS estado,
 
-                CASE 
-                    WHEN pecs.certificate_id IS NOT NULL 
-                        AND CURRENT_DATE >= pecs.created_at 
+                CASE
+                    WHEN pecs.certificate_id IS NOT NULL
+                        AND CURRENT_DATE >= pecs.created_at
                         AND (pecs.reminder_15_sent_at IS NULL OR CURRENT_DATE <= pecs.reminder_15_sent_at)
                     THEN 'VIGENTE'
                     ELSE 'CADUCADO'
@@ -3415,14 +3415,14 @@ HTML;
             INNER JOIN {$table_session_rel_course} src ON src.session_id = s.id
             INNER JOIN {$table_course} c ON c.id = src.c_id
             INNER JOIN {$table_plugin_proikos_users} ppu ON ppu.user_id = u.id
-            LEFT JOIN {$table_plugin_easycertificate_send} pecs ON pecs.user_id = u.id 
+            LEFT JOIN {$table_plugin_easycertificate_send} pecs ON pecs.user_id = u.id
                 AND pecs.session_id = s.id
                 AND (pecs.course_id = src.c_id OR pecs.course_id IS NULL)
             LEFT JOIN (
                 SELECT te.exe_user_id, te.session_id,
                     MAX(te.exe_result / te.exe_weighting * 100) AS score
                 FROM {$table_track_e_exercises} te
-                INNER JOIN {$table_c_quiz} q ON q.id = te.exe_exo_id
+                INNER JOIN {$table_c_quiz} q ON q.id = te.exe_exo_id or q.iid = te.exe_exo_id
                 WHERE q.title LIKE '%Entrada%' OR q.title LIKE '%Entrance%'
                 GROUP BY te.exe_user_id, te.session_id
             ) entrance_quiz ON entrance_quiz.exe_user_id = u.id AND entrance_quiz.session_id = s.id
@@ -3430,7 +3430,7 @@ HTML;
                 SELECT te.exe_user_id, te.session_id,
                     MAX(te.exe_result / te.exe_weighting * 100) AS score
                 FROM {$table_track_e_exercises} te
-                INNER JOIN {$table_c_quiz} q ON q.id = te.exe_exo_id
+                INNER JOIN {$table_c_quiz} q ON q.id = te.exe_exo_id or q.iid = te.exe_exo_id
                 WHERE q.title LIKE '%Práctic%' OR q.title LIKE '%Practical%'
                 GROUP BY te.exe_user_id, te.session_id
             ) practical_quiz ON practical_quiz.exe_user_id = u.id AND practical_quiz.session_id = s.id
@@ -3438,7 +3438,7 @@ HTML;
                 SELECT te.exe_user_id, te.session_id,
                     MAX(te.exe_result / te.exe_weighting * 100) AS score
                 FROM {$table_track_e_exercises} te
-                INNER JOIN {$table_c_quiz} q ON q.id = te.exe_exo_id
+                INNER JOIN {$table_c_quiz} q ON q.id = te.exe_exo_id or q.iid = te.exe_exo_id
                 WHERE q.title LIKE '%Salida%' OR q.title LIKE '%Exit%' OR q.title LIKE '%Final%'
                 GROUP BY te.exe_user_id, te.session_id
             ) exit_quiz ON exit_quiz.exe_user_id = u.id AND exit_quiz.session_id = s.id
