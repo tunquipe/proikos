@@ -3551,4 +3551,75 @@ HTML;
 
         return false;
     }
+
+    public static function enableTranslate($elementdsId)
+    {
+        global $htmlHeadXtra;
+        $elementdsId = json_encode($elementdsId);
+        $userInfo = api_get_user_info();
+        $allowedLanguages = [
+            'english' => 'en',
+            'spanish' => 'es'
+        ];
+        $selectedLanguage = $allowedLanguages[$userInfo['language']] ?? '';
+        if (!empty($selectedLanguage) && $selectedLanguage != 'es') {
+            setcookie('googtrans', '/' . $selectedLanguage);
+            $htmlHeadXtra[] = <<<EOT
+            <style>
+                body {
+                  top: 0 !important;
+                }
+
+                body>.skiptranslate, .goog-logo-link, .gskiptranslate, .goog-te-gadget span, .goog-te-banner-frame, #goog-gt-tt, .goog-te-balloon-frame, div#goog-gt-tt {
+                  display: none !important;
+                }
+
+                .goog-te-gadget {
+                  color: transparent !important;
+                  font-size: 0px;
+                }
+
+                .goog-text-highlight {
+                  background: transparent !important;
+                  box-shadow: transparent !important;
+                }
+
+                #google_translate_element select {
+                  background: #60C7E6;
+                  color: #fff4e4;
+                  border: none;
+                  font-weight: bold;
+                  border-radius: 3px;
+                  padding: 8px 12px
+                }
+            </style>
+
+            <script>
+                 const elementdsId = JSON.parse('{$elementdsId}');
+                 console.log(elementdsId)
+                 function googleTranslateElementInit() {
+                    const options = {
+                        autoDisplay: true,
+                        includedLanguages: 'en,es',
+                        layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL
+                    };
+
+                    new google.translate.TranslateElement(options, 'google_translate_element');
+                 }
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.body.classList.add('notranslate');
+
+                    elementdsId.forEach((elementId) => {
+                        const element = document.getElementById(elementId);
+                        if (element) {
+                            element.classList.add('translate');
+                        }
+                    });
+                });
+            </script>
+            <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+EOT;
+        }
+    }
 }
