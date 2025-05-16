@@ -333,7 +333,7 @@ function addNewRow(itemIndex, tableBodyId, itemSessionMode, itemSessionCategoryI
     sessionsByCategory.forEach(session => {
         const option = document.createElement('option');
         option.value = session.id;
-        option.text = session.name;
+        option.text = session.name + ' - ' + (session.time_in_session > 0 ? (session.time_in_session + ' Horas') : '');
         sessionsSelect.appendChild(option);
     });
 
@@ -390,6 +390,7 @@ $items = [];
 if (!empty($sessionDistributions)) {
     foreach ($sessionDistributions as $key => $value) {
         foreach ($value as $session) {
+            $session['session_name'] = $session['time_in_session'] > 0 ? ($session['session_name'] . ' - ' . $session['time_in_session'] . ' Horas') : $session['session_name'];
             $items[] = $session;
         }
     }
