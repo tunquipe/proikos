@@ -3,6 +3,10 @@
 require_once __DIR__ . '/../config.php';
 api_block_anonymous_users();
 
+if (!api_is_platform_admin()) {
+    api_not_allowed(true);
+}
+
 $plugin = ProikosPlugin::create();
 $tool_name = 'Data';
 $actionLinks = null;
@@ -26,6 +30,7 @@ if (isset($action)) {
                 'Nombre del curso',
                 'Nombres y Apellidos',
                 'Nº DNI / C.E',
+                'RUC',
                 'Empresa',
                 'Sede',
                 'Ex. Entrada (10%)',
@@ -87,14 +92,15 @@ $table->set_header(2, 'Nº Horas', true);
 $table->set_header(3, 'Nombre del curso', true);
 $table->set_header(4, 'Nombres y Apellidos', true);
 $table->set_header(5, 'Nº DNI / C.E', true);
-$table->set_header(6, 'Empresa', true);
-$table->set_header(7, 'Sede', true);
-$table->set_header(8, 'Ex. Entrada (10%)', true);
-$table->set_header(9, 'Ex. Práctico (60%)', true);
-$table->set_header(10, 'Ex. Salida (30%)', true);
-$table->set_header(11, 'Nota Final', true);
-$table->set_header(12, 'Estado', true);
-$table->set_header(13, 'Observaciones', true);
+$table->set_header(6, 'RUC', true);
+$table->set_header(7, 'Empresa', true);
+$table->set_header(8, 'Sede', true);
+$table->set_header(9, 'Ex. Entrada (10%)', true);
+$table->set_header(10, 'Ex. Práctico (60%)', true);
+$table->set_header(11, 'Ex. Salida (30%)', true);
+$table->set_header(12, 'Nota Final', true);
+$table->set_header(13, 'Estado', true);
+$table->set_header(14, 'Observaciones', true);
 
 $contentTable = $table->return_table();
 
