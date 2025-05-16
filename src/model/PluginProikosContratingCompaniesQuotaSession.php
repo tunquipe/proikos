@@ -37,7 +37,7 @@ class PluginProikosContratingCompaniesQuotaSession
         $sessionCategoryTable = Database::get_main_table(TABLE_MAIN_SESSION_CATEGORY);
         $sessionTable = Database::get_main_table(TABLE_MAIN_SESSION);
         $sql = "SELECT a.*, b.name as category_name,
-        c.name as session_name, DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
+        c.name as session_name, c.time_in_session, DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
         CONCAT(d.lastname, ' ', d.firstname) AS user_name
         FROM $table a
         INNER JOIN $sessionCategoryTable b ON b.id = '$detSessionCategoryId'
@@ -59,6 +59,7 @@ class PluginProikosContratingCompaniesQuotaSession
                     'formatted_created_at' => $row['formatted_created_at'],
                     'user_name' => $row['user_name'],
                     'session_mode_name' => $this->sessionModes[$sessionMode] ?? '',
+                    'time_in_session' => $row['time_in_session']
                 ];
             }
         }

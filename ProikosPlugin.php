@@ -3502,4 +3502,53 @@ HTML;
 
         return $list;
     }
+
+    /**
+     * Check if the last subscribed session by the user has restrictions
+     */
+    public function hasTimeInSessionRestriction($userId, $sessionIdEval)
+    {
+        $tbl_session_rel_user = Database::get_main_table(TABLE_MAIN_SESSION_USER);
+
+        $sql = "SELECT b.time_in_session FROM $tbl_session_rel_user a
+            INNER JOIN session b ON a.session_id = b.id
+            WHERE a.user_id = $userId
+            ORDER BY a.registered_at DESC
+            LIMIT 1";
+
+        $result = Database::query($sql);
+
+        $session = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $session = $row;
+            }
+        }
+
+        if (empty($session) || empty($session['time_in_session'])) {
+            return false;
+        }
+
+        $sql = "SELECT time_in_session FROM session WHERE id = $sessionIdEval";
+        $result = Database::query($sql);
+        $sessionEval = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $sessionEval = $row;
+            }
+        }
+
+        // if last session time_in_session is minor than the session to be evaluated return true
+        if (empty($sessionEval)) {
+            return false;
+        }
+
+        if ($session['time_in_session'] < $sessionEval['time_in_session']) {
+            return [
+                'time_in_session' => $session['time_in_session']
+            ];
+        }
+
+        return false;
+    }
 }
