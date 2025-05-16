@@ -141,6 +141,14 @@ class PluginProikosContratingCompaniesQuotaCab
                  ORDER BY session_mode SEPARATOR ', ') AS modalidades
                  FROM plugin_proikos_contrating_companies_quota_det where cab_id = a.id
             ) AS modalidades,
+            (
+                 SELECT GROUP_CONCAT(DISTINCT
+                 sc.name
+                 ORDER BY sqd.id SEPARATOR ', ') AS categorias_session
+                 FROM plugin_proikos_contrating_companies_quota_det sqd
+                 INNER JOIN session_category sc ON sc.id = sqd.session_category_id
+                 where sqd.cab_id = a.id
+            ) AS categorias_session,
             DATE_FORMAT(a.validity_date, '%d-%m-%Y') AS formatted_validity_date,
             DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
             CONCAT(b.lastname, ' ', b.firstname) AS user_name
