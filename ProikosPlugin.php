@@ -3393,6 +3393,7 @@ HTML;
                     END,
                     'N/A'
                 ) AS dni,
+                COALESCE(ppu.ruc_company, '-') AS ruc_empresa,
                 COALESCE(ppu.name_company, 'EMPRESA NO ASIGNADA') AS empresa,
                 COALESCE(ppu.area, 'N/A') AS sede,
 
@@ -3502,6 +3503,7 @@ HTML;
                 $row['nombre_curso'],
                 $row['nombre_apellido'],
                 $row['dni'],
+                $row['ruc_empresa'],
                 $row['empresa'],
                 $row['sede'],
                 $row['ex_entrada'],
