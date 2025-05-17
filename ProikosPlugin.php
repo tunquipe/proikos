@@ -250,6 +250,8 @@ class ProikosPlugin extends Plugin
             id INT PRIMARY KEY AUTO_INCREMENT,
             ruc VARCHAR(20) UNIQUE NOT NULL,
             name VARCHAR(255) NOT NULL,
+            admin_name VARCHAR(50) NOT NULL,
+            admin_email VARCHAR(100) NULL,
             status VARCHAR(1) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
