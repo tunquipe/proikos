@@ -16,6 +16,8 @@ $htmlHeadXtra[] = api_get_asset('cropper/dist/cropper.min.js');
 
 $action = $_GET['export'] ?? null;
 $keyword = $_GET['keyword'] ?? null;
+$courseId = $_GET['course_id'] ?? null;
+$sessionId = $_GET['session_id'] ?? null;
 
 if (isset($action)) {
     switch ($action) {
@@ -70,14 +72,14 @@ $actionLinks .= Display::url(
 
 function get_number_of_users()
 {
-    global $plugin, $keyword;
-    return $plugin->getData(null, null, null, null, $keyword, true);
+    global $plugin, $keyword, $courseId, $sessionId;
+    return $plugin->getData(null, null, null, null, $courseId, $sessionId, $keyword, true);
 }
 
 function get_user_data($from, $number_of_items, $column, $direction)
 {
-    global $plugin, $keyword;
-    return $plugin->getData($from, $number_of_items, $column, $direction, $keyword);
+    global $plugin, $keyword, $courseId, $sessionId;
+    return $plugin->getData($from, $number_of_items, $column, $direction, $courseId, $sessionId, $keyword);
 }
 
 $table = new SortableTable('users', 'get_number_of_users', 'get_user_data', 2);
@@ -104,8 +106,91 @@ $table->set_header(14, 'Observaciones', true);
 
 $contentTable = $table->return_table();
 
+$courses = [];
+$courses[0] = $plugin->get_lang('SelectCourse');
+$coursesList = CourseManager::get_courses_list(
+    0,
+    0,
+    'title',
+    'asc',
+    -1,
+    null,
+    api_get_current_access_url_id(),
+    false,
+    [],
+    []
+);
+
+foreach ($coursesList as $course) {
+    $courses[$course['id']] = $course['title'];
+}
+
+$url = api_get_self();
+$sessions = [];
+$sessions[0] = $plugin->get_lang('SelectSession');
+if (!empty($courseId)) {
+    $sessionsList = SessionManager::get_session_by_course($courseId);
+
+    foreach ($sessionsList as $session) {
+        $sessions[$session['id']] = $session['name'];
+    }
+}
+
 $form = new FormValidator('search_simple', 'get', null, null, null, 'inline');
-$form->addText('keyword', get_lang('Search'), false, ['placeholder' => 'Buscar usuario']);
+
+$form->addSelect(
+    'course_id',
+    get_lang('Course'),
+    $courses
+);
+$form->addHtml(
+    <<<EOT
+    <script>
+        $(document).ready(function() {
+            $('select[name="course_id"]').change(function() {
+                var courseId = $(this).val();
+                if (courseId) {
+                    window.location.href = '{$url}?course_id=' + courseId;
+                }
+            });
+        });
+
+    </script>
+EOT
+);
+
+$form->addElement(
+    'select',
+    'session_id',
+    get_lang('Session'),
+    $sessions,
+    ['style' => 'width: 200px;']
+);
+$form->addHtml(
+    <<<EOT
+    <script>
+        $(document).ready(function() {
+            $('select[name="session_id"]').change(function() {
+                var sessionId = $(this).val();
+                if (sessionId) {
+                    window.location.href = '{$url}?course_id={$courseId}&session_id=' + sessionId;
+                }
+            });
+        });
+
+    </script>
+EOT
+);
+
+$form->setDefaults([
+    'course_id' => $courseId,
+    'session_id' => $sessionId
+]);
+
+$form->addText('keyword', $plugin->get_lang('SearchUser'), false, [
+    'placeholder' => 'Buscar usuario',
+    'style' => 'display: block'
+]);
 $form->addButtonSearch(get_lang('Search'));
 $actionsLeft = $form->returnForm();
 
@@ -114,7 +199,7 @@ $actionsRight = Display::url(
     api_get_self() . '?' . http_build_query(['export' => 'xls'])
 );
 
-$toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $actionsRight], [4, 4, 4]);
+$toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $actionsRight], [9, 1, 2]);
 
 $tpl->assign('actions', Display::toolbarAction('toolbar', [$actionLinks]));
 $tpl->assign('message', $message);

@@ -3330,8 +3330,17 @@ HTML;
         return $this->smowlFormLink($monitoringEndpoint, $jwtParams, $getParams);
     }
 
-    public function getData($from, $number_of_items, $column, $direction, $keyword = null, $onlyQuantity = false)
+    public function getData($from, $number_of_items, $column, $direction, $courseId, $sessionId, $keyword = null, $onlyQuantity = false)
     {
+        if (empty($courseId) || empty($sessionId)) {
+
+            if ($onlyQuantity) {
+                return 0;
+            }
+
+            return [];
+        }
+
         $table_session_rel_user = Database::get_main_table(TABLE_MAIN_SESSION_USER);
         $table_session = Database::get_main_table(TABLE_MAIN_SESSION);
         $table_user = Database::get_main_table(TABLE_MAIN_USER);
@@ -3417,7 +3426,10 @@ HTML;
                         AND (pecs.reminder_15_sent_at IS NULL OR CURRENT_DATE <= pecs.reminder_15_sent_at)
                     THEN 'VIGENTE'
                     ELSE 'CADUCADO'
-                END AS observacion
+                END AS observacion,
+            c.code AS course_code,
+            s.id AS session_id,
+            src.c_id AS cat_id
 
             FROM {$table_session_rel_user} sru
             INNER JOIN {$table_session} s ON s.id = sru.session_id
@@ -3453,6 +3465,8 @@ HTML;
                 GROUP BY te.exe_user_id, te.session_id
             ) exit_quiz ON exit_quiz.exe_user_id = u.id AND exit_quiz.session_id = s.id
             WHERE sru.relation_type IN (0, 2)
+            AND c.id = $courseId
+            AND s.id = $sessionId
         ";
 
         if (!empty($keyword)) {
@@ -3476,12 +3490,12 @@ HTML;
         $list = [];
         while ($row = Database::fetch_array($result)) {
             $estado = $row['estado'] === 'APROBADO'
-                ? '<span style="color: #016B1F;">' . $row['estado'] . '</span>'
-                : '<span style="color: #D10E1E;">' . $row['estado'] . '</span>';
+                ? '<span class="label label-success">' . $row['estado'] . '</span>'
+                : '<span class="label label-danger">' . $row['estado'] . '</span>';
 
             $observacion = $row['observacion'] === 'VIGENTE'
-                ? '<span style="color: #016B1F;">' . $row['observacion'] . '</span>'
-                : '<span style="color: #D10E1E;">' . $row['observacion'] . '</span>';
+                ? '<span class="label label-success">' . $row['observacion'] . '</span>'
+                : '<span class="label label-danger">' . $row['observacion'] . '</span>';
 
             $list[] = [
                 $row['user_id'],
