@@ -250,6 +250,8 @@ class ProikosPlugin extends Plugin
             id INT PRIMARY KEY AUTO_INCREMENT,
             ruc VARCHAR(20) UNIQUE NOT NULL,
             name VARCHAR(255) NOT NULL,
+            admin_name VARCHAR(50) NOT NULL,
+            admin_email VARCHAR(100) NULL,
             status VARCHAR(1) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -2235,6 +2237,11 @@ class ProikosPlugin extends Plugin
                 ];
             }
         }
+
+        if (empty($list)) {
+            return [];
+        }
+
         if($stop){
             return $list;
         } else {
@@ -3343,8 +3350,17 @@ HTML;
         return $this->smowlFormLink($monitoringEndpoint, $jwtParams, $getParams);
     }
 
-    public function getData($from, $number_of_items, $column, $direction, $keyword = null, $onlyQuantity = false)
+    public function getData($from, $number_of_items, $column, $direction, $courseId, $sessionId, $keyword = null, $onlyQuantity = false)
     {
+        if (empty($courseId) || empty($sessionId)) {
+
+            if ($onlyQuantity) {
+                return 0;
+            }
+
+            return [];
+        }
+
         $table_session_rel_user = Database::get_main_table(TABLE_MAIN_SESSION_USER);
         $table_session = Database::get_main_table(TABLE_MAIN_SESSION);
         $table_user = Database::get_main_table(TABLE_MAIN_USER);
@@ -3363,9 +3379,6 @@ HTML;
             'c.title',
             'u.lastname',
             'ppu.number_document',
-            'entrance_quiz.score',
-            'practical_quiz.score',
-            'exit_quiz.score',
         ];
 
         $order_by = isset($sortable_columns[$column]) ? $sortable_columns[$column] : 's.display_end_date';
@@ -3396,41 +3409,24 @@ HTML;
                 COALESCE(ppu.ruc_company, '-') AS ruc_empresa,
                 COALESCE(ppu.name_company, 'EMPRESA NO ASIGNADA') AS empresa,
                 COALESCE(ppu.area, 'N/A') AS sede,
-
-                CASE
-                    WHEN sru.relation_type = 2 THEN 'RFTL'
-                    ELSE ROUND(COALESCE(entrance_quiz.score, 0), 1)
-                END AS ex_entrada,
-
-                ROUND(COALESCE(practical_quiz.score, 0), 1) AS ex_practico,
-                ROUND(COALESCE(exit_quiz.score, 0), 1) AS ex_salida,
-
-                ROUND(
-                    (COALESCE(entrance_quiz.score, 0) * 0.1) +
-                    (COALESCE(practical_quiz.score, 0) * 0.6) +
-                    (COALESCE(exit_quiz.score, 0) * 0.3)
-                , 1) AS nota_final,
-
-                CASE
-                    WHEN ((COALESCE(entrance_quiz.score, 0) * 0.1) +
-                        (COALESCE(practical_quiz.score, 0) * 0.6) +
-                        (COALESCE(exit_quiz.score, 0) * 0.3)) >= 11
-                        AND EXISTS (
-                            SELECT 1
-                            FROM $table_gradebook_certificate gc
-                            WHERE gc.user_id = u.id AND gc.cat_id = src.c_id
-                        )
-                    THEN 'APROBADO'
-                    ELSE 'DESAPROBADO'
-                END AS estado,
-
-                CASE
-                    WHEN pecs.certificate_id IS NOT NULL
-                        AND CURRENT_DATE >= pecs.created_at
-                        AND (pecs.reminder_15_sent_at IS NULL OR CURRENT_DATE <= pecs.reminder_15_sent_at)
-                    THEN 'VIGENTE'
-                    ELSE 'CADUCADO'
-                END AS observacion
+                COALESCE((
+                  SELECT (
+                    CASE WHEN pecs.certificate_id IS NOT NULL
+                            AND CURRENT_DATE >= DATE(pecs.created_at)
+                            AND (pecs.reminder_15_sent_at IS NULL OR CURRENT_DATE <= pecs.reminder_15_sent_at)
+                        THEN 'VIGENTE'
+                        ELSE 'CADUCADO'
+                    END
+                  ) FROM {$table_plugin_easycertificate_send} pecs
+                  WHERE pecs.user_id = u.id
+                    AND pecs.session_id = s.id
+                    AND pecs.course_id = src.c_id
+                    ORDER BY pecs.id DESC
+                    LIMIT 1
+                ), 'CERTIFICADO NO GENERADO') AS observacion,
+            c.code AS course_code,
+            s.id AS session_id,
+            src.c_id AS cat_id
 
             FROM {$table_session_rel_user} sru
             INNER JOIN {$table_session} s ON s.id = sru.session_id
@@ -3438,34 +3434,10 @@ HTML;
             INNER JOIN {$table_session_rel_course} src ON src.session_id = s.id
             INNER JOIN {$table_course} c ON c.id = src.c_id
             INNER JOIN {$table_plugin_proikos_users} ppu ON ppu.user_id = u.id
-            LEFT JOIN {$table_plugin_easycertificate_send} pecs ON pecs.user_id = u.id
-                AND pecs.session_id = s.id
-                AND (pecs.course_id = src.c_id OR pecs.course_id IS NULL)
-            LEFT JOIN (
-                SELECT te.exe_user_id, te.session_id,
-                    MAX(te.exe_result / te.exe_weighting * 100) AS score
-                FROM {$table_track_e_exercises} te
-                INNER JOIN {$table_c_quiz} q ON q.id = te.exe_exo_id or q.iid = te.exe_exo_id
-                WHERE q.title LIKE '%Entrada%' OR q.title LIKE '%Entrance%'
-                GROUP BY te.exe_user_id, te.session_id
-            ) entrance_quiz ON entrance_quiz.exe_user_id = u.id AND entrance_quiz.session_id = s.id
-            LEFT JOIN (
-                SELECT te.exe_user_id, te.session_id,
-                    MAX(te.exe_result / te.exe_weighting * 100) AS score
-                FROM {$table_track_e_exercises} te
-                INNER JOIN {$table_c_quiz} q ON q.id = te.exe_exo_id or q.iid = te.exe_exo_id
-                WHERE q.title LIKE '%Práctic%' OR q.title LIKE '%Practical%'
-                GROUP BY te.exe_user_id, te.session_id
-            ) practical_quiz ON practical_quiz.exe_user_id = u.id AND practical_quiz.session_id = s.id
-            LEFT JOIN (
-                SELECT te.exe_user_id, te.session_id,
-                    MAX(te.exe_result / te.exe_weighting * 100) AS score
-                FROM {$table_track_e_exercises} te
-                INNER JOIN {$table_c_quiz} q ON q.id = te.exe_exo_id or q.iid = te.exe_exo_id
-                WHERE q.title LIKE '%Salida%' OR q.title LIKE '%Exit%' OR q.title LIKE '%Final%'
-                GROUP BY te.exe_user_id, te.session_id
-            ) exit_quiz ON exit_quiz.exe_user_id = u.id AND exit_quiz.session_id = s.id
+
             WHERE sru.relation_type IN (0, 2)
+            AND c.id = $courseId
+            AND s.id = $sessionId
         ";
 
         if (!empty($keyword)) {
@@ -3486,17 +3458,20 @@ HTML;
             return $numRows;
         }
 
+        $dataColumns = $this->getDATAcolumns($courseId, $sessionId);
+        $coruseInfo = api_get_course_info_by_id($courseId);
+        $cats = Category::load(
+            null,
+            null,
+            $coruseInfo['code'],
+            null,
+            null,
+            $sessionId,
+            'ORDER By id'
+        );
         $list = [];
         while ($row = Database::fetch_array($result)) {
-            $estado = $row['estado'] === 'APROBADO'
-                ? '<span style="color: #016B1F;">' . $row['estado'] . '</span>'
-                : '<span style="color: #D10E1E;">' . $row['estado'] . '</span>';
-
-            $observacion = $row['observacion'] === 'VIGENTE'
-                ? '<span style="color: #016B1F;">' . $row['observacion'] . '</span>'
-                : '<span style="color: #D10E1E;">' . $row['observacion'] . '</span>';
-
-            $list[] = [
+            $item = [
                 $row['user_id'],
                 $row['fecha_ex'],
                 $row['nro_horz'],
@@ -3506,16 +3481,88 @@ HTML;
                 $row['ruc_empresa'],
                 $row['empresa'],
                 $row['sede'],
-                $row['ex_entrada'],
-                $row['ex_practico'],
-                $row['ex_salida'],
-                $row['nota_final'],
-                $estado,
-                $observacion
             ];
+
+            $rowIndex = 9;
+            if (!empty($cats[0])) {
+                $userScore = $this->getResultExerciseStudent($row['user_id'], $courseId, $sessionId, false);
+                $scoreCertificate = $this->getScoreCertificate($row['user_id'], $coruseInfo['code'], $sessionId, false);
+
+                $userScores = [];
+                $userLinks = $cats[0]->get_links($row['user_id'], false, $coruseInfo['code'], $sessionId);
+                foreach ($userLinks as $link) {
+                    $exerKey = strtolower($link->get_name());
+                    $score = round($userScore[$exerKey] ?? 0, 1);
+                    $exeResult = $link->get_weight() > 0 ? round($score * ($link->get_weight() / 100), 2) : 0;
+                    $userScores[] = [
+                        'score' => round($score, 1),
+                        'exeResult' => $exeResult
+                    ];
+                }
+
+                $finalScore = 0;
+                foreach ($userScores as $userScore) {
+                    $item[$rowIndex] = $userScore['score'];
+                    $finalScore += $userScore['exeResult'];
+                    $rowIndex++;
+                }
+
+                $finalScore = round($finalScore, 2);
+                $quizCheck = ProikosPlugin::checkUserQuizCompletion($row['user_id'], $cats[0]->get_id());
+                $approved = $scoreCertificate['has_certificate'] && $quizCheck['passed'];
+
+                $estado = true === $approved
+                    ? '<span class="label label-success">APROBADO</span>'
+                    : '<span class="label label-danger">DESAPROBADO</span>';
+
+                $observacion = $row['observacion'] === 'VIGENTE'
+                    ? '<span class="label label-success">' . $row['observacion'] . '</span>'
+                    : '<span class="label label-danger">' . $row['observacion'] . '</span>';
+
+                $item[$rowIndex++] = $finalScore;
+                $item[$rowIndex++] = $estado;
+                $item[$rowIndex] = $observacion;
+            } else {
+                foreach ($dataColumns as $column) {
+                    $item[$rowIndex] = '-';
+                    $rowIndex++;
+                }
+
+                $item[$rowIndex++] = '-';
+                $item[$rowIndex] = '-';
+            }
+
+            $list[] = $item;
         }
 
         return $list;
+    }
+
+    public function getDATAcolumns($courseId, $sessionId)
+    {
+        $coruseInfo = api_get_course_info_by_id($courseId);
+        $cats = Category::load(
+            null,
+            null,
+            $coruseInfo['code'],
+            null,
+            null,
+            $sessionId,
+            'ORDER By id'
+        );
+
+        $excerciseColumns = [];
+        if (!empty($cats[0])) {
+            foreach ($cats[0]->get_links() as $link) {
+                $excerciseColumns[] = $link->get_name() . ' (' . $link->get_weight() . '%)';
+            }
+
+            if (!empty($excerciseColumns)) {
+                $excerciseColumns[] = 'Nota Final';
+            }
+        }
+
+        return $excerciseColumns;
     }
 
     /**
@@ -3565,5 +3612,76 @@ HTML;
         }
 
         return false;
+    }
+
+    public static function enableTranslate($elementdsId)
+    {
+        global $htmlHeadXtra;
+        $elementdsId = json_encode($elementdsId);
+        $userInfo = api_get_user_info();
+        $allowedLanguages = [
+            'english' => 'en',
+            'spanish' => 'es'
+        ];
+        $selectedLanguage = $allowedLanguages[$userInfo['language']] ?? '';
+        if (!empty($selectedLanguage) && $selectedLanguage != 'es') {
+            setcookie('googtrans', '/' . $selectedLanguage);
+            $htmlHeadXtra[] = <<<EOT
+            <style>
+                body {
+                  top: 0 !important;
+                }
+
+                body>.skiptranslate, .goog-logo-link, .gskiptranslate, .goog-te-gadget span, .goog-te-banner-frame, #goog-gt-tt, .goog-te-balloon-frame, div#goog-gt-tt {
+                  display: none !important;
+                }
+
+                .goog-te-gadget {
+                  color: transparent !important;
+                  font-size: 0px;
+                }
+
+                .goog-text-highlight {
+                  background: transparent !important;
+                  box-shadow: transparent !important;
+                }
+
+                #google_translate_element select {
+                  background: #60C7E6;
+                  color: #fff4e4;
+                  border: none;
+                  font-weight: bold;
+                  border-radius: 3px;
+                  padding: 8px 12px
+                }
+            </style>
+
+            <script>
+                 const elementdsId = JSON.parse('{$elementdsId}');
+                 console.log(elementdsId)
+                 function googleTranslateElementInit() {
+                    const options = {
+                        autoDisplay: true,
+                        includedLanguages: 'en,es',
+                        layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL
+                    };
+
+                    new google.translate.TranslateElement(options, 'google_translate_element');
+                 }
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.body.classList.add('notranslate');
+
+                    elementdsId.forEach((elementId) => {
+                        const element = document.getElementById(elementId);
+                        if (element) {
+                            element.classList.add('translate');
+                        }
+                    });
+                });
+            </script>
+            <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+EOT;
+        }
     }
 }

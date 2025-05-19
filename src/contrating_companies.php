@@ -61,6 +61,7 @@ if ($isAdmin) {
             $form->addText('ruc', $plugin->get_lang('ContratingCompanyRUC'));
             $form->addText('name', $plugin->get_lang('ContratingCompanyName'));
             $form->addText('admin_name', $plugin->get_lang('ContratingAdminName'));
+            $form->addText('admin_email', $plugin->get_lang('ContratingAdminEmailOptional'), false);
 
             $group = [];
             $group[] = $form->createElement('radio', 'status', null, get_lang('Active'), 1);
@@ -108,6 +109,7 @@ if ($isAdmin) {
             $form->addText('ruc', $plugin->get_lang('ContratingCompanyRUC'));
             $form->addText('name', $plugin->get_lang('ContratingCompanyName'));
             $form->addText('admin_name', $plugin->get_lang('ContratingAdminName'));
+            $form->addText('admin_email', $plugin->get_lang('ContratingAdminEmailOptional'), false);
 
             $group = [];
             $group[] = $form->createElement('radio', 'status', null, get_lang('Active'), 1);
