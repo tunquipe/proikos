@@ -1,5 +1,7 @@
 <?php
 
+$cidReset = true;
+
 require_once __DIR__ . '/../config.php';
 api_block_anonymous_users();
 
@@ -23,7 +25,7 @@ if (isset($action)) {
     switch ($action) {
         case 'xls':
             $fileName = 'report_' . api_get_local_time();
-            $rawData = $plugin->getData(null, null, null, null, $keyword);
+            $rawData = $plugin->getData(null, null, null, null, $courseId, $sessionId, $keyword);
 
             $headers = [
                 'Nº',
@@ -35,13 +37,16 @@ if (isset($action)) {
                 'RUC',
                 'Empresa',
                 'Sede',
-                'Ex. Entrada (10%)',
-                'Ex. Práctico (60%)',
-                'Ex. Salida (30%)',
-                'Nota Final',
-                'Estado',
-                'Observaciones'
             ];
+
+            foreach ($plugin->getDATAcolumns($courseId, $sessionId) as $column) {
+                $headers[] = $column;
+            }
+
+            if (count($headers) > 9) {
+                $headers[] = 'Estado';
+                $headers[] = 'Observaciones';
+            }
 
             $cleanData = [];
             foreach ($rawData as $row) {
@@ -88,21 +93,31 @@ if (isset($keyword)) {
     $table->set_additional_parameters(['keyword' => $keyword]);
 }
 
-$table->set_header(0, 'Nº', true);
-$table->set_header(1, 'Fecha', true);
-$table->set_header(2, 'Nº Horas', true);
-$table->set_header(3, 'Nombre del curso', true);
+if (isset($courseId) && isset($sessionId)) {
+    $table->set_additional_parameters([
+        'course_id' => $courseId,
+        'session_id' => $sessionId
+    ]);
+}
+
+$table->set_header(0, 'Nº', false);
+$table->set_header(1, 'Fecha', false);
+$table->set_header(2, 'Nº Horas', false);
+$table->set_header(3, 'Nombre del curso', false);
 $table->set_header(4, 'Nombres y Apellidos', true);
-$table->set_header(5, 'Nº DNI / C.E', true);
-$table->set_header(6, 'RUC', true);
-$table->set_header(7, 'Empresa', true);
-$table->set_header(8, 'Sede', true);
-$table->set_header(9, 'Ex. Entrada (10%)', true);
-$table->set_header(10, 'Ex. Práctico (60%)', true);
-$table->set_header(11, 'Ex. Salida (30%)', true);
-$table->set_header(12, 'Nota Final', true);
-$table->set_header(13, 'Estado', true);
-$table->set_header(14, 'Observaciones', true);
+$table->set_header(5, 'Nº DNI / C.E', false);
+$table->set_header(6, 'RUC', false);
+$table->set_header(7, 'Empresa', false);
+$table->set_header(8, 'Sede', false);
+
+$initialIndex = 9;
+foreach ($plugin->getDATAcolumns($courseId, $sessionId) as $column) {
+    $table->set_header($initialIndex, $column, false);
+    $initialIndex++;
+}
+
+$table->set_header($initialIndex++, 'Estado', false);
+$table->set_header($initialIndex, 'Observaciones', false);
 
 $contentTable = $table->return_table();
 
@@ -196,7 +211,11 @@ $actionsLeft = $form->returnForm();
 
 $actionsRight = Display::url(
     Display::return_icon('export_excel.png', get_lang('ExportAsXLS'), [], ICON_SIZE_MEDIUM),
-    api_get_self() . '?' . http_build_query(['export' => 'xls'])
+    api_get_self() . '?' . http_build_query([
+        'export' => 'xls',
+        'course_id' => $courseId,
+        'session_id' => $sessionId,
+    ])
 );
 
 $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $actionsRight], [9, 1, 2]);
