@@ -1056,7 +1056,13 @@ class ProikosPlugin extends Plugin
 
         // only asincronico / sincronico
         $qb->andWhere(
-            $qb->expr()->between('s.sessionMode', 1, 2)
+            $qb->expr()->in(
+                's.sessionMode',
+                [
+                    self::CATEGORY_ASINCRONO,
+                    self::CATEGORY_SINCRONO
+                ]
+            )
         );
 
         if ($getCount) {
