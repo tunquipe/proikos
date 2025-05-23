@@ -3383,6 +3383,7 @@ HTML;
                         user_id = u.id
                 )) AS nro_horz,
                 c.title AS nombre_curso,
+                c.visual_code AS visual_code_curso,
                 CONCAT(u.firstname, ' ', u.lastname) AS nombre_apellido,
                 COALESCE(
                     CASE
@@ -3460,7 +3461,7 @@ HTML;
                 $row['user_id'],
                 $row['fecha_ex'],
                 $row['nro_horz'],
-                $row['nombre_curso'],
+                $row['nombre_curso'] . (!empty($row['visual_code_curso']) ? ' (' . $row['visual_code_curso'] . ')' : ''),
                 $row['nombre_apellido'],
                 $row['dni'],
                 $row['ruc_empresa'],
