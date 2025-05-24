@@ -75,7 +75,8 @@ class ProikosPlugin extends Plugin
             '1.0',
             'Alex Aragon <alex.aragon@tunqui.pe>',
             [
-                'tool_enable' => 'boolean'
+                'tool_enable' => 'boolean',
+                'enable_limit_user_quotas' => 'boolean'
             ]
         );
         $this->isAdminPlugin = true;
