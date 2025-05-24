@@ -3,6 +3,7 @@
 $strings['plugin_title'] = 'Proikos Plugin';
 $strings['plugin_comment'] = 'Plugin created for the Proikos company.';
 $strings['tool_enable'] = 'Enable plugin';
+$strings['enable_limit_user_quotas'] = 'Limit user quotas';
 $strings['RegisterUser'] = 'Register new user';
 $strings['PersonalInformation'] = 'Personal information';
 $strings['CompanyRuc'] = 'Company RUC';

@@ -136,8 +136,19 @@ $coursesList = CourseManager::get_courses_list(
     []
 );
 
+$coursesJsFormat = [];
+$coursesJsFormat[] = [
+    'id' => 0,
+    'name' => $plugin->get_lang('SelectCourse'),
+    'badge' => ''
+];
 foreach ($coursesList as $course) {
-    $courses[$course['id']] = $course['title'];
+    $courses[$course['id']] = $course['title'] . (!empty($course['visual_code']) ? " (" . $course['visual_code'] . ")" : "");
+    $coursesJsFormat[] = [
+        'id' => $course['id'],
+        'name' => $course['title'],
+        'badge' => (!empty($course['visual_code']) ? "<span class='label label-info'>" . $course['visual_code'] . "</span>" : "")
+    ];
 }
 
 $url = api_get_self();
@@ -158,6 +169,7 @@ $form->addSelect(
     get_lang('Course'),
     $courses
 );
+$coursesJsFormat = json_encode($coursesJsFormat, JSON_UNESCAPED_UNICODE);
 $form->addHtml(
     <<<EOT
     <script>
@@ -167,6 +179,25 @@ $form->addHtml(
                 if (courseId) {
                     window.location.href = '{$url}?course_id=' + courseId;
                 }
+            });
+
+            const courses = JSON.parse(`{$coursesJsFormat}`);
+            const \$select = $('select[name="course_id"]');
+            \$select.empty();
+
+            const courseId = '{$courseId}';
+            console.log(courseId)
+
+            courses.forEach(course => {
+               const isSelected = course.id == courseId ? true : false;
+              \$select.append(
+                $('<option>', {
+                  value: course.id,
+                  'data-content': course.name + ' ' + (course.badge ?? ''),
+                  text: course.name,
+                  selected: isSelected
+                })
+              );
             });
         });
 
