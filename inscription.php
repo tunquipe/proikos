@@ -150,16 +150,9 @@ if($action == 'second'){
                         let registerButton = document.querySelector("button[name=\'register\']");
                         if (this.checked) {
                             registerButton.removeAttribute("disabled");
+                            document.getElementById("link_term_and_conditions").click();
                         } else {
                             registerButton.setAttribute("disabled", "disabled");
-                        }
-                    });
-
-                    document.getElementById("link_term_and_conditions").addEventListener("click", function() {
-                        // attach event click to check_terms_and_conditions
-                        let checkbox = document.getElementById("check_terms_and_conditions");
-                        if (!checkbox.checked) {
-                            checkbox.click();
                         }
                     });
                 </script>
