@@ -3435,7 +3435,7 @@ HTML;
 
         if (!empty($keyword)) {
             $keyword = Database::escape_string($keyword);
-            $sql .= " AND CONCAT(u.firstname, ' ', u.lastname) LIKE '%$keyword%' ";
+            $sql .= " AND ppu.number_document = $keyword ";
         }
 
         $sql .= " ORDER BY $order_by $direction";
