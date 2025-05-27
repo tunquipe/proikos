@@ -234,7 +234,7 @@ $form->setDefaults([
 ]);
 
 $form->addText('keyword', $plugin->get_lang('SearchUser'), false, [
-    'placeholder' => 'Buscar usuario',
+    'placeholder' => 'Buscar usuario por DNI',
     'style' => 'display: block'
 ]);
 $form->addButtonSearch(get_lang('Search'));
