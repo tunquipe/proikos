@@ -3677,4 +3677,10 @@ HTML;
 EOT;
         }
     }
+
+    public static function deleteUser($userId)
+    {
+        $sql = "DELETE FROM ".Database::get_main_table(self::TABLE_PROIKOS_USERS)." WHERE user_id = '$userId'";
+        Database::query($sql);
+    }
 }
