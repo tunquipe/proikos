@@ -3450,7 +3450,7 @@ HTML;
 
         if (!empty($keyword)) {
             $keyword = Database::escape_string($keyword);
-            $sql .= " AND CONCAT(u.firstname, ' ', u.lastname) LIKE '%$keyword%' ";
+            $sql .= " AND ppu.number_document = $keyword ";
         }
 
         $sql .= " ORDER BY $order_by $direction";
@@ -3691,5 +3691,11 @@ HTML;
             <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 EOT;
         }
+    }
+
+    public static function deleteUser($userId)
+    {
+        $sql = "DELETE FROM ".Database::get_main_table(self::TABLE_PROIKOS_USERS)." WHERE user_id = '$userId'";
+        Database::query($sql);
     }
 }
