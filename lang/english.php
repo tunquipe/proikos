@@ -124,6 +124,7 @@ $strings['SelectSessionCategory'] = 'Select session category';
 $strings['SelectSession'] = 'Select session';
 $strings['SelectCourse'] = 'Select course';
 $strings['SearchUser'] = 'Search user';
+$strings['SearchUserByDNI'] = 'Search user by DNI';
 $strings['SetQuotaToSessions'] = 'Assign quotas to sessions';
 $strings['StudentName'] = 'Student name';
 $strings['StudentSubscriptionDate'] = 'Subscription date';

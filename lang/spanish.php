@@ -124,6 +124,7 @@ $strings['SelectSessionCategory'] = 'Seleccionar categoría de la sesión';
 $strings['SelectSession'] = 'Seleccionar sesión';
 $strings['SelectCourse'] = 'Seleccionar curso';
 $strings['SearchUser'] = 'Buscar usuario';
+$strings['SearchUserByDNI'] = 'Buscar usuario por DNI';
 $strings['SetQuotaToSessions'] = 'Asignar cupos a sesiones';
 $strings['StudentName'] = 'Nombre del estudiante';
 $strings['StudentSubscriptionDate'] = 'Fecha de inscripción';
