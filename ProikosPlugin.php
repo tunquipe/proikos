@@ -3344,15 +3344,6 @@ HTML;
 
     public function getData($from, $number_of_items, $column, $direction, $courseId, $sessionId, $keyword = null, $onlyQuantity = false)
     {
-        if (empty($courseId) || empty($sessionId)) {
-
-            if ($onlyQuantity) {
-                return 0;
-            }
-
-            return [];
-        }
-
         $table_session_rel_user = Database::get_main_table(TABLE_MAIN_SESSION_USER);
         $table_session = Database::get_main_table(TABLE_MAIN_SESSION);
         $table_user = Database::get_main_table(TABLE_MAIN_USER);
@@ -3391,6 +3382,7 @@ HTML;
                 )) AS nro_horz,
                 c.title AS nombre_curso,
                 c.visual_code AS visual_code_curso,
+                s.name AS session_name,
                 CONCAT(u.firstname, ' ', u.lastname) AS nombre_apellido,
                 COALESCE(
                     CASE
@@ -3418,6 +3410,7 @@ HTML;
                     LIMIT 1
                 ), 'CERTIFICADO NO GENERADO') AS observacion,
             c.code AS course_code,
+            c.id AS course_id,
             s.id AS session_id,
             src.c_id AS cat_id
 
@@ -3427,11 +3420,29 @@ HTML;
             INNER JOIN {$table_session_rel_course} src ON src.session_id = s.id
             INNER JOIN {$table_course} c ON c.id = src.c_id
             INNER JOIN {$table_plugin_proikos_users} ppu ON ppu.user_id = u.id
+            LEFT JOIN (
+                SELECT te.exe_user_id, te.session_id,
+                    MAX(te.exe_result / te.exe_weighting * 100) AS score
+                FROM {$table_track_e_exercises} te
+                INNER JOIN {$table_c_quiz} q ON q.id = te.exe_exo_id
+                WHERE q.title LIKE '%Entrada%' OR q.title LIKE '%Entrance%'
+                GROUP BY te.exe_user_id, te.session_id
+            ) entrance_quiz ON entrance_quiz.exe_user_id = u.id AND entrance_quiz.session_id = s.id
 
             WHERE sru.relation_type IN (0, 2)
-            AND c.id = $courseId
-            AND s.id = $sessionId
         ";
+
+        if ($courseId === '%') {
+            $sql .= " AND c.id LIKE '%'";
+        } else {
+            $sql .= " AND c.id = $courseId ";
+        }
+
+        if ($sessionId === '%') {
+            $sql .= " AND s.id LIKE '%'";
+        } else {
+            $sql .= " AND s.id = $sessionId ";
+        }
 
         if (!empty($keyword)) {
             $keyword = Database::escape_string($keyword);
@@ -3451,17 +3462,7 @@ HTML;
             return $numRows;
         }
 
-        $dataColumns = $this->getDATAcolumns($courseId, $sessionId);
-        $coruseInfo = api_get_course_info_by_id($courseId);
-        $cats = Category::load(
-            null,
-            null,
-            $coruseInfo['code'],
-            null,
-            null,
-            $sessionId,
-            'ORDER By id'
-        );
+        $dataColumns = $this->getDATAcolumns(false);
         $list = [];
         while ($row = Database::fetch_array($result)) {
             $item = [
@@ -3469,6 +3470,7 @@ HTML;
                 $row['fecha_ex'],
                 $row['nro_horz'],
                 $row['nombre_curso'] . (!empty($row['visual_code_curso']) ? ' (' . $row['visual_code_curso'] . ')' : ''),
+                $row['session_name'],
                 $row['nombre_apellido'],
                 $row['dni'],
                 $row['ruc_empresa'],
@@ -3476,28 +3478,56 @@ HTML;
                 $row['sede'],
             ];
 
-            $rowIndex = 9;
+            $rowIndex = 10;
+            $cats = Category::load(
+                null,
+                null,
+                $row['course_code'],
+                null,
+                null,
+                $row['session_id'],
+                'ORDER By id'
+            );
             if (!empty($cats[0])) {
-                $userScore = $this->getResultExerciseStudent($row['user_id'], $courseId, $sessionId, false);
-                $scoreCertificate = $this->getScoreCertificate($row['user_id'], $coruseInfo['code'], $sessionId, false);
+                $userScore = $this->getResultExerciseStudent($row['user_id'], $row['course_id'], $row['session_id'], false);
+                $scoreCertificate = $this->getScoreCertificate($row['user_id'], $row['course_code'], $row['session_id'], false);
 
                 $userScores = [];
-                $userLinks = $cats[0]->get_links($row['user_id'], false, $coruseInfo['code'], $sessionId);
-                foreach ($userLinks as $link) {
-                    $exerKey = strtolower($link->get_name());
-                    $score = round($userScore[$exerKey] ?? 0, 1);
-                    $exeResult = $link->get_weight() > 0 ? round($score * ($link->get_weight() / 100), 2) : 0;
-                    $userScores[] = [
-                        'score' => round($score, 1),
-                        'exeResult' => $exeResult
-                    ];
+                $userLinks = $cats[0]->get_links($row['user_id'], false, $row['course_code'], $row['session_id']);
+                foreach ($dataColumns as $columnKey => $columnName) {
+                    $examScore = [];
+                    foreach ($userLinks as $link) {
+                        if (!$this->examInMap($columnKey, $link->get_name()) || !empty($examScore)) {
+                            continue;
+                        }
+
+                        $exerKey = strtolower($link->get_name());
+                        $score = round($userScore[$exerKey] ?? 0, 1);
+                        $exeResult = $link->get_weight() > 0 ? round($score * ($link->get_weight() / 100), 2) : 0;
+                        $examScore = [
+                            'score' => round($score, 1),
+                            'exeResult' => $exeResult
+                        ];
+                    }
+
+                    if (empty($examScore)) {
+                        $examScore = [
+                            'score' => '-',
+                            'exeResult' => '-'
+                        ];
+                    }
+
+                    $userScores[] = $examScore;
                 }
 
+                // Calc final score
                 $finalScore = 0;
                 foreach ($userScores as $userScore) {
                     $item[$rowIndex] = $userScore['score'];
-                    $finalScore += $userScore['exeResult'];
                     $rowIndex++;
+                    if ($userScore['score'] !== '-') {
+                        $finalScore += $userScore['exeResult'];
+                    }
                 }
 
                 $finalScore = round($finalScore, 2);
@@ -3522,6 +3552,7 @@ HTML;
                 }
 
                 $item[$rowIndex++] = '-';
+                $item[$rowIndex++] = '-';
                 $item[$rowIndex] = '-';
             }
 
@@ -3531,31 +3562,47 @@ HTML;
         return $list;
     }
 
-    public function getDATAcolumns($courseId, $sessionId)
+    public function getDATAcolumns($showFinalScoreColumn = true)
     {
-        $coruseInfo = api_get_course_info_by_id($courseId);
-        $cats = Category::load(
-            null,
-            null,
-            $coruseInfo['code'],
-            null,
-            null,
-            $sessionId,
-            'ORDER By id'
-        );
+        $columns = [
+            'ex1' => 'Examen de Entrada',
+            'ex2' => 'Taller',
+            'ex3' => 'Examen de Salida'
+        ];
 
-        $excerciseColumns = [];
-        if (!empty($cats[0])) {
-            foreach ($cats[0]->get_links() as $link) {
-                $excerciseColumns[] = $link->get_name() . ' (' . $link->get_weight() . '%)';
-            }
+        if ($showFinalScoreColumn) {
+            $columns['final_score'] = 'Puntaje Final';
+        }
 
-            if (!empty($excerciseColumns)) {
-                $excerciseColumns[] = 'Nota Final';
+        return $columns;
+    }
+
+    private function examInMap($key, $exam): bool
+    {
+        $examMap = [
+            'ex1' => ['entrada', 'entrance'],
+            'ex2' => ['prueba', 'test', 'taller', 'práctica', 'practical', 'practica'],
+            'ex3' => ['salida', 'exit', 'final']
+        ];
+
+        if (empty($exam)) {
+            return false;
+        }
+
+        if (!isset($examMap[$key]) || !is_array($examMap[$key])) {
+            return false;
+        }
+
+        $exam = mb_strtolower($exam, 'UTF-8');
+        $exam = trim($exam);
+
+        foreach ($examMap[$key] as $examName) {
+            if (mb_strpos($exam, $examName) !== false) {
+                return true;
             }
         }
 
-        return $excerciseColumns;
+        return false;
     }
 
     /**

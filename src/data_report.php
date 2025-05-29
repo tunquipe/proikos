@@ -18,8 +18,8 @@ $htmlHeadXtra[] = api_get_asset('cropper/dist/cropper.min.js');
 
 $action = $_GET['export'] ?? null;
 $keyword = $_GET['keyword'] ?? null;
-$courseId = $_GET['course_id'] ?? null;
-$sessionId = $_GET['session_id'] ?? null;
+$courseId = $_GET['course_id'] ?? '%';
+$sessionId = $_GET['session_id'] ?? '%';
 
 if (isset($action)) {
     switch ($action) {
@@ -104,13 +104,14 @@ $table->set_header(0, 'Nº', false);
 $table->set_header(1, 'Fecha', false);
 $table->set_header(2, 'Nº Horas', false);
 $table->set_header(3, 'Nombre del curso', false);
-$table->set_header(4, 'Nombres y Apellidos', true);
-$table->set_header(5, 'Nº DNI / C.E', false);
-$table->set_header(6, 'RUC', false);
-$table->set_header(7, 'Empresa', false);
-$table->set_header(8, 'Sede', false);
+$table->set_header(4, 'Sesión', false);
+$table->set_header(5, 'Nombres y Apellidos', true);
+$table->set_header(6, 'Nº DNI / C.E', false);
+$table->set_header(7, 'RUC', false);
+$table->set_header(8, 'Empresa', false);
+$table->set_header(9, 'Sede', false);
 
-$initialIndex = 9;
+$initialIndex = 10;
 foreach ($plugin->getDATAcolumns($courseId, $sessionId) as $column) {
     $table->set_header($initialIndex, $column, false);
     $initialIndex++;
@@ -122,7 +123,7 @@ $table->set_header($initialIndex, 'Observaciones', false);
 $contentTable = $table->return_table();
 
 $courses = [];
-$courses[0] = $plugin->get_lang('SelectCourse');
+$courses['%'] = $plugin->get_lang('SelectCourse');
 $coursesList = CourseManager::get_courses_list(
     0,
     0,
@@ -138,7 +139,7 @@ $coursesList = CourseManager::get_courses_list(
 
 $coursesJsFormat = [];
 $coursesJsFormat[] = [
-    'id' => 0,
+    'id' => '%',
     'name' => $plugin->get_lang('SelectCourse'),
     'badge' => ''
 ];
@@ -153,9 +154,18 @@ foreach ($coursesList as $course) {
 
 $url = api_get_self();
 $sessions = [];
-$sessions[0] = $plugin->get_lang('SelectSession');
+$sessions['%'] = $plugin->get_lang('SelectSession');
 if (!empty($courseId)) {
-    $sessionsList = SessionManager::get_session_by_course($courseId);
+    $sessionsList = SessionManager::getSessionsForAdmin(
+        api_get_user_id(),
+        [
+            'where' => [],
+            'extra' => []
+        ],
+        false,
+        [],
+        'all'
+    );
 
     foreach ($sessionsList as $session) {
         $sessions[$session['id']] = $session['name'];
@@ -233,7 +243,7 @@ $form->setDefaults([
     'session_id' => $sessionId
 ]);
 
-$form->addText('keyword', $plugin->get_lang('SearchUser'), false, [
+$form->addText('keyword', $plugin->get_lang('SearchUserByDNI'), false, [
     'placeholder' => 'Buscar usuario por DNI',
     'style' => 'display: block'
 ]);
