@@ -32,6 +32,7 @@ if (isset($action)) {
                 'Fecha',
                 'Nº Horas',
                 'Nombre del curso',
+                'Sesión',
                 'Nombres y Apellidos',
                 'Nº DNI / C.E',
                 'RUC',
@@ -43,7 +44,7 @@ if (isset($action)) {
                 $headers[] = $column;
             }
 
-            if (count($headers) > 9) {
+            if (count($headers) > 10) {
                 $headers[] = 'Estado';
                 $headers[] = 'Observaciones';
             }
