@@ -179,21 +179,23 @@ class PluginProikosContratingCompaniesQuotaCab
                     api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_det.php?company_id=' . $companyId . '&action=edit&quota_cab_id=' . $row['id']
                 );
 
-                // delete action
-                $action .= Display::url(
-                    Display::return_icon(
-                        'delete.png',
-                        get_lang('Delete'),
-                        [],
-                        ICON_SIZE_SMALL
-                    ),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $companyId . '&action=delete&quota_cab_id=' . $row['id'],
-                    [
-                        'onclick' => 'javascript:if(!confirm(' . "'" .
-                            addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
-                            . "'" . ')) return false;',
-                    ]
-                );
+                if (api_is_platform_admin() || api_is_drh()) {
+                    // delete action
+                    $action .= Display::url(
+                        Display::return_icon(
+                            'delete.png',
+                            get_lang('Delete'),
+                            [],
+                            ICON_SIZE_SMALL
+                        ),
+                        api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $companyId . '&action=delete&quota_cab_id=' . $row['id'],
+                        [
+                            'onclick' => 'javascript:if(!confirm(' . "'" .
+                                addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
+                                . "'" . ')) return false;',
+                        ]
+                    );
+                }
 
                 $row['actions'] = $action;
                 $items[] = $row;

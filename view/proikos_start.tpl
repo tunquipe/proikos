@@ -3,6 +3,7 @@
 </div>
 
 <div class="row">
+    {% if is_platform_admin or is_drh %}
     <div class="col-md-3">
         <div class="tool-box">
             <a href="{{ src_plugin }}src/entity_management.php" class="tool">
@@ -10,7 +11,6 @@
                 <div class="tool-title">Gestionar de empresas</div>
             </a>
         </div>
-
     </div>
     <div class="col-md-3">
         <div class="tool-box">
@@ -28,6 +28,8 @@
             </a>
         </div>
     </div>
+    {% endif %}
+
     <div class="col-md-3">
         <div class="tool-box">
             <a href="{{ src_plugin }}src/contrating_companies.php" class="tool">
