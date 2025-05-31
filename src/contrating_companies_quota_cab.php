@@ -63,6 +63,16 @@ $form->addText('company_total_user_quota', $plugin->get_lang('CompanyTotalUserQu
     'disabled' => 'disabled'
 ]);
 
+$totalQuotaDispon = 0;
+foreach ($items as $item) {
+    $totalQuotaDispon += $item['quota_dispon'];
+}
+
+$form->addText('company_total_user_quota', $plugin->get_lang('ContratingCompanyUserQuotaDispon'), false, [
+    'value' => $totalQuotaDispon,
+    'disabled' => 'disabled'
+]);
+
 if (api_is_platform_admin() || api_is_drh()) {
 $courseDetailHasError = $plugin->getCRUDQuotaDet($form);
 $form->addElement('select', 'validity_select', '', [

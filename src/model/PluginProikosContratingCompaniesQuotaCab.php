@@ -131,6 +131,12 @@ class PluginProikosContratingCompaniesQuotaCab
             a.id,
             a.contrating_company_id,
             (SELECT SUM(user_quota) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) AS total_user_quota,
+            (
+                (SELECT SUM(user_quota) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) -
+                IFNULL((SELECT SUM(qs.user_quota) FROM plugin_proikos_contrating_companies_quota_session qs
+                INNER JOIN " . $this->contratingCompaniesQuotaDet . " sqd ON sqd.id = qs.det_id
+                WHERE sqd.cab_id = a.id), 0)
+            ) AS quota_dispon,
             (SELECT CONCAT('S/ ', FORMAT(SUM(price_unit * user_quota), 2)) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) AS total_price_unit_quota,
             (
                  SELECT GROUP_CONCAT(DISTINCT
@@ -154,7 +160,9 @@ class PluginProikosContratingCompaniesQuotaCab
             CONCAT(b.lastname, ' ', b.firstname) AS user_name
             FROM $table a
             LEFT JOIN user b on a.created_user_id = b.user_id
-            WHERE a.contrating_company_id = $companyId";
+            WHERE a.contrating_company_id = $companyId
+            ORDER BY a.id DESC
+            ";
         $result = Database::query($sql);
         $items = [];
         if (Database::num_rows($result) > 0) {

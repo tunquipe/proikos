@@ -88,6 +88,7 @@ $strings['UpdateContratingCompany'] = 'Actualizar empresa contratista';
 $strings['ContratingCompanyName'] = 'Nombre Empresa';
 $strings['ContratingCompanyRUC'] = 'RUC';
 $strings['ContratingCompanyUserQuota'] = 'Nº Cupos';
+$strings['ContratingCompanyUserQuotaDispon'] = 'Nº Cupos disponibles';
 $strings['SaveContratingCompany'] = 'Guardar empresa';
 $strings['ContratingCompanyRUCExists'] = 'El RUC de la empresa ya existe';
 $strings['ContratingCompanyDeleted'] = 'La empresa contratista fue eliminada';
