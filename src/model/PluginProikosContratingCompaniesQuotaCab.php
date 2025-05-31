@@ -154,7 +154,9 @@ class PluginProikosContratingCompaniesQuotaCab
             CONCAT(b.lastname, ' ', b.firstname) AS user_name
             FROM $table a
             LEFT JOIN user b on a.created_user_id = b.user_id
-            WHERE a.contrating_company_id = $companyId";
+            WHERE a.contrating_company_id = $companyId
+            ORDER BY a.id DESC
+            ";
         $result = Database::query($sql);
         $items = [];
         if (Database::num_rows($result) > 0) {
