@@ -1173,6 +1173,21 @@ class ProikosPlugin extends Plugin
         return $list;
     }
 
+    public static function getUserRucCompany(): string
+    {
+        $userId = api_get_user_id();
+        $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $sql = "SELECT ruc_company FROM $table WHERE user_id = '$userId'";
+        $result = Database::query($sql);
+        $rucCompany = '';
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $rucCompany = $row['ruc_company'];
+            }
+        }
+        return $rucCompany;
+    }
+
     public function getGradebookEvaluation($courseId, $session_id = 0){
         $course_code = self::getCourseCode($courseId);
         $cats = Category::load(
@@ -3449,7 +3464,12 @@ HTML;
             $sql .= " AND ppu.number_document = $keyword ";
         }
 
-        $sql .= " ORDER BY $order_by $direction";
+        if (api_is_contractor_admin()) {
+            $rucCompany = self::getUserRucCompany();
+            $sql .= " AND ppu.ruc_company = '$rucCompany' ";
+        }
+
+        $sql .= " ORDER BY 2 desc, 4 asc, 6 asc, 1 desc";
 
         if (isset($from) && isset($number_of_items) && !$onlyQuantity) {
             $sql .= " LIMIT $from, $number_of_items";
@@ -3464,9 +3484,10 @@ HTML;
 
         $dataColumns = $this->getDATAcolumns(false);
         $list = [];
+        $index = 1;
         while ($row = Database::fetch_array($result)) {
             $item = [
-                $row['user_id'],
+                $index,
                 $row['fecha_ex'],
                 $row['nro_horz'],
                 $row['nombre_curso'] . (!empty($row['visual_code_curso']) ? ' (' . $row['visual_code_curso'] . ')' : ''),
@@ -3557,6 +3578,8 @@ HTML;
             }
 
             $list[] = $item;
+
+            $index++;
         }
 
         return $list;

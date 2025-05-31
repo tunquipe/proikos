@@ -29,6 +29,13 @@ class PluginProikosContratingCompaniesQuotaSessionDet
 
     public function getData()
     {
+        $where = "";
+
+        if (api_is_contractor_admin()) {
+            $rucCompany = ProikosPlugin::getUserRucCompany();
+            $where = "WHERE e.ruc = '$rucCompany'";
+        }
+
         $sql = "SELECT e.ruc, e.name as company_name, f.name as session_name,
                 DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS quota_created_at,
                 CONCAT(h.lastname, ' ', h.firstname) AS quota_created_by,
@@ -43,6 +50,9 @@ class PluginProikosContratingCompaniesQuotaSessionDet
                 INNER JOIN session f ON f.id = a.session_id
                 LEFT JOIN user g ON g.user_id = a.user_id
                 LEFT JOIN user h ON h.user_id = a.created_user_id
+
+                $where
+
                 ORDER BY a.id ASC;";
         $result = \Database::query($sql);
         $data = [];
