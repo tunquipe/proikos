@@ -88,6 +88,7 @@ $strings['UpdateContratingCompany'] = 'Update contracting company';
 $strings['ContratingCompanyName'] = 'Company name';
 $strings['ContratingCompanyRUC'] = 'RUC';
 $strings['ContratingCompanyUserQuota'] = 'Number of quotas';
+$strings['ContratingCompanyUserQuotaDispon'] = 'Number of quotas available';
 $strings['SaveContratingCompany'] = 'Save company';
 $strings['ContratingCompanyRUCExists'] = 'The RUC of the company already exists';
 $strings['ContratingCompanyDeleted'] = 'The company was deleted';
