@@ -39,6 +39,21 @@ class PluginProikosContratingCompanies
     public function getData($id = null, $asSelect = false)
     {
         $table = Database::get_main_table($this->table);
+        $where = "";
+
+        if ($id !== null) {
+            $where = "WHERE a.id = $id";
+            if (api_is_contractor_admin()) {
+                $rucCompany = ProikosPlugin::getUserRucCompany();
+                $where .= " AND a.ruc = '$rucCompany'";
+            }
+        } else {
+            if (api_is_contractor_admin()) {
+                $rucCompany = ProikosPlugin::getUserRucCompany();
+                $where = "WHERE a.ruc = '$rucCompany'";
+            }
+        }
+
         $sql = "SELECT
                 a.*,
                 SUM(c.user_quota) AS total_user_quota,
@@ -49,7 +64,7 @@ class PluginProikosContratingCompanies
                 " . $this->contratingCompaniesQuotaCab ." b ON b.contrating_company_id = a.id
             LEFT JOIN
                 " . $this->contratingCompaniesQuotaDet ." c ON c.cab_id = b.id
-            " . ($id !== null ? "WHERE a.id = $id" : "") . "
+            " . ($where) . "
             GROUP BY
                 a.id;";
 
@@ -77,28 +92,30 @@ class PluginProikosContratingCompanies
                     api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $row['id']
                 );
 
-                $action .= Display::url(
-                    Display::return_icon(
-                        'edit.png',
-                        null,
-                        [],
-                        ICON_SIZE_SMALL),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php?action=edit&id=' . $row['id']
-                );
-                $action .= Display::url(
-                    Display::return_icon(
-                        'delete.png',
-                        get_lang('Delete'),
-                        [],
-                        ICON_SIZE_SMALL
-                    ),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php?action=delete&id=' . $row['id'],
-                    [
-                        'onclick' => 'javascript:if(!confirm(' . "'" .
-                            addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
-                            . "'" . ')) return false;',
-                    ]
-                );
+                if (api_is_platform_admin() || api_is_drh()) {
+                    $action .= Display::url(
+                        Display::return_icon(
+                            'edit.png',
+                            null,
+                            [],
+                            ICON_SIZE_SMALL),
+                        api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php?action=edit&id=' . $row['id']
+                    );
+                    $action .= Display::url(
+                        Display::return_icon(
+                            'delete.png',
+                            get_lang('Delete'),
+                            [],
+                            ICON_SIZE_SMALL
+                        ),
+                        api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php?action=delete&id=' . $row['id'],
+                        [
+                            'onclick' => 'javascript:if(!confirm(' . "'" .
+                                addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
+                                . "'" . ')) return false;',
+                        ]
+                    );
+                }
 
                 $list[] = [
                     'id' => $row['id'],

@@ -4,7 +4,7 @@ require_once __DIR__ . '/../config.php';
 api_block_anonymous_users();
 $action = $_GET['action'] ?? null;
 $plugin = ProikosPlugin::create();
-$allow = api_is_platform_admin() || api_is_teacher();
+$allow = api_is_platform_admin() || api_is_drh() || api_is_contractor_admin();
 
 if (!$allow) {
     api_not_allowed(true);
@@ -63,6 +63,7 @@ $form->addText('company_total_user_quota', $plugin->get_lang('CompanyTotalUserQu
     'disabled' => 'disabled'
 ]);
 
+if (api_is_platform_admin() || api_is_drh()) {
 $courseDetailHasError = $plugin->getCRUDQuotaDet($form);
 $form->addElement('select', 'validity_select', '', [
     '+3 months' => '3 meses',
@@ -162,6 +163,7 @@ if ($form->validate() && $courseDetailHasError === false) {
     header('Location: ' . $url);
 }
 
+}
 $tpl->assign('form', $form->returnForm());
 // ------------------------
 // End Form
