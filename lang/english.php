@@ -70,6 +70,7 @@ $strings['StakeholdersForRegistration'] = 'Stakeholders for registration';
 $strings['AttachCertificate'] = 'Attach certificates';
 $strings['RequestAttachCertificateInduction'] = 'Request to attach induction certificates';
 $strings['RequestAttachCertificateTrabajosAltoRiesgo'] = 'Request to attach high-risk work certificates';
+$strings['Hours2'] = '2 Hours';
 $strings['Hours4'] = '4 Hours';
 $strings['Hours8'] = '8 Hours';
 $strings['TimeInSession'] = 'Time in hours of the session';
