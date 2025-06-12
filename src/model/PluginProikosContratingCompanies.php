@@ -13,6 +13,32 @@ class PluginProikosContratingCompanies
         $this->contratingCompaniesQuotaDet = $contratingCompaniesQuotaDet;
     }
 
+    public function getValidateCodeCompany($codeCompany, $idCompany): bool
+    {
+        if (empty($idCompany)) {
+            return false; // Si el idCompany está vacío, se retorna false.
+        }
+
+        $table = Database::get_main_table($this->table);
+        $sql = "SELECT ppcc.company_code FROM $table ppcc WHERE ppcc.id = $idCompany";
+        $result = Database::query($sql);
+
+        $code = null;
+
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $code = $row['company_code']; // Obtener el código de la base de datos
+            }
+        }
+
+        // Verificar si el $code es nulo, vacío o no coincide con $codeCompany
+        if (empty($code) || $code !== $codeCompany) {
+            return false;
+        }
+
+        return true;
+    }
+
     public function save($values)
     {
         if (!is_array($values)) {

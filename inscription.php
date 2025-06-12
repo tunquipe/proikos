@@ -112,7 +112,17 @@ if($action == 'second'){
             $contratingCompanies = $plugin->contratingCompaniesModel()->getData(null, true);
             $contratingCompaniesSelect = $form->addSelect('contrating_companies', $plugin->get_lang('Company_RUC'), $contratingCompanies);
             $form->setRequired($contratingCompaniesSelect);
-            $form->addText('company_code', [$plugin->get_lang('CompanyToCode'), $plugin->get_lang('CompanyCodeHelp')], true);
+            $form->addText(
+                'company_code',
+                [
+                    $plugin->get_lang('CompanyToCode'),
+                    $plugin->get_lang('CompanyCodeHelp')
+                ],
+                true,
+                [
+                    'maxlength' => 5,
+                ]
+            );
             // end contratistas
 
             $form->addHtml('<div id="options-column">');

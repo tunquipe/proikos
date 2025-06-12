@@ -3019,7 +3019,6 @@ EOT
         return $courseDetailHasError;
     }
 
-
     public static function checkUserQuizCompletion($userId, $categoryId)
     {
         // Validate input parameters

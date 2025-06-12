@@ -134,4 +134,6 @@ $strings['DownloadAllAttachedCertificates'] = 'Descargar todos los certificados 
 $strings['CompanyCode'] = 'Código de empresa';
 $strings['CompanyToCode'] = 'Código de tu empresa';
 $strings['PleaseEnterOnlyNumbers'] = 'Solo ingresar números';
-$strings['CompanyCodeHelp'] = 'Ingresar el código unico proporcionado por tu empresa.';
+$strings['CompanyCodeHelp'] = 'Ingresar el código de 5 números único proporcionado por tu empresa.';
+$strings['InvalidCodeCompany'] = 'Código inválido comunícate con tu empresa.';
+$strings['CodeIsCorrect'] = 'El código es correcto.';

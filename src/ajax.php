@@ -147,6 +147,23 @@ if ($action) {
                 echo json_encode($result);
             }
             break;
+        case 'validate_company_code':
+            if (isset($_POST)) {
+                $companyCode = $_POST['company_code'] ?? null;
+                $companyId = $_POST['id_company'] ?? null;
+                $compare = $plugin->contratingCompaniesModel()->getValidateCodeCompany($companyCode, $companyId);
+                $message = $plugin->get_lang('CodeIsCorrect');
+                if(!$compare){
+                    $message = $plugin->get_lang('InvalidCodeCompany');
+                }
+                $json = [
+                    'success' => $compare,
+                    'message' => $message,
+                ];
+                echo json_encode($json);
+            }
+
+            break;
         case 'get_exams_students':
             if (isset($_POST)) {
                 $start_date = $_POST['start_date'] ?? null;
