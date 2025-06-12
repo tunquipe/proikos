@@ -112,15 +112,17 @@ if($action == 'second'){
             $contratingCompanies = $plugin->contratingCompaniesModel()->getData(null, true);
             $contratingCompaniesSelect = $form->addSelect('contrating_companies', $plugin->get_lang('Company_RUC'), $contratingCompanies);
             $form->setRequired($contratingCompaniesSelect);
+
             $form->addText(
                 'company_code',
                 [
                     $plugin->get_lang('CompanyToCode'),
-                    $plugin->get_lang('CompanyCodeHelp')
+                    $plugin->get_lang('CompanyCodeHelp'),
+                    '<button id="validate_code" type="button" class="btn btn-default">'.$plugin->get_lang('ValidateCode').'</button>'
                 ],
                 true,
                 [
-                    'maxlength' => 5,
+                    'maxlength' => 5
                 ]
             );
             // end contratistas
