@@ -125,6 +125,7 @@ if($action == 'second'){
                     'maxlength' => 5
                 ]
             );
+            $form->addHtml('<div id="validation_message" class="alert" style="display: none;"></div>');
             // end contratistas
 
             $form->addHtml('<div id="options-column">');

@@ -123,3 +123,6 @@
     border-color: var(--primary-color);
     font-weight: bold;
 }
+#validation_message{
+    margin-bottom: 0;
+}
