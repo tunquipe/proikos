@@ -2716,6 +2716,10 @@ EOT
                     if (empty($value['session_mode']) || empty($value['session_category_id']) || (empty($value['quota']) && $value['quota'] != 0) || $value['quota'] < 0) {
                         $courseDetailHasError = true;
                     }
+
+                    if ($value['price_unit'] == -1) {
+                        $courseDetailHasError = true;
+                    }
                 }
 
                 if ($courseDetailHasError) {
@@ -2846,7 +2850,11 @@ EOT
                 </td>
                 <td>
                     ` + inputIdHidden  + `
-                    <input type="number" name="course_detail[` + itemIndex + `][price_unit]" id="price_unit" class="form-control text-right">
+                    <select name="course_detail[` + itemIndex + `][price_unit]" id="price_unit" class="form-control text-right">
+                        <option value="-1" selected>Seleccionar</option>
+                        <option value="35.40">35.40</option>
+                        <option value="51.92">51.92</option>
+                    </select>
                 </td>
                 <td>
                     <input type="number" name="course_detail[` + itemIndex + `][quota]" id="quota" class="form-control text-right">
@@ -2871,8 +2879,8 @@ EOT
             }
 
             // Price Quota
-            const priceUnitQuotaInput = newRow.querySelector('input[name="course_detail[' + itemIndex + '][price_unit]"]');
-            priceUnitQuotaInput.addEventListener('input', function() {
+            const priceUnitQuotaInput = newRow.querySelector('select[name="course_detail[' + itemIndex + '][price_unit]"]');
+            priceUnitQuotaInput.addEventListener('change', function() {
                 updateTotalPriceUnitQuota();
             });
 
@@ -2938,7 +2946,7 @@ EOT
         }
 
         function updateTotalPriceUnitQuota() {
-            const inputs = document.querySelectorAll('input[name^="course_detail"]');
+            const inputs = document.querySelectorAll('input[name^="course_detail"], select[name^="course_detail"]');
             const courseData = {};
 
             inputs.forEach(input => {
@@ -3721,7 +3729,6 @@ HTML;
 
             <script>
                  const elementdsId = JSON.parse('{$elementdsId}');
-                 console.log(elementdsId)
                  function googleTranslateElementInit() {
                     const options = {
                         autoDisplay: true,
