@@ -2684,6 +2684,12 @@ EOT
         ));
     }
 
+    function generateRandomCode(): int
+    {
+        // Generate a random 5-digit number
+        return rand(10000, 99999);
+    }
+
     public function getCRUDQuotaDet(FormValidator $form, $defaultCourseDetail = [], $disableActions = false)
     {
         $disableActions = $disableActions ? 1 : 0;

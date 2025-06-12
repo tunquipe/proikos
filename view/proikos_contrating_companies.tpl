@@ -1,3 +1,4 @@
+
 {{ form }}
 <table class="table table-bordered js-paginated-table">
     <thead>
@@ -7,6 +8,7 @@
         <th>{{ 'ContratingCompanyName'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'ContratingAdminName'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'ContratingAdminEmail'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th style="width: 90px;">{{ 'CompanyCode'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="text-center">{{ 'ContratingCompanyUserQuota'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'Status'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="text-center">{{ 'Actions'|get_plugin_lang('ProikosPlugin') }}</th>
@@ -20,6 +22,7 @@
             <td>{{ contrating_company.name }}</td>
             <td>{{ contrating_company.admin_name }}</td>
             <td>{{ contrating_company.admin_email }}</td>
+            <td>{{ contrating_company.company_code }}</td>
             <td class="text-center">{{ contrating_company.total_user_quota }}</td>
             <td>{{ (contrating_company.status == 1 ? 'Activo' : 'Inactivo') }}</td>
             <td class="text-center">{{ contrating_company.actions }}</td>

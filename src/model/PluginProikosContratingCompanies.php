@@ -25,7 +25,8 @@ class PluginProikosContratingCompanies
             'ruc' => $values['ruc'],
             'admin_name' => $values['admin_name'] ?? '',
             'status' => $values['status'] ?? 1,
-            'admin_email' => $values['admin_email'] ?? ''
+            'admin_email' => $values['admin_email'] ?? '',
+            'company_code' => $values['company_code'] ?? '',
         ];
         $id = Database::insert($table, $params);
 
@@ -123,6 +124,7 @@ class PluginProikosContratingCompanies
                     'ruc' => $row['ruc'],
                     'admin_name' => $row['admin_name'],
                     'admin_email' => $row['admin_email'],
+                    'company_code' => $row['company_code'],
                     'total_user_quota' => $row['total_user_quota'],
                     'total_price_unit_quota' => $row['total_price_unit_quota'],
                     'status' => $row['status'],

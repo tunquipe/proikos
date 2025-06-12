@@ -63,7 +63,10 @@ switch ($action) {
         $form->addText('name', $plugin->get_lang('ContratingCompanyName'));
         $form->addText('admin_name', $plugin->get_lang('ContratingAdminName'));
         $form->addText('admin_email', $plugin->get_lang('ContratingAdminEmailOptional'), false);
-
+        $form->addText('company_code', [$plugin->get_lang('CompanyCode'),$plugin->get_lang('PleaseEnterOnlyNumbers')], true, [
+            'value' => $plugin->generateRandomCode(),
+            'maxlength' => 5,
+        ]);
         $group = [];
         $group[] = $form->createElement('radio', 'status', null, get_lang('Active'), 1);
         $group[] = $form->createElement('radio', 'status', null, get_lang('Inactive'), 0);
@@ -111,7 +114,18 @@ switch ($action) {
         $form->addText('name', $plugin->get_lang('ContratingCompanyName'));
         $form->addText('admin_name', $plugin->get_lang('ContratingAdminName'));
         $form->addText('admin_email', $plugin->get_lang('ContratingAdminEmailOptional'), false);
-
+        $form->addText(
+            'company_code',
+            [
+                $plugin->get_lang('CompanyCode'),
+                $plugin->get_lang('PleaseEnterOnlyNumbers')
+            ],
+            true,
+            [
+                'maxlength' => 5,
+                'disabled' => true,
+            ]
+        );
         $group = [];
         $group[] = $form->createElement('radio', 'status', null, get_lang('Active'), 1);
         $group[] = $form->createElement('radio', 'status', null, get_lang('Inactive'), 0);
