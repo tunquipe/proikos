@@ -120,7 +120,7 @@ switch ($action) {
                 $plugin->get_lang('CompanyCode'),
                 $plugin->get_lang('PleaseEnterOnlyNumbers')
             ],
-            true,
+            false,
             [
                 'maxlength' => 5,
                 'disabled' => true,

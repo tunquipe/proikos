@@ -132,4 +132,6 @@ $strings['StudentName'] = 'Nombre del estudiante';
 $strings['StudentSubscriptionDate'] = 'Fecha de inscripción';
 $strings['DownloadAllAttachedCertificates'] = 'Descargar todos los certificados adjuntos';
 $strings['CompanyCode'] = 'Código de empresa';
+$strings['CompanyToCode'] = 'Código de tu empresa';
 $strings['PleaseEnterOnlyNumbers'] = 'Solo ingresar números';
+$strings['CompanyCodeHelp'] = 'Ingresar el código unico proporcionado por tu empresa.';
