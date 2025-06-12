@@ -2907,7 +2907,7 @@ EOT
 
             if (itemPriceUnitQuota != null) {
                 priceUnitQuotaInput.value = itemPriceUnitQuota;
-                priceUnitQuotaInput.dispatchEvent(new Event('input'));
+                priceUnitQuotaInput.dispatchEvent(new Event('change'));
             }
 
             const deleteButton = newRow.querySelector('a[id="remove_item_' + itemIndex + '"]');
