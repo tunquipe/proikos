@@ -127,11 +127,12 @@ if($action == 'second'){
             );
             $form->addHtml('<div id="validation_message" class="alert" style="display: none;"></div>');
             // end contratistas
+            //$form->addHtml('<div id="options-extra" style="display: none;">');
 
             $form->addHtml('<div id="options-column">');
-            $form->addHtml('<div id="option-number" style="display: none;">');
-            $form->addNumeric('record_number',$plugin->get_lang('RecordNumber'),['value'=>'0'],true);
-            $form->addHtml('</div>');
+            //$form->addHtml('<div id="option-number" style="display: none;">');
+            //$form->addNumeric('record_number',$plugin->get_lang('RecordNumber'),['value'=>'0'],true);
+            //$form->addHtml('</div>');
             $position = $plugin->getPositions(2);
             $positionInput = $form->addSelect('position_company', $plugin->get_lang('Position'), $position);
             $form->setRequired($positionInput);
@@ -140,44 +141,39 @@ if($action == 'second'){
             $form->setRequired($areaSelect);
             $form->addHtml('</div>');
 
-            //$departments = $plugin->getPetroManagement();
-            //$departmentsSelect = $form->addSelect('department', [$plugin->get_lang('Department')], $departments);
-            //$form->setRequired($departmentsSelect);
-            //$headquarters = $plugin->getHeadquarters(true);
-            //$headquartersSelect = $form->addSelect('headquarters', [$plugin->get_lang('Headquarters')], $headquarters);
-            //$form->setRequired($headquartersSelect);
+
             $form->addHtml('</div></div>');
+
             $form->addHidden('code_reference', $entitySelect);
+            $termsAndConditionsAccepted = isset($_POST['check_terms_and_conditions']) && $_POST['check_terms_and_conditions'] == 1;
+            $form->addHtml('<div style="display: none;" class="form-check terms_conditions_container">
+                          <input name="check_terms_and_conditions" class="form-check-input" type="checkbox" value="1" id="check_terms_and_conditions" ' . ($termsAndConditionsAccepted ? 'checked' : '') . '>
+                          <label class="form-check-label" for="check_terms_and_conditions">
+                            <a href="' . api_get_path(WEB_PLUGIN_PATH) . 'proikos/files/proikos_terminos_y_condiciones.pdf" target="_blank" id="link_term_and_conditions">
+                                ' . $plugin->get_lang('TermsAndConditions') . '
+                            </a>
+                          </label>
+                        </div>
+                        <script>
+                            // Check if the checkbox is checked to enable or disable the button with name "register"
+                            document.getElementById("check_terms_and_conditions").addEventListener("change", function() {
+                                let registerButton = document.querySelector("button[name=\'register\']");
+                                if (this.checked) {
+                                    registerButton.removeAttribute("disabled");
+                                    document.getElementById("link_term_and_conditions").click();
+                                } else {
+                                    registerButton.setAttribute("disabled", "disabled");
+                                }
+                            });
+                        </script>
+                        ');
 
-    $termsAndConditionsAccepted = isset($_POST['check_terms_and_conditions']) && $_POST['check_terms_and_conditions'] == 1;
-    $form->addHtml('<div class="form-check terms_conditions_container">
-                  <input name="check_terms_and_conditions" class="form-check-input" type="checkbox" value="1" id="check_terms_and_conditions" ' . ($termsAndConditionsAccepted ? 'checked' : '') . '>
-                  <label class="form-check-label" for="check_terms_and_conditions">
-                    <a href="' . api_get_path(WEB_PLUGIN_PATH) . 'proikos/files/proikos_terminos_y_condiciones.pdf" target="_blank" id="link_term_and_conditions">
-                        ' . $plugin->get_lang('TermsAndConditions') . '
-                    </a>
-                  </label>
-                </div>
-                <script>
-                    // Check if the checkbox is checked to enable or disable the button with name "register"
-                    document.getElementById("check_terms_and_conditions").addEventListener("change", function() {
-                        let registerButton = document.querySelector("button[name=\'register\']");
-                        if (this.checked) {
-                            registerButton.removeAttribute("disabled");
-                            document.getElementById("link_term_and_conditions").click();
-                        } else {
-                            registerButton.setAttribute("disabled", "disabled");
-                        }
-                    });
-                </script>
-                ');
-
-            $buttonAttr = [];
-            if (!$termsAndConditionsAccepted) {
-                $buttonAttr = [
-                    'disabled' => 'disabled'
-                ];
-            }
+                    $buttonAttr = [];
+                    if (!$termsAndConditionsAccepted) {
+                        $buttonAttr = [
+                            'disabled' => 'disabled'
+                        ];
+                    }
 
             $form->addButton('register', $plugin->get_lang('RegisterUser'), null, 'primary', 'btn-block', null, $buttonAttr);
             $form->addHtml('<div class="form-group row-back"><a href="'.api_get_self().'" class="btn btn-success btn-block">Regresar</a></div>');
