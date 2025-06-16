@@ -159,7 +159,7 @@ class PluginProikosContratingCompanies
             }
         }
 
-        if ($id !== null) {
+        if ($id !== null && $id !== '0') {
             return $list[0];
         }
 

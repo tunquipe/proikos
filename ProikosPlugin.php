@@ -537,17 +537,27 @@ class ProikosPlugin extends Plugin
         );
     }
 
+
+
     public function saveInfoUserProikos($values){
         if (!is_array($values)) {
             return false;
         }
+
+        if (empty($values['ruc_company']) && empty($values['name_company'])) {
+            $entity = $this->getEntity(1);
+            $values['ruc_company'] = $entity['ruc'];
+            $values['name_company'] = $entity['business_name'];
+        }
+        if(empty($values['contact_manager'])){
+            $values['contact_manager'] = '-';
+        }
+
         $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
         $rucCompany =  $values['ruc_company'];
         $nameCompany =  $values['name_company'];
         $namePosition = self::getPositionName($values['position_company']);
         $nameArea = self::getAreaName($values['area']);
-        //$nameManagement = self::getManagementName($values['department']);
-        //$nameHeadquarters = self::getHeadquartersName($values['headquarters']);
         $nameManagement = '-';
         $nameHeadquarters = '-';
         $params = [
@@ -573,6 +583,7 @@ class ProikosPlugin extends Plugin
             'code_reference' => $values['code_reference'],
             'terms_conditions' => 1
         ];
+
         $id = Database::insert($table, $params);
         if ($id > 0) {
             return $id;

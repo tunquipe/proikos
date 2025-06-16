@@ -19,8 +19,9 @@ $htmlHeadXtra[] = '<link rel="stylesheet" type="text/css" href="'.api_get_path(
 $title = isset($_GET['action']) && $_GET['action'] === 'register' ?
     $plugin->get_lang('TitleRegister') : $plugin->get_lang('TitleRegisterTwo');
 
+
 if($action == 'second'){
-            $entitySelect = $_POST['entity'];
+            $entitySelect = !empty($_POST['entity']) ? $_POST['entity'] : 'PETROPERU';
             $picture = $plugin->getPictureEntity($entitySelect);
             $formAction = api_get_self().'?action='.Security::remove_XSS('register');
             $formAttributes = [];
@@ -108,7 +109,6 @@ if($action == 'second'){
 
             //contratistas
             $form->addHtml('<div id="option-builder">');
-
             $contratingCompanies = $plugin->contratingCompaniesModel()->getData(null, true);
             $contratingCompaniesSelect = $form->addSelect('contrating_companies', $plugin->get_lang('Company_RUC'), $contratingCompanies);
             $form->setRequired($contratingCompaniesSelect);
@@ -120,19 +120,16 @@ if($action == 'second'){
                     $plugin->get_lang('CompanyCodeHelp'),
                     '<button id="validate_code" type="button" class="btn btn-default">'.$plugin->get_lang('ValidateCode').'</button>'
                 ],
-                true,
+                false,
                 [
-                    'maxlength' => 5
+                    'maxlength' => 5,
+                    'required' => true,
                 ]
             );
             $form->addHtml('<div id="validation_message" class="alert" style="display: none;"></div>');
-            // end contratistas
-            //$form->addHtml('<div id="options-extra" style="display: none;">');
+            $form->addHtml('</div>');
 
             $form->addHtml('<div id="options-column">');
-            //$form->addHtml('<div id="option-number" style="display: none;">');
-            //$form->addNumeric('record_number',$plugin->get_lang('RecordNumber'),['value'=>'0'],true);
-            //$form->addHtml('</div>');
             $position = $plugin->getPositions(2);
             $positionInput = $form->addSelect('position_company', $plugin->get_lang('Position'), $position);
             $form->setRequired($positionInput);
@@ -141,8 +138,7 @@ if($action == 'second'){
             $form->setRequired($areaSelect);
             $form->addHtml('</div>');
 
-
-            $form->addHtml('</div></div>');
+            $form->addHtml('</div>');
 
             $form->addHidden('code_reference', $entitySelect);
             $termsAndConditionsAccepted = isset($_POST['check_terms_and_conditions']) && $_POST['check_terms_and_conditions'] == 1;
