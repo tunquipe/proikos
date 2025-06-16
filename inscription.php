@@ -112,7 +112,9 @@ if($action == 'second'){
             $contratingCompanies = $plugin->contratingCompaniesModel()->getData(null, true);
             $contratingCompaniesSelect = $form->addSelect('contrating_companies', $plugin->get_lang('Company_RUC'), $contratingCompanies);
             $form->setRequired($contratingCompaniesSelect);
+            $form->addHtml('</div>');
 
+            $form->addHtml('<div id="company_code_div">');
             $form->addText(
                 'company_code',
                 [
@@ -126,18 +128,35 @@ if($action == 'second'){
                     'required' => true,
                 ]
             );
+            $form->addHtml('</div>');
+
+            $form->addHtml('<div id="petro_code_div">');
+            $form->addText(
+                'company_petro',
+                [
+                    $plugin->get_lang('PetroToCode'),
+                    $plugin->get_lang('PetroToCodeHelp'),
+                    '<button id="validate_petro" type="button" class="btn btn-default">'.$plugin->get_lang('ValidateCode').'</button>'
+                ],
+                false,
+                [
+                    'maxlength' => 5,
+                    'required' => true,
+                ]
+            );
+            $form->addHtml('</div>');
+
+
             $form->addHtml('<div id="validation_message" class="alert" style="display: none;"></div>');
             $form->addHtml('</div>');
 
-            $form->addHtml('<div id="options-column">');
+            $form->addHtml('<div id="options-column" class="panel-body">');
             $position = $plugin->getPositions(2);
             $positionInput = $form->addSelect('position_company', $plugin->get_lang('Position'), $position);
             $form->setRequired($positionInput);
             $area = $plugin->getPetroArea();
             $areaSelect = $form->addSelect('area', $plugin->get_lang('Sede'), $area);
             $form->setRequired($areaSelect);
-            $form->addHtml('</div>');
-
             $form->addHtml('</div>');
 
             $form->addHidden('code_reference', $entitySelect);
@@ -171,9 +190,11 @@ if($action == 'second'){
                         ];
                     }
 
+            $form->addHtml('<div class="panel-body">');
             $form->addButton('register', $plugin->get_lang('RegisterUser'), null, 'primary', 'btn-block', null, $buttonAttr);
             $form->addHtml('<div class="form-group row-back"><a href="'.api_get_self().'" class="btn btn-success btn-block">Regresar</a></div>');
             $form->applyFilter('__ALL__', 'Security::remove_XSS');
+            $form->addHtml('</div>');
 
             if ($form->validate()) {
                 $values = $form->getSubmitValues(1);

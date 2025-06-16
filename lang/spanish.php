@@ -138,3 +138,5 @@ $strings['CompanyCodeHelp'] = 'Ingresar el código de 5 números único proporci
 $strings['InvalidCodeCompany'] = 'Código inválido comunícate con tu empresa.';
 $strings['CodeIsCorrect'] = 'El código es correcto.';
 $strings['ValidateCode'] = 'Validar código';
+$strings['PetroToCode'] = 'Código de registro';
+$strings['PetroToCodeHelp'] = 'Ingresar el código de 5 números único proporcionado por PETROPERU.';
