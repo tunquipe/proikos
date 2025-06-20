@@ -323,10 +323,11 @@ class ProikosPlugin extends Plugin
         if (empty($userId)) {
             return false;
         }
-        $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
-        $sql = "SELECT * FROM $table up WHERE user_id = $userId";
+        $tableUserProikos = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $sql = "SELECT * FROM $tableUserProikos ppu WHERE ppu.user_id = $userId ";
         $result = Database::query($sql);
         $list = [];
+
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
                 $list = [
@@ -2408,7 +2409,7 @@ class ProikosPlugin extends Plugin
                         null,
                         [],
                         ICON_SIZE_SMALL),
-                    api_get_path(WEB_PLUGIN_PATH)
+                    api_get_path(WEB_PLUGIN_PATH).'proikos/src/users_management.php?action=edit&user_id='.$row['id']
                 );
                 $action .= Display::url(
                     Display::return_icon(

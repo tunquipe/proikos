@@ -1,3 +1,6 @@
+{{ form_edit }}
+
+{% if users %}
 <table class="table table-bordered js-paginated-table">
     <thead>
     <tr>
@@ -26,3 +29,4 @@
 </table>
 
 <script src="../js/table-pagination/main.js"></script>
+{% endif %}
