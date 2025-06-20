@@ -87,9 +87,7 @@ switch ($action){
             } else {
                 $plugin->insertProikosUser($values);
             }
-            exit;
-
-            //
+            header('Location: '.api_get_path(WEB_PLUGIN_PATH).'proikos/src/users_management.php?action=list');
         }
         $tpl->assign('form_edit', $form->returnForm());
 
