@@ -2444,6 +2444,7 @@ class ProikosPlugin extends Plugin
                     'id' => $row['id'],
                     'name' => $row['firstname'] . ' ' . $row['lastname'],
                     'email' => $row['email'],
+                    'number_document' => $row['number_document'],
                     'phone' => !empty($row['phone']) ? $row['phone'] : '-',
                     'ruc' => !empty($row['ruc_company']) ? $row['ruc_company'] : $this->get_lang('Unregistered'),
                     'company' => !empty($row['name_company']) ? $row['name_company'] : $this->get_lang('Unregistered'),
