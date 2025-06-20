@@ -26,7 +26,10 @@ switch ($action){
             api_get_self() . '?action=' . Security::remove_XSS($_GET['action'])
         );
         $form->addHeader($plugin->get_lang('EditUser'));
-        $form->addText('phone', $plugin->get_lang('Phone'));
+        $form->addText('lastname', get_lang('LastName'), false, ['disabled' => true]);
+        $form->addText('firstname', get_lang('FirstName'), false, ['disabled' => true]);
+        $form->addText('email', get_lang('Email'), false, ['disabled' => true]);
+        $form->addText('phone', $plugin->get_lang('Phone'), false);
         $typesDocuments = [
             '0' => 'Seleccione una opción',
             '1' => 'DNI',
@@ -35,7 +38,7 @@ switch ($action){
             '5' => 'Otros',
         ];
         $form->addSelect('type_document', $plugin->get_lang('TypeDocument'), $typesDocuments);
-        $form->addText('number_document', [$plugin->get_lang('NumberDocument')]);
+        $form->addText('number_document', $plugin->get_lang('NumberDocument'), false);
         $form->addNumeric('age', $plugin->get_lang('Age'), ['class' => 'form-control']);
         $genders = [
             '0' => 'Seleccione una opción',

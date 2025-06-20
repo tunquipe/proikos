@@ -323,17 +323,23 @@ class ProikosPlugin extends Plugin
         if (empty($userId)) {
             return false;
         }
+
+        $tableUser = Database::get_main_table(TABLE_MAIN_USER);
         $tableUserProikos = Database::get_main_table(self::TABLE_PROIKOS_USERS);
-        $sql = "SELECT * FROM $tableUserProikos ppu WHERE ppu.user_id = $userId ";
+        $sql = "SELECT u.id as u_id, u.firstname as u_firstname, u.lastname as u_lastname, u.username, u.email, ppu.* FROM $tableUser u
+                LEFT JOIN $tableUserProikos ppu ON ppu.user_id = u.id WHERE u.id = $userId";
+
         $result = Database::query($sql);
         $list = [];
 
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
                 $list = [
-                    'user_id' => $row['user_id'],
-                    'lastname' => $row['lastname'],
-                    'firstname' => $row['firstname'],
+                    'user_id' => $row['u_id'],
+                    'user_id_p' => $row['user_id'],
+                    'lastname' => $row['u_lastname'],
+                    'firstname' => $row['u_firstname'],
+                    'email' => $row['email'],
                     'phone' => $row['phone'],
                     'type_document' => $row['type_document'],
                     'number_document' => $row['number_document'],
