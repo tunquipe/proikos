@@ -80,7 +80,16 @@ switch ($action){
             $values = $form->exportValues();
             $ruc = $plugin->getRUC($values['name_company']);
             $values['ruc'] = $ruc;
-            $plugin->saveProikosUser($values);
+
+            $existsUserProikos = $plugin->getExistsUserProikos($values['user_id']);
+            if($existsUserProikos != 0){
+                $plugin->updateProikosUser($values);
+            } else {
+                $plugin->insertProikosUser($values);
+            }
+            exit;
+
+            //
         }
         $tpl->assign('form_edit', $form->returnForm());
 

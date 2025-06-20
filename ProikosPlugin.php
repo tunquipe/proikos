@@ -317,13 +317,27 @@ class ProikosPlugin extends Plugin
             Database::query($sql);
         }*/
     }
-
+    public function getExistsUserProikos($userId)
+    {
+        if (empty($userId)) {
+            return false;
+        }
+        $tableUserProikos = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $sql = "SELECT ppu.* FROM $tableUserProikos ppu WHERE ppu.user_id = $userId";
+        $result = Database::query($sql);
+        $item = 0;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $item = $row['user_id'];
+            }
+        }
+        return $item;
+    }
     public function getInfoUserProikos($userId)
     {
         if (empty($userId)) {
             return false;
         }
-
         $tableUser = Database::get_main_table(TABLE_MAIN_USER);
         $tableUserProikos = Database::get_main_table(self::TABLE_PROIKOS_USERS);
         $sql = "SELECT u.id as u_id, u.firstname as u_firstname, u.lastname as u_lastname, u.username, u.email, ppu.* FROM $tableUser u
@@ -560,8 +574,7 @@ class ProikosPlugin extends Plugin
         );
     }
 
-
-    public function saveProikosUser($values)
+    public function insertProikosUser($values)
     {
         if (!is_array($values)) {
             return false;
@@ -593,6 +606,47 @@ class ProikosPlugin extends Plugin
 
         $id = Database::insert($table, $params);
         return ($id > 0) ? $id : 0;
+
+    }
+    public function updateProikosUser($values)
+    {
+        if (!is_array($values)) {
+            return false;
+        }
+
+        $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $params = [
+            'user_id' => $values['user_id'],
+            'lastname' => $values['lastname'],
+            'firstname' => $values['firstname'],
+            'phone' => $values['phone'],
+            'type_document' => $values['type_document'],
+            'number_document' => $values['number_document'],
+            'age' => $values['age'],
+            'gender' => $values['gender'],
+            'instruction' => $values['instruction'],
+            'ruc_company' => $values['ruc'],
+            'name_company' => $values['name_company'],
+            'contact_manager' => '-',
+            'position_company' => $values['position_company'],
+            'stakeholders' => $values['stakeholders'],
+            'record_number' => '-',
+            'area' => $values['area'],
+            'department' => '-',
+            'headquarters' => '-',
+            'code_reference' => $values['code_reference'],
+            'terms_conditions' => 1
+        ];
+
+        return Database::update(
+            $table,
+            $params,
+            [
+                'user_id = ?' => [
+                    $values['user_id'],
+                ],
+            ]
+        );
 
     }
 
