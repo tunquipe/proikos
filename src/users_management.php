@@ -78,6 +78,9 @@ switch ($action){
 
         if ($form->validate()) {
             $values = $form->exportValues();
+            $ruc = $plugin->getRUC($values['name_company']);
+            $values['ruc'] = $ruc;
+            $plugin->saveProikosUser($values);
         }
         $tpl->assign('form_edit', $form->returnForm());
 

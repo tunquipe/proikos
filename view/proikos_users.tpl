@@ -7,8 +7,8 @@
         <th>#</th>
         <th>{{ 'LastNamesAndFirstNames'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'Email'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th>{{ 'Username'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'NumberDocument'|get_plugin_lang('ProikosPlugin') }}</th>
-        <th>{{ 'Cellular'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'ContratingCompanyRUC'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'ContratingCompanyName'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'Actions'|get_plugin_lang('ProikosPlugin') }}</th>
@@ -20,8 +20,8 @@
         <td>{{ user.id }}</td>
         <td>{{ user.name }}</td>
         <td>{{ user.email }}</td>
+        <td>{{ user.username }}</td>
         <td>{{ user.number_document }}</td>
-        <td>{{ user.phone }}</td>
         <td>{{ user.ruc }}</td>
         <td>{{ user.company }}</td>
         <td>{{ user.actions }}</td>

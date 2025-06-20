@@ -341,8 +341,8 @@ class ProikosPlugin extends Plugin
                     'firstname' => $row['u_firstname'],
                     'email' => $row['email'],
                     'phone' => $row['phone'],
-                    'type_document' => $row['type_document'],
-                    'number_document' => $row['number_document'],
+                    'type_document' => empty($row['type_document']) ? '1' : $row['type_document'],
+                    'number_document' => empty($row['number_document']) ? $row['username'] : $row['number_document'],
                     'age' => $row['age'],
                     'gender' => $row['gender'],
                     'instruction' => $row['instruction'],
@@ -485,7 +485,23 @@ class ProikosPlugin extends Plugin
         return true;
 
     }
-
+    public function getRUC($name)
+    {
+        $tableCompanies = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
+        $sql = "SELECT * FROM $tableCompanies c WHERE c.name = '".$name."'";
+        $result = Database::query($sql);
+        $item = null;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $item = $row['ruc'];
+            }
+        } else {
+            $plugin = ProikosPlugin::create();
+            $entity = $plugin->getEntity(1);
+            $item = $entity['ruc'];
+        }
+        return $item;
+    }
     public function getEntity($idEntity){
         if (empty($idEntity)) {
             return false;
@@ -545,6 +561,13 @@ class ProikosPlugin extends Plugin
     }
 
 
+    public function saveProikosUser($values)
+    {
+        if (!is_array($values)) {
+            return false;
+        }
+        var_dump($values);
+    }
 
     public function saveInfoUserProikos($values){
         if (!is_array($values)) {
@@ -2430,7 +2453,7 @@ class ProikosPlugin extends Plugin
                         ICON_SIZE_SMALL),
                     api_get_path(WEB_PLUGIN_PATH).'proikos/src/users_management.php?action=edit&user_id='.$row['id']
                 );
-                $action .= Display::url(
+                /*$action .= Display::url(
                     Display::return_icon(
                         'delete.png',
                         '',
@@ -2438,12 +2461,13 @@ class ProikosPlugin extends Plugin
                         ICON_SIZE_SMALL
                     ),
                     api_get_path(WEB_PLUGIN_PATH)
-                );
+                );*/
 
                 $list[] = [
                     'id' => $row['id'],
                     'name' => $row['firstname'] . ' ' . $row['lastname'],
                     'email' => $row['email'],
+                    'username' => $row['username'],
                     'number_document' => $row['number_document'],
                     'phone' => !empty($row['phone']) ? $row['phone'] : '-',
                     'ruc' => !empty($row['ruc_company']) ? $row['ruc_company'] : $this->get_lang('Unregistered'),

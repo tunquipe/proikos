@@ -68,8 +68,12 @@ class PluginProikosContratingCompanies
         $sql = "SELECT * FROM $table";
         $result = Database::query($sql);
         $list = [];
+        $plugin = ProikosPlugin::create();
+        $entity = $plugin->getEntity(1);
+
         if (Database::num_rows($result) > 0) {
             $list['99'] = 'Seleccione una opción';
+            $list[$entity['business_name']] = $entity['ruc'] . ' - ' . $entity['business_name'];
             while ($row = Database::fetch_array($result)) {
                 $list[$row['name']] = $row['ruc'] . ' - ' . $row['name'];
             }
