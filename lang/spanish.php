@@ -143,3 +143,4 @@ $strings['PetroToCodeHelp'] = 'Ingresar el código de 5 números único proporci
 $strings['LastNamesAndFirstNames'] = 'Apellidos y Nombres';
 $strings['Cellular'] = 'Celular';
 $strings['Unregistered'] = 'No registrado';
+$strings['SaveUserExtra'] = 'Editar datos extras';

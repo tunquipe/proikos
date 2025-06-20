@@ -64,16 +64,16 @@ switch ($action){
             '99' => 'Otros',
         ];
         $form->addSelect('stakeholders', $plugin->get_lang('Stakeholder'), $stakeholders);
-        $contratingCompanies = $plugin->contratingCompaniesModel()->getData(null, true);
-        $form->addSelect('contrating_companies', $plugin->get_lang('Company_RUC'), $contratingCompanies);
-        $position = $plugin->getPositions(2);
+        $contratingCompanies = $plugin->contratingCompaniesModel()->getDataCompanies();
+        $form->addSelect('name_company', $plugin->get_lang('Company_RUC'), $contratingCompanies);
+        $position = $plugin->getPositions(2, true);
         $form->addSelect('position_company', $plugin->get_lang('Position'), $position);
 
-        $area = $plugin->getPetroArea();
+        $area = $plugin->getPetroArea(true);
         $form->addSelect('area', $plugin->get_lang('Sede'), $area);
         $form->addText('code_reference', $plugin->get_lang('CodeReference'));
         $form->addHidden('id', $idUser);
-        $form->addButtonSave($plugin->get_lang('SaveUser'));
+        $form->addButtonSave($plugin->get_lang('SaveUserExtra'));
         $form->setDefaults($user);
 
         if ($form->validate()) {

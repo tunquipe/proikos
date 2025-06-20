@@ -694,7 +694,7 @@ class ProikosPlugin extends Plugin
 
     //get position table;
 
-    public function getPositions($idStakeholders): array
+    public function getPositions($idStakeholders, $name = false): array
     {
         if($idStakeholders!=1){
             $idStakeholders = 2;
@@ -706,14 +706,22 @@ class ProikosPlugin extends Plugin
         $list['0'] = 'Selecciona una opción';
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
-                $list[$row['id']] = $row['name_position'];
+                if($name){
+                    $list[$row['name_position']] = $row['name_position'];
+                } else {
+                    $list[$row['id']] = $row['name_position'];
+                }
             }
         }
-        $list['999'] = 'Otros';
+        if($name){
+            $list['Otros'] = 'Otros';
+        } else {
+            $list['999'] = 'Otros';
+        }
         return $list;
     }
 
-    public function getPetroArea(): array
+    public function getPetroArea($name=false): array
     {
         $table = Database::get_main_table(self::TABLE_PROIKOS_AREA);
         $sql = "SELECT * FROM $table pa WHERE pa.status = 1";
@@ -722,7 +730,12 @@ class ProikosPlugin extends Plugin
         $list['-1'] = 'Selecciona una opción';
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
-                $list[$row['id']] = $row['name_area'];
+                if($name){
+                    $list[$row['name_area']] = $row['name_area'];
+                } else {
+                    $list[$row['id']] = $row['name_area'];
+                }
+
             }
         }
         //$list['999'] = 'Otros';

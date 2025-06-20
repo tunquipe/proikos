@@ -63,6 +63,20 @@ class PluginProikosContratingCompanies
         return false;
     }
 
+    public function getDataCompanies(){
+        $table = Database::get_main_table($this->table);
+        $sql = "SELECT * FROM $table";
+        $result = Database::query($sql);
+        $list = [];
+        if (Database::num_rows($result) > 0) {
+            $list['99'] = 'Seleccione una opción';
+            while ($row = Database::fetch_array($result)) {
+                $list[$row['name']] = $row['ruc'] . ' - ' . $row['name'];
+            }
+        }
+
+        return $list;
+    }
     public function getData($id = null, $asSelect = false)
     {
         $table = Database::get_main_table($this->table);
