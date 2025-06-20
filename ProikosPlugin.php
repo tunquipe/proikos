@@ -566,7 +566,34 @@ class ProikosPlugin extends Plugin
         if (!is_array($values)) {
             return false;
         }
-        var_dump($values);
+
+        $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $params = [
+            'user_id' => $values['user_id'],
+            'lastname' => $values['lastname'],
+            'firstname' => $values['firstname'],
+            'phone' => $values['phone'],
+            'type_document' => $values['type_document'],
+            'number_document' => $values['number_document'],
+            'age' => $values['age'],
+            'gender' => $values['gender'],
+            'instruction' => $values['instruction'],
+            'ruc_company' => $values['ruc'],
+            'name_company' => $values['name_company'],
+            'contact_manager' => '-',
+            'position_company' => $values['position_company'],
+            'stakeholders' => $values['stakeholders'],
+            'record_number' => '-',
+            'area' => $values['area'],
+            'department' => '-',
+            'headquarters' => '-',
+            'code_reference' => $values['code_reference'],
+            'terms_conditions' => 1
+        ];
+
+        $id = Database::insert($table, $params);
+        return ($id > 0) ? $id : 0;
+
     }
 
     public function saveInfoUserProikos($values){

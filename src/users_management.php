@@ -72,7 +72,7 @@ switch ($action){
         $area = $plugin->getPetroArea(true);
         $form->addSelect('area', $plugin->get_lang('Sede'), $area);
         $form->addText('code_reference', $plugin->get_lang('CodeReference'));
-        $form->addHidden('id', $idUser);
+        $form->addHidden('user_id', $idUser);
         $form->addButtonSave($plugin->get_lang('SaveUserExtra'));
         $form->setDefaults($user);
 
