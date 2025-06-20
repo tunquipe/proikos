@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     style.href = '../js/table-pagination/style.css';
     document.head.appendChild(style);
 
-    const ROWS_PER_PAGE = 10;
+    const ROWS_PER_PAGE = 20;
     const VISIBLE_PAGES = 5;
 
     const tables = document.querySelectorAll('.js-paginated-table');

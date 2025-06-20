@@ -7,8 +7,6 @@ $plugin = ProikosPlugin::create();
 $tool_name = 'Gestionar usuarios';
 $message = null;
 $actionLinks = null;
-$htmlHeadXtra[] = api_get_css_asset('cropper/dist/cropper.min.css');
-$htmlHeadXtra[] = api_get_asset('cropper/dist/cropper.min.js');
 
 $actionLinks .= Display::url(
     Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),

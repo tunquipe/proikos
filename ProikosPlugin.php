@@ -2393,14 +2393,18 @@ class ProikosPlugin extends Plugin
     }
 
     public function getUsers() {
-        $sql = "SELECT * FROM plugin_proikos_users";
+        $tableUser = Database::get_main_table(TABLE_MAIN_USER);
+        $tableUserProikos = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $sql = "SELECT u.id, ppu.user_id, u.firstname, u.lastname, u.username, u.email, ppu.phone, ppu.number_document,
+                ppu.ruc_company, ppu.name_company, ppu.code_reference, ppu.stakeholders
+                FROM $tableUser u LEFT JOIN $tableUserProikos ppu ON ppu.user_id = u.id;";
         $result = Database::query($sql);
         $list = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
                 $action = Display::url(
                     Display::return_icon(
-                        'visible.png',
+                        'edit.png',
                         null,
                         [],
                         ICON_SIZE_SMALL),
@@ -2408,7 +2412,7 @@ class ProikosPlugin extends Plugin
                 );
                 $action .= Display::url(
                     Display::return_icon(
-                        'lp.png',
+                        'delete.png',
                         '',
                         [],
                         ICON_SIZE_SMALL
@@ -2417,12 +2421,12 @@ class ProikosPlugin extends Plugin
                 );
 
                 $list[] = [
-                    'id' => $row['user_id'],
+                    'id' => $row['id'],
                     'name' => $row['firstname'] . ' ' . $row['lastname'],
                     'email' => $row['email'],
-                    'phone' => $row['phone'],
-                    'ruc' => $row['ruc_company'],
-                    'company' => $row['name_company'],
+                    'phone' => !empty($row['phone']) ? $row['phone'] : '-',
+                    'ruc' => !empty($row['ruc_company']) ? $row['ruc_company'] : $this->get_lang('Unregistered'),
+                    'company' => !empty($row['name_company']) ? $row['name_company'] : $this->get_lang('Unregistered'),
                     'actions' => $action
                 ];
             }

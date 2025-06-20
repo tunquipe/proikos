@@ -54,4 +54,12 @@
             </a>
         </div>
     </div>
+    <div class="col-md-3">
+        <div class="tool-box">
+            <a href="{{ src_plugin }}src/users_management.php" class="tool">
+                <img src="{{ src_plugin }}/images/users.png" alt="">
+                <div class="tool-title">Usuarios</div>
+            </a>
+        </div>
+    </div>
 </div>

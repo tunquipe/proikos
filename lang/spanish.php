@@ -140,3 +140,6 @@ $strings['CodeIsCorrect'] = 'El código es correcto.';
 $strings['ValidateCode'] = 'Validar código';
 $strings['PetroToCode'] = 'Código de registro';
 $strings['PetroToCodeHelp'] = 'Ingresar el código de 5 números único proporcionado por PETROPERU.';
+$strings['LastNamesAndFirstNames'] = 'Apellidos y Nombres';
+$strings['Cellular'] = 'Celular';
+$strings['Unregistered'] = 'No registrado';
