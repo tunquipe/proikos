@@ -23,7 +23,7 @@ switch ($action){
         $form = new FormValidator(
             'edit',
             'post',
-            api_get_self() . '?action=' . Security::remove_XSS($_GET['action'])
+            api_get_self() . '?user_id=' . $idUser.'&action=' . Security::remove_XSS($_GET['action'])
         );
         $form->addHeader($plugin->get_lang('EditUser'));
         $form->addText('lastname', get_lang('LastName'), false, ['disabled' => true]);
