@@ -19,7 +19,6 @@ switch ($action){
         );
         $idUser = $_GET['user_id'] ?? null;
         $user = $plugin->getInfoUserProikos($idUser);
-        var_dump($user);
 
         $form = new FormValidator(
             'edit',
@@ -27,9 +26,49 @@ switch ($action){
             api_get_self() . '?action=' . Security::remove_XSS($_GET['action'])
         );
         $form->addHeader($plugin->get_lang('EditUser'));
-        $form->addText('name_entity', $plugin->get_lang('NameEntity'));
-        $form->addText('business_name', $plugin->get_lang('NameBusiness'),false);
+        $form->addText('phone', $plugin->get_lang('Phone'));
+        $typesDocuments = [
+            '0' => 'Seleccione una opción',
+            '1' => 'DNI',
+            '2' => 'Carnet de Extranjeria',
+            '3' => 'Pasaporte',
+            '5' => 'Otros',
+        ];
+        $form->addSelect('type_document', $plugin->get_lang('TypeDocument'), $typesDocuments);
+        $form->addText('number_document', [$plugin->get_lang('NumberDocument')]);
+        $form->addNumeric('age', $plugin->get_lang('Age'), ['class' => 'form-control']);
+        $genders = [
+            '0' => 'Seleccione una opción',
+            'M' => 'Masculino',
+            'F' => 'Femenino'
+        ];
+        $form->addSelect('gender', $plugin->get_lang('Gender'), $genders);
 
+        $instructions = [
+            '0' => 'Seleccione una opción',
+            '1' => 'Primaria',
+            '2' => 'Secundaria',
+            '3' => 'Técnica superior',
+            '4' => 'Universitaria Bachiller',
+            '5' => 'Universitaria Titulada',
+        ];
+        $form->addSelect('instruction', $plugin->get_lang('GradeInstructions'), $instructions);
+        $stakeholders = [
+            '0' => 'Seleccione una opción',
+            '1' => 'Petroperu',
+            '2' => 'Contratista',
+            '3' => 'Cliente',
+            '99' => 'Otros',
+        ];
+        $form->addSelect('stakeholders', $plugin->get_lang('Stakeholder'), $stakeholders);
+        $contratingCompanies = $plugin->contratingCompaniesModel()->getData(null, true);
+        $form->addSelect('contrating_companies', $plugin->get_lang('Company_RUC'), $contratingCompanies);
+        $position = $plugin->getPositions(2);
+        $form->addSelect('position_company', $plugin->get_lang('Position'), $position);
+
+        $area = $plugin->getPetroArea();
+        $form->addSelect('area', $plugin->get_lang('Sede'), $area);
+        $form->addText('code_reference', $plugin->get_lang('CodeReference'));
         $form->addHidden('id', $idUser);
         $form->addButtonSave($plugin->get_lang('SaveUser'));
         $form->setDefaults($user);
@@ -38,8 +77,8 @@ switch ($action){
             $values = $form->exportValues();
         }
         $tpl->assign('form_edit', $form->returnForm());
-        break;
 
+        break;
     case 'list':
         $actionLinks .= Display::url(
             Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),

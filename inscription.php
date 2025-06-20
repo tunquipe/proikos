@@ -59,22 +59,19 @@ if($action == 'second'){
                 '5' => 'Otros',
             ];
             $form->addHtml('<div class="row"><div class="col-md-6">');
-            $typeInput = $form->addSelect('type_document', $plugin->get_lang('TypeDocument'), $typesDocuments);
-            $form->setRequired($typeInput);
+            $form->addSelect('type_document', $plugin->get_lang('TypeDocument'), $typesDocuments);
             $form->addHtml('</div><div class="col-md-6">');
             $form->addText('number_document', [$plugin->get_lang('NumberDocument'), $plugin->get_lang('NumberDocumentHelp')], true);
             $form->addHtml('</div></div>');
             $form->addHtml('<div class="row"><div class="col-md-4">');
-            $ageInput = $form->addNumeric('age', $plugin->get_lang('Age'), ['class' => 'form-control']);
-            $form->setRequired($ageInput);
+            $form->addNumeric('age', $plugin->get_lang('Age'), ['class' => 'form-control']);
             $form->addHtml('</div><div class="col-md-4">');
             $genders = [
                 '0' => 'Seleccione una opción',
                 'M' => 'Masculino',
                 'F' => 'Femenino'
             ];
-            $genderInput = $form->addSelect('gender', $plugin->get_lang('Gender'), $genders);
-            $form->setRequired($genderInput);
+            $form->addSelect('gender', $plugin->get_lang('Gender'), $genders);
             $form->addHtml('</div><div class="col-md-4">');
             $instructions = [
                 '0' => 'Seleccione una opción',
