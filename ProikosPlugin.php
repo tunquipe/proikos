@@ -3016,6 +3016,7 @@ EOT
                         <option value="-1" selected>Seleccionar</option>
                         <option value="35.40">35.40</option>
                         <option value="51.92">51.92</option>
+                        <option value="0">0</option>
                     </select>
                 </td>
                 <td>
