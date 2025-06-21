@@ -48,8 +48,8 @@ if($action == 'second'){
             $form->addHtml('<div class="row"><div class="col-md-6">');
             $form->addText('email', [get_lang('Email'), $plugin->get_lang('EmailHelp')], true);
             $form->addHtml('</div><div class="col-md-6">');
-            $form->addNumeric('phone', [$plugin->get_lang('Phone'), $plugin->get_lang('PhoneHelp')], ['class' => 'form-control']);
-
+            $phoneInput = $form->addNumeric('phone', [$plugin->get_lang('Phone'), $plugin->get_lang('PhoneHelp')], ['class' => 'form-control']);
+            $form->setRequired($phoneInput);
             $form->addHtml('</div></div>');
             $typesDocuments = [
                 '0' => 'Seleccione una opción',
