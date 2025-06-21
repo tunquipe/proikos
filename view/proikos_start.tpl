@@ -54,6 +54,7 @@
             </a>
         </div>
     </div>
+    {% if is_platform_admin %}
     <div class="col-md-3">
         <div class="tool-box">
             <a href="{{ src_plugin }}src/users_management.php?action=list" class="tool">
@@ -62,4 +63,5 @@
             </a>
         </div>
     </div>
+    {% endif %}
 </div>
