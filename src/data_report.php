@@ -118,8 +118,9 @@ foreach ($plugin->getDATAcolumns($courseId, $sessionId) as $column) {
     $initialIndex++;
 }
 
-$table->set_header($initialIndex++, 'Estado', false);
-$table->set_header($initialIndex, 'Observaciones', false);
+$table->set_header($initialIndex++, $plugin->get_lang('Status'), false);
+$table->set_header($initialIndex++, $plugin->get_lang('Observations'), false);
+$table->set_header($initialIndex, $plugin->get_lang('CertificatesAttached'), false);
 
 $contentTable = $table->return_table();
 

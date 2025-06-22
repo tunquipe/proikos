@@ -3653,6 +3653,7 @@ HTML;
         }
 
         $dataColumns = $this->getDATAcolumns(false);
+
         $list = [];
         $index = 1;
         while ($row = Database::fetch_array($result)) {
@@ -3726,8 +3727,8 @@ HTML;
                 $approved = $scoreCertificate['has_certificate'] && $quizCheck['passed'];
 
                 $estado = true === $approved
-                    ? '<span class="label label-success">APROBADO</span>'
-                    : '<span class="label label-danger">DESAPROBADO</span>';
+                    ? '<span class="label label-success">'.$this->get_lang('Approved').'</span>'
+                    : '<span class="label label-danger">'.$this->get_lang('Failed').'</span>';
 
                 $observacion = $row['observacion'] === 'VIGENTE'
                     ? '<span class="label label-success">' . $row['observacion'] . '</span>'
@@ -3735,7 +3736,8 @@ HTML;
 
                 $item[$rowIndex++] = $finalScore;
                 $item[$rowIndex++] = $estado;
-                $item[$rowIndex] = $observacion;
+                $item[$rowIndex++] = $observacion;
+                $item[$rowIndex] = 'demo';
             } else {
                 foreach ($dataColumns as $column) {
                     $item[$rowIndex] = '-';
