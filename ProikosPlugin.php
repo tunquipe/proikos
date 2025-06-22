@@ -3735,19 +3735,22 @@ HTML;
 
                 $finalScore = round($finalScore, 2);
                 $quizCheck = ProikosPlugin::checkUserQuizCompletion($row['user_id'], $cats[0]->get_id());
-                $approved = $scoreCertificate['has_certificate'] && $quizCheck['passed'];
-
-                $estado = true === $approved
+                if (isset($scoreCertificate['has_certificate'])) {
+                    $approved = $scoreCertificate['has_certificate'] && $quizCheck['passed'];
+                } else {
+                    $approved = false;
+                }
+                $status = true === $approved
                     ? '<span class="label label-success">'.$this->get_lang('Approved').'</span>'
                     : '<span class="label label-danger">'.$this->get_lang('Failed').'</span>';
 
-                $observacion = $row['observacion'] === 'VIGENTE'
+                $observation = $row['observacion'] === 'VIGENTE'
                     ? '<span class="label label-success">' . $row['observacion'] . '</span>'
                     : '<span class="label label-danger">' . $row['observacion'] . '</span>';
 
                 $item[$rowIndex++] = $finalScore;
-                $item[$rowIndex++] = $estado;
-                $item[$rowIndex++] = $observacion;
+                $item[$rowIndex++] = $status;
+                $item[$rowIndex++] = $observation;
                 $downloadCertUploadedLink = $this->generateDownloadLinkAttachCertificates($row['user_id'], $row['nombre_apellido'], $sessionId);
                 $item[$rowIndex] = $downloadCertUploadedLink;
             } else {
