@@ -2704,23 +2704,34 @@ EOT
         ];
     }
 
-    public function generateDownloadLinkAttachCertificates($userId, $userFullName, $sessionId)
+    public function get_icon($iconName): string
+    {
+        $iconPathWeb = '';
+        $icon_path = __DIR__ . '/images/' . $iconName . '.png';
+        if (file_exists($icon_path)) {
+            $iconPathWeb = api_get_path(WEB_PLUGIN_PATH).'proikos/images/' . $iconName . '.png';
+        }
+        return $iconPathWeb;
+    }
+
+    public function generateDownloadLinkAttachCertificates($userId, $userFullName, $sessionId): string
     {
         $baseUploadDir = api_get_path(SYS_APP_PATH) . 'upload/proikos_user_documents/';
         $userSessionDir = $baseUploadDir . $userId . '/' . $sessionId;
-
+        $icon = $this->get_icon('certificate');
+        $icon_na = $this->get_icon('certificate_na');
         // if directory $userSessionDir exists and is not empty
         if (is_dir($userSessionDir) && count(scandir($userSessionDir)) > 2) {
             $downloadUrl = api_get_path(WEB_PATH) . 'plugin/proikos/src/ajax.php?action=download_user_uploaded_documents&user_id=' . $userId
                 . '&session_id=' . $sessionId . '&user_full_name=' . urlencode($userFullName);
             $downloadCertUploadedLink = Display::url(
-                Display::return_icon('notebook.gif', get_lang('Descargar Certificados Adjuntos')),
+                Display::img($icon, $this->get_lang('DownloadAttachedCertificates'),['width' => '32px']),
                 $downloadUrl
             );
         } else {
             $downloadCertUploadedLink = Display::url(
-                Display::return_icon('notebook_na.gif', get_lang('Descargar Certificados Adjuntos')),
-                ''
+                Display::img($icon_na, $this->get_lang('DownloadAttachedCertificates'),['width' => '32px']),
+                '#'
             );
         }
 
@@ -3737,7 +3748,8 @@ HTML;
                 $item[$rowIndex++] = $finalScore;
                 $item[$rowIndex++] = $estado;
                 $item[$rowIndex++] = $observacion;
-                $item[$rowIndex] = 'demo';
+                $downloadCertUploadedLink = $this->generateDownloadLinkAttachCertificates($row['user_id'], $row['nombre_apellido'], $sessionId);
+                $item[$rowIndex] = $downloadCertUploadedLink;
             } else {
                 foreach ($dataColumns as $column) {
                     $item[$rowIndex] = '-';

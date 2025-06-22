@@ -146,5 +146,6 @@ $strings['Unregistered'] = 'No registrado';
 $strings['SaveUserExtra'] = 'Editar datos extras';
 $strings['Approved'] = 'Aprobado';
 $strings['Failed'] = 'Desaprobado';
-$strings['CertificatesAttached'] = 'Certificados Adjuntos';
+$strings['CertificatesAttached'] = 'Certificados adjuntos';
 $strings['Observations'] = 'Observaciones';
+$strings['DownloadAttachedCertificates'] = 'Descargar certificados adjuntos';
