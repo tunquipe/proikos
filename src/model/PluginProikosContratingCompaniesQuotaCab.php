@@ -284,7 +284,13 @@ class PluginProikosContratingCompaniesQuotaCab
             a.session_mode,
             c.name AS category_name,
             DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
-            CONCAT(b.lastname, ' ', b.firstname) AS user_name
+            CONCAT(b.lastname, ' ', b.firstname) AS user_name,
+            ( 
+                SELECT COUNT(*) FROM plugin_proikos_contrating_companies_quota_session cqs 
+                                INNER JOIN plugin_proikos_contrating_companies_quota_session_det cqsd 
+                                    ON cqs.id = cqsd.quota_session_id and cqs.session_id = cqsd.session_id
+                                WHERE cqs.det_id = a.id 
+            ) AS used_user_quota
             FROM $table a
             LEFT JOIN user b on a.created_user_id = b.user_id
             INNER JOIN $sessionCategoryTable c ON a.session_category_id = c.id
@@ -297,7 +303,7 @@ class PluginProikosContratingCompaniesQuotaCab
                     'id' => $row['id'],
                     'session_category_id' => $row['session_category_id'],
                     'category_name' => $row['category_name'],
-                    'quota' => $row['user_quota'],
+                    'quota' => $row['user_quota'] - $row['used_user_quota'],
                     'price_unit' => $row['price_unit'],
                     'session_mode' => $row['session_mode'],
                     'session_mode_name' => $this->sessionModes[$row['session_mode']] ?? '',

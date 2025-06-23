@@ -37,7 +37,6 @@ class PluginProikosContratingCompaniesQuotaSession
         $sessionCategoryTable = Database::get_main_table(TABLE_MAIN_SESSION_CATEGORY);
         $sessionTable = Database::get_main_table(TABLE_MAIN_SESSION);
         $sql = "SELECT a.*, b.name as category_name,
-        ( SELECT COUNT(*) FROM plugin_proikos_contrating_companies_quota_session_det WHERE session_id = a.session_id AND quota_session_id = a.id and user_id is not null) AS used_user_quota,
         c.name as session_name, c.time_in_session, DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
         CONCAT(d.lastname, ' ', d.firstname) AS user_name
         FROM $table a
@@ -55,7 +54,6 @@ class PluginProikosContratingCompaniesQuotaSession
                     'det_id' => $row['det_id'],
                     'session_id' => $row['session_id'],
                     'user_quota' => $row['user_quota'],
-                    'used_user_quota' => $row['user_quota'] - $row['used_user_quota'],
                     'category_name' => $row['category_name'],
                     'session_name' => $row['session_name'],
                     'formatted_created_at' => $row['formatted_created_at'],

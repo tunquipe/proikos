@@ -179,12 +179,6 @@ if ($form->isSubmitted()) {
                         foreach ($sessionDistributions[$detId] as $session) {
                             $totalUserQuotaAssigned += $session['user_quota'];
                         }
-
-                        $remainingUserQuota = $quota - $totalUserQuotaAssigned;
-                        if ($remainingUserQuota < $totalUserQuota) {
-                            $hasErrors = true;
-                            $errorsMessage[$detId][] = 'No hay suficientes cupos disponibles para asignar a las sesiones. Quedan ' . $remainingUserQuota . ' cupos disponibles';
-                        }
                     }
                 }
             }

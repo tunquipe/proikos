@@ -19,7 +19,7 @@
         <td>{{ item.session_mode_name }}</td>
         <td>{{ item.category_name }}</td>
         <td>{{ item.session_name }}</td>
-        <td class="text-right">{{ item.used_user_quota }}</td>
+        <td class="text-right">{{ item.user_quota }}</td>
         <td>{{ item.formatted_created_at }}</td>
         <td>{{ item.user_name }}</td>
     </tr>
