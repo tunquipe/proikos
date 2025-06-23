@@ -672,7 +672,6 @@ class ProikosPlugin extends Plugin
         $nameManagement = '-';
         $nameHeadquarters = '-';
         $params = [
-            'id' => $values['user_id'],
             'user_id' => $values['user_id'],
             'lastname' => $values['lastname'],
             'firstname' => $values['firstname'],
