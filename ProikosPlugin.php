@@ -3944,7 +3944,22 @@ EOT;
         Database::query($sql);
     }
 
-    public function getDataReport()
+    public function getCertificateScore($userId)
+    {
+        $tbl_certificate = Database::get_main_table(TABLE_MAIN_GRADEBOOK_CERTIFICATE);
+        $sql = "
+            SELECT gc.cat_id, gc.user_id, gc.score_certificate FROM $tbl_certificate gc WHERE gc.user_id = $userId;
+        ";
+        $result = Database::query($sql);
+        $score = 0;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_assoc($result)) {
+                $score = $row['score_certificate'];
+            }
+        }
+        return $score;
+    }
+    public function getDataReport(): array
     {
         $tbl_course = Database::get_main_table(TABLE_MAIN_COURSE);
         $tbl_session_course_user = Database::get_main_table(TABLE_MAIN_SESSION_COURSE_USER);
@@ -4025,8 +4040,9 @@ EOT;
                 $quizCheck = ProikosPlugin::checkUserQuizCompletion($row['id'], $cats[0]->get_id());
                 $userScore = $this->getResultExerciseStudent($row['id'], $row['c_id'], $row['session_id']);
                 $scoreCertificate = $this->getScoreCertificate($row['id'], $row['code'], $row['session_id']);
-                $scoreResult = $this->getScoreCertificate($row['id'], $row['code'], $row['session_id'],true);
+                //$scoreResult = $this->getScoreCertificate($row['id'], $row['code'], $row['session_id'],true);
 
+                $scoreTotal = $this->getCertificateScore($row['id']);
                 $row['exams'] = $userScore;
 
                 if (isset($scoreCertificate['has_certificate'])) {
@@ -4039,7 +4055,7 @@ EOT;
                     ? '<span class="label label-success">' . $this->get_lang('Approved') . '</span>'
                     : '<span class="label label-danger">' . $this->get_lang('Failed') . '</span>';
                 $row['status'] = $status;
-                $row['score'] = isset($scoreResult['score']) ? $scoreResult['score'] : 0;
+                $row['score'] = $scoreTotal;
                 $row['links'] = empty($userLinks);
                 $downloadCertUploadedLink = $this->generateDownloadLinkAttachCertificates($row['id'], $row['student'], $row['session_id']);
                 $row['cert'] = $downloadCertUploadedLink;

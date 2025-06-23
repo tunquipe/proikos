@@ -96,9 +96,7 @@ if($action == 'second'){
             $stakeholders = [
                 '0' => 'Seleccione una opción',
                 '1' => 'Petroperu',
-                '2' => 'Contratista',
-                '3' => 'Cliente',
-                '99' => 'Otros',
+                '2' => 'Contratista'
             ];
             $stakeholdersSelect = $form->addSelect('stakeholders', $plugin->get_lang('Stakeholder'), $stakeholders);
             $form->setRequired($stakeholdersSelect);
