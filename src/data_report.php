@@ -18,6 +18,7 @@ $action = $_GET['export'] ?? null;
 $dni = $_GET['keyword'] ?? null;
 $courseId = $_GET['course_id'] ?? '%';
 $sessionId = $_GET['session_id'] ?? '%';
+$ruc = $_GET['ruc'] ?? '0';
 
 if (isset($action)) {
     switch ($action) {
@@ -168,6 +169,10 @@ $form->addText('keyword', $plugin->get_lang('SearchUserByDNI'), false, [
     'placeholder' => 'Buscar usuario por DNI',
     'style' => 'display: block'
 ]);
+$form->addText('ruc', $plugin->get_lang('SearchUserByRUC'), false, [
+    'placeholder' => 'Buscar por RUC de empresa',
+    'style' => 'display: block'
+]);
 $form->addButtonSearch(get_lang('Search'));
 $actionsLeft = $form->returnForm();
 
@@ -182,9 +187,7 @@ $actionsRight = Display::url(
 
 $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $actionsRight], [9, 1, 2]);
 
-
-
-$users = $plugin->getDataReport($dni, $courseId, $sessionId);
+$users = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc);
 
 $tpl->assign('actions', Display::toolbarAction('toolbar', [$actionLinks]));
 $tpl->assign('message', $message);

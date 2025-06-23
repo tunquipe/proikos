@@ -11,7 +11,10 @@
         vertical-align: bottom;
         margin-left: 4px;
     }
-
+    #search_simple_submit{
+        margin-left: 20px;
+        margin-top: 20px;
+    }
     #toolbarData .col-sm-2.text-right {
         margin-top: 15px;
     }

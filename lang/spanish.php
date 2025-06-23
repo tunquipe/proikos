@@ -153,3 +153,4 @@ $strings['EntranceExam'] = 'Examen de entrada';
 $strings['Workshop'] = 'Taller';
 $strings['ExitExam'] = 'Examen de salida';
 $strings['DNI'] = 'DNI / C.E';
+$strings['SearchUserByRUC'] = 'Buscar por RUC';

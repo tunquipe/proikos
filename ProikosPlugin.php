@@ -3958,7 +3958,7 @@ EOT;
         }
         return $score;
     }
-    public function getDataReport($dni = null, $courseId = 0, $session_id = 0): array
+    public function getDataReport($dni = null, $courseId = 0, $session_id = 0, $ruc = 0): array
     {
         $tbl_course = Database::get_main_table(TABLE_MAIN_COURSE);
         $tbl_session_course_user = Database::get_main_table(TABLE_MAIN_SESSION_COURSE_USER);
@@ -4027,6 +4027,10 @@ EOT;
 
         if($session_id != 0){
             $sql.= " AND srcu.session_id = $session_id ";
+        }
+
+        if($ruc != 0){
+            $sql.= " AND ppu.ruc_company = $ruc ";
         }
 
         $result = Database::query($sql);
