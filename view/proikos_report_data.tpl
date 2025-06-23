@@ -63,8 +63,8 @@
         <tr>
             <td>{{ counter }}</td>
             <td>PROK{{ user.id }}</td>
-            <td></td>
-            <td></td>
+            <td>{{ user.registration_date }}</td>
+            <td>{{ user.time_course }}</td>
             <td>{{ user.session_category_name }}</td>
             <td>{{ user.session_name }}</td>
             <td>{{ user.student }}</td>
@@ -98,7 +98,7 @@
             </td>
 
 
-            <td></td>
+            <td>{{ user.score }}</td>
             <td style="text-align: center">
                 {% if user.links %}
                     <span class="label label-success">Aprobado (*)</span>
@@ -124,3 +124,9 @@
         {% endfor %}
     {% endif %}
 </table>
+<div>
+    <h5>Nota:</h5>
+    <ul>
+        <li>(*) Datos externos</li>
+    </ul>
+</div>

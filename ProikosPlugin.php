@@ -2377,6 +2377,7 @@ class ProikosPlugin extends Plugin
                 LEFT JOIN $tbl_gradebook_certificate gcf ON gcf.user_id = gsl.user_id
                 WHERE gc.course_code = '$codeCourse' AND gc.session_id = $idSession AND gsl.user_id = $idUser
                 ORDER BY gsl.id DESC LIMIT 1;";
+
         $result = Database::query($sql);
         $list = [];
         if (Database::num_rows($result) > 0) {
@@ -3715,7 +3716,7 @@ HTML;
                             'score' => round($score, 1),
                             'exeResult' => $exeResult
                         ];
-                        var_dump($score);
+
                     }
 
                     /*if (empty($examScore)) {
@@ -3956,6 +3957,7 @@ EOT;
             SELECT DISTINCT
                 u.id,
                 u.username,
+                u.registration_date,
                 u.email,
                 u.username as DNI,
                 CONCAT(u.firstname, ' ', u.lastname) as student,
@@ -4017,10 +4019,14 @@ EOT;
                     'ORDER By id'
                 );
 
+                $registrationDate = api_format_date($row['registration_date'], DATE_FORMAT_LONG_NO_DAY);
+                $row['registration_date'] = $registrationDate;
                 $userLinks = $cats[0]->get_links($row['id'], false, $row['code'], $row['session_id']);
                 $quizCheck = ProikosPlugin::checkUserQuizCompletion($row['id'], $cats[0]->get_id());
                 $userScore = $this->getResultExerciseStudent($row['id'], $row['c_id'], $row['session_id']);
                 $scoreCertificate = $this->getScoreCertificate($row['id'], $row['code'], $row['session_id']);
+                $scoreResult = $this->getScoreCertificate($row['id'], $row['code'], $row['session_id'],true);
+
                 $row['exams'] = $userScore;
 
                 if (isset($scoreCertificate['has_certificate'])) {
@@ -4033,9 +4039,21 @@ EOT;
                     ? '<span class="label label-success">' . $this->get_lang('Approved') . '</span>'
                     : '<span class="label label-danger">' . $this->get_lang('Failed') . '</span>';
                 $row['status'] = $status;
+                $row['score'] = isset($scoreResult['score']) ? $scoreResult['score'] : 0;
                 $row['links'] = empty($userLinks);
                 $downloadCertUploadedLink = $this->generateDownloadLinkAttachCertificates($row['id'], $row['student'], $row['session_id']);
                 $row['cert'] = $downloadCertUploadedLink;
+
+
+                $timeSpent = api_time_to_hms(
+                    Tracking::get_time_spent_on_the_course(
+                        $row['id'],
+                        $row['c_id'],
+                        $row['session_id']
+                    )
+                );
+
+                $row['time_course'] = $timeSpent;
                 $users[] = $row;
             }
         }
