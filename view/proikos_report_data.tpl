@@ -99,7 +99,7 @@
 
 
             <td></td>
-            <td>
+            <td style="text-align: center">
                 {% if user.links %}
                     <span class="label label-success">Aprobado (*)</span>
                 {% else %}
@@ -107,7 +107,7 @@
                 {% endif %}
             </td>
 
-            <td>
+            <td style="text-align: center">
                 {% if user.certificate_status == 1 %}
                     <span class="label label-success">Vigente</span>
                 {% elseif user.certificate_status == 2 %}
@@ -119,7 +119,7 @@
                 {% endif %}
             </td>
 
-            <td>{{ user.metadata_exists }}</td>
+            <td style="text-align: center">{{ user.cert }}</td>
         </tr>
         {% endfor %}
     {% endif %}

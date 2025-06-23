@@ -2730,10 +2730,7 @@ EOT
                 $downloadUrl
             );
         } else {
-            $downloadCertUploadedLink = Display::url(
-                Display::img($icon_na, $this->get_lang('DownloadAttachedCertificates'),['width' => '32px']),
-                '#'
-            );
+            $downloadCertUploadedLink = Display::img($icon_na, $this->get_lang('DownloadAttachedCertificates'),['width' => '32px']);
         }
 
         return $downloadCertUploadedLink;
@@ -4037,6 +4034,8 @@ EOT;
                     : '<span class="label label-danger">' . $this->get_lang('Failed') . '</span>';
                 $row['status'] = $status;
                 $row['links'] = empty($userLinks);
+                $downloadCertUploadedLink = $this->generateDownloadLinkAttachCertificates($row['id'], $row['student'], $row['session_id']);
+                $row['cert'] = $downloadCertUploadedLink;
                 $users[] = $row;
             }
         }
