@@ -3958,7 +3958,7 @@ EOT;
         }
         return $score;
     }
-    public function getDataReport(): array
+    public function getDataReport($dni = null, $courseId = 0, $session_id = 0): array
     {
         $tbl_course = Database::get_main_table(TABLE_MAIN_COURSE);
         $tbl_session_course_user = Database::get_main_table(TABLE_MAIN_SESSION_COURSE_USER);
@@ -4015,8 +4015,19 @@ EOT;
             INNER JOIN
                 $tbl_proikos_user ppu ON ppu.user_id = u.id
             WHERE
-                srcu.status = 0;
-        ";
+                srcu.status = 0 ";
+
+        if(!empty($dni)){
+            $sql.= " AND u.username = $dni ";
+        }
+
+        if($courseId != 0){
+            $sql.= " AND srcu.c_id = $courseId ";
+        }
+
+        if($session_id != 0){
+            $sql.= " AND srcu.session_id = $session_id ";
+        }
 
         $result = Database::query($sql);
         $users = [];
@@ -4058,7 +4069,6 @@ EOT;
                 $row['links'] = empty($userLinks);
                 $downloadCertUploadedLink = $this->generateDownloadLinkAttachCertificates($row['id'], $row['student'], $row['session_id']);
                 $row['cert'] = $downloadCertUploadedLink;
-
 
                 $timeSpent = api_time_to_hms(
                     Tracking::get_time_spent_on_the_course(

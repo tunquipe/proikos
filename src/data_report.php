@@ -15,7 +15,7 @@ $actionLinks = null;
 $message = null;
 
 $action = $_GET['export'] ?? null;
-$keyword = $_GET['keyword'] ?? null;
+$dni = $_GET['keyword'] ?? null;
 $courseId = $_GET['course_id'] ?? '%';
 $sessionId = $_GET['session_id'] ?? '%';
 
@@ -182,7 +182,9 @@ $actionsRight = Display::url(
 
 $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $actionsRight], [9, 1, 2]);
 
-$users = $plugin->getDataReport();
+
+
+$users = $plugin->getDataReport($dni, $courseId, $sessionId);
 
 $tpl->assign('actions', Display::toolbarAction('toolbar', [$actionLinks]));
 $tpl->assign('message', $message);
