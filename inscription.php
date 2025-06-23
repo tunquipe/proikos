@@ -59,19 +59,22 @@ if($action == 'second'){
                 '5' => 'Otros',
             ];
             $form->addHtml('<div class="row"><div class="col-md-6">');
-            $form->addSelect('type_document', $plugin->get_lang('TypeDocument'), $typesDocuments);
+            $typeInput = $form->addSelect('type_document', $plugin->get_lang('TypeDocument'), $typesDocuments);
+            $form->setRequired($typeInput);
             $form->addHtml('</div><div class="col-md-6">');
             $form->addText('number_document', [$plugin->get_lang('NumberDocument'), $plugin->get_lang('NumberDocumentHelp')], true);
             $form->addHtml('</div></div>');
             $form->addHtml('<div class="row"><div class="col-md-4">');
-            $form->addNumeric('age', $plugin->get_lang('Age'), ['class' => 'form-control']);
+            $ageInput = $form->addNumeric('age', $plugin->get_lang('Age'), ['class' => 'form-control']);
+            $form->setRequired($ageInput);
             $form->addHtml('</div><div class="col-md-4">');
             $genders = [
                 '0' => 'Seleccione una opción',
                 'M' => 'Masculino',
                 'F' => 'Femenino'
             ];
-            $form->addSelect('gender', $plugin->get_lang('Gender'), $genders);
+            $genderInput = $form->addSelect('gender', $plugin->get_lang('Gender'), $genders);
+            $form->setRequired($genderInput);
             $form->addHtml('</div><div class="col-md-4">');
             $instructions = [
                 '0' => 'Seleccione una opción',
@@ -113,7 +116,7 @@ if($action == 'second'){
             $form->addText(
                 'company_code',
                 [
-                    $plugin->get_lang('CompanyToCode'),
+                    '<span class="form_required">*</span>'.$plugin->get_lang('CompanyToCode'),
                     $plugin->get_lang('CompanyCodeHelp'),
                     '<button id="validate_code" type="button" class="btn btn-default">'.$plugin->get_lang('ValidateCode').'</button>'
                 ],
@@ -129,7 +132,7 @@ if($action == 'second'){
             $form->addText(
                 'company_petro',
                 [
-                    $plugin->get_lang('PetroToCode'),
+                    '<span class="form_required">*</span>'.$plugin->get_lang('PetroToCode'),
                     $plugin->get_lang('PetroToCodeHelp'),
                     '<button id="validate_petro" type="button" class="btn btn-default">'.$plugin->get_lang('ValidateCode').'</button>'
                 ],
