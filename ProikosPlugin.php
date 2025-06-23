@@ -4029,9 +4029,16 @@ EOT;
             $sql.= " AND srcu.session_id = $session_id ";
         }
 
-        if($ruc != 0){
-            $sql.= " AND ppu.ruc_company = $ruc ";
+        if (api_is_contractor_admin()) {
+            $rucCompany = self::getUserRucCompany();
+            $sql.= " AND ppu.ruc_company = $rucCompany ";
+        } else {
+            if($ruc != 0){
+                $sql.= " AND ppu.ruc_company = $ruc ";
+            }
         }
+
+
 
         $result = Database::query($sql);
         $users = [];
