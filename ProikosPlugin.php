@@ -1439,11 +1439,11 @@ class ProikosPlugin extends Plugin
                             if($score==0){
                                 $defaultData=[];
                             } else {
-                                $name = strtolower($item->get_name());
+                                $name = str_replace(' ', '_', strtolower($item->get_name()));
                                 $defaultData[$name] = $score;
                             }
                         } else{
-                            $name = strtolower($item->get_name());
+                            $name = str_replace(' ', '_', strtolower($item->get_name()));
                             $defaultData[$name] = $score;
                         }
                         break;
@@ -1451,19 +1451,20 @@ class ProikosPlugin extends Plugin
                         /** @var ExerciseLink $item */
                         $score = self::getScoreExercise($item->get_ref_id(),$session_id,$user_id);
                         if($showEmpty){
-                            if($score===0){
+                            if($score==0){
                                 $defaultData=[];
                             }else{
-                                $name = strtolower($item->get_name());
+                                $name = str_replace(' ', '_', strtolower($item->get_name()));
                                 $defaultData[$name] = $score;
                             }
                         } else {
-                            $name = strtolower($item->get_name());
+                            $name = str_replace(' ', '_', strtolower($item->get_name()));
                             $defaultData[$name] = $score;
                         }
                         break;
                 }
             }
+
             return $defaultData;
         }
     }
@@ -3691,34 +3692,41 @@ HTML;
                 $row['session_id'],
                 'ORDER By id'
             );
+
             if (!empty($cats[0])) {
                 $userScore = $this->getResultExerciseStudent($row['user_id'], $row['course_id'], $row['session_id'], false);
-                $scoreCertificate = $this->getScoreCertificate($row['user_id'], $row['course_code'], $row['session_id'], false);
 
+                $scoreCertificate = $this->getScoreCertificate($row['user_id'], $row['course_code'], $row['session_id'], false);
                 $userScores = [];
                 $userLinks = $cats[0]->get_links($row['user_id'], false, $row['course_code'], $row['session_id']);
+                $examScore = [];
                 foreach ($dataColumns as $columnKey => $columnName) {
-                    $examScore = [];
+
                     foreach ($userLinks as $link) {
-                        if (!$this->examInMap($columnKey, $link->get_name()) || !empty($examScore)) {
+
+                        /*if (!$this->examInMap($columnKey, $link->get_name()) || !empty($examScore)) {
                             continue;
-                        }
+                        }*/
 
                         $exerKey = strtolower($link->get_name());
+
                         $score = round($userScore[$exerKey] ?? 0, 1);
+
+
                         $exeResult = $link->get_weight() > 0 ? round($score * ($link->get_weight() / 100), 2) : 0;
                         $examScore = [
                             'score' => round($score, 1),
                             'exeResult' => $exeResult
                         ];
+                        var_dump($score);
                     }
 
-                    if (empty($examScore)) {
+                    /*if (empty($examScore)) {
                         $examScore = [
-                            'score' => '-',
-                            'exeResult' => '-'
+                            'score' => 'xxx',
+                            'exeResult' => 'yyyy'
                         ];
-                    }
+                    }*/
 
                     $userScores[] = $examScore;
                 }
@@ -3759,8 +3767,8 @@ HTML;
                     $rowIndex++;
                 }
 
-                $item[$rowIndex++] = '-';
-                $item[$rowIndex++] = '-';
+                $item[$rowIndex++] = 'ss-';
+                $item[$rowIndex++] = '-sss';
                 $item[$rowIndex] = '-';
             }
 
@@ -3775,9 +3783,9 @@ HTML;
     public function getDATAcolumns($showFinalScoreColumn = true)
     {
         $columns = [
-            'ex1' => 'Examen de Entrada',
+            'ex1' => 'Examen de entrada',
             'ex2' => 'Taller',
-            'ex3' => 'Examen de Salida'
+            'ex3' => 'Examen de salida'
         ];
 
         if ($showFinalScoreColumn) {
@@ -3821,7 +3829,6 @@ HTML;
     public function hasTimeInSessionRestriction($userId, $sessionIdEval)
     {
         $tbl_session_rel_user = Database::get_main_table(TABLE_MAIN_SESSION_USER);
-
         $sql = "SELECT b.time_in_session FROM $tbl_session_rel_user a
             INNER JOIN session b ON a.session_id = b.id
             WHERE a.user_id = $userId
@@ -3829,7 +3836,6 @@ HTML;
             LIMIT 1";
 
         $result = Database::query($sql);
-
         $session = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
@@ -3938,5 +3944,104 @@ EOT;
     {
         $sql = "DELETE FROM ".Database::get_main_table(self::TABLE_PROIKOS_USERS)." WHERE user_id = '$userId'";
         Database::query($sql);
+    }
+
+    public function getDataReport()
+    {
+        $tbl_course = Database::get_main_table(TABLE_MAIN_COURSE);
+        $tbl_session_course_user = Database::get_main_table(TABLE_MAIN_SESSION_COURSE_USER);
+        $tbl_user = Database::get_main_table(TABLE_MAIN_USER);
+        $tbl_session = Database::get_main_table(TABLE_MAIN_SESSION);
+        $tbl_session_category = Database::get_main_table(TABLE_MAIN_SESSION_CATEGORY);
+        $tbl_proikos_user = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $table_plugin_easycertificate_send = Database::get_main_table(self::TABLE_PLUGIN_EASY_CERTIFICATE_SEND);
+        $sql = "
+            SELECT DISTINCT
+                u.id,
+                u.username,
+                u.email,
+                u.username as DNI,
+                CONCAT(u.firstname, ' ', u.lastname) as student,
+                sc.id as session_category_id,
+                sc.name as session_category_name,
+                srcu.session_id,
+                srcu.c_id,
+                c.code,
+                s.name as session_name,
+                 ppu.name_company,
+                ppu.ruc_company,
+                ppu.stakeholders,
+                IF(ppu.area = -1, 'No registrado', ppu.area) as area,
+                IF(ppu.metadata IS NOT NULL AND ppu.metadata != '', 'true', 'false') as metadata_exists,
+                COALESCE((
+                        SELECT
+                            CASE
+                                WHEN pecs.certificate_id IS NOT NULL
+                                    AND CURRENT_DATE >= DATE(pecs.created_at)
+                                    AND (pecs.reminder_15_sent_at IS NULL OR CURRENT_DATE <= pecs.reminder_15_sent_at)
+                                THEN '1'
+                                ELSE '2'
+                            END
+                        FROM {$table_plugin_easycertificate_send} pecs
+                        WHERE pecs.user_id = u.id
+                            AND pecs.session_id = s.id
+                            AND pecs.course_id = srcu.c_id
+                        ORDER BY pecs.id DESC
+                        LIMIT 1
+                    ), '3') AS certificate_status
+            FROM
+                $tbl_session_course_user srcu
+            INNER JOIN
+                $tbl_course c ON c.id = srcu.c_id
+            INNER JOIN
+                $tbl_session s ON s.id = srcu.session_id
+            INNER JOIN
+                $tbl_session_category sc ON sc.id = s.session_category_id
+            INNER JOIN
+                $tbl_user u ON u.user_id = srcu.user_id
+            INNER JOIN
+                $tbl_proikos_user ppu ON ppu.user_id = u.id
+            WHERE
+                srcu.status = 0;
+        ";
+
+        $result = Database::query($sql);
+        $users = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_assoc($result)) {
+
+                $cats = Category::load(
+                    null,
+                    null,
+                    $row['code'],
+                    null,
+                    null,
+                    $row['session_id'],
+                    'ORDER By id'
+                );
+
+                $userLinks = $cats[0]->get_links($row['id'], false, $row['code'], $row['session_id']);
+                $quizCheck = ProikosPlugin::checkUserQuizCompletion($row['id'], $cats[0]->get_id());
+                $userScore = $this->getResultExerciseStudent($row['id'], $row['c_id'], $row['session_id']);
+                $scoreCertificate = $this->getScoreCertificate($row['id'], $row['code'], $row['session_id']);
+                $row['exams'] = $userScore;
+
+                if (isset($scoreCertificate['has_certificate'])) {
+                    $approved = $scoreCertificate['has_certificate'] && $quizCheck['passed'];
+                } else {
+                    $approved = false;
+                }
+
+                $status = true === $approved
+                    ? '<span class="label label-success">' . $this->get_lang('Approved') . '</span>'
+                    : '<span class="label label-danger">' . $this->get_lang('Failed') . '</span>';
+                $row['status'] = $status;
+                $row['links'] = empty($userLinks);
+                $users[] = $row;
+            }
+        }
+
+        return $users;
+
     }
 }

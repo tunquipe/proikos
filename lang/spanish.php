@@ -149,3 +149,7 @@ $strings['Failed'] = 'Desaprobado';
 $strings['CertificatesAttached'] = 'Certificados adjuntos';
 $strings['Observations'] = 'Observaciones';
 $strings['DownloadAttachedCertificates'] = 'Descargar certificados adjuntos';
+$strings['EntranceExam'] = 'Examen de entrada';
+$strings['Workshop'] = 'Taller';
+$strings['ExitExam'] = 'Examen de salida';
+$strings['DNI'] = 'DNI / C.E';
