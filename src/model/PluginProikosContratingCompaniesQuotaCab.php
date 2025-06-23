@@ -120,7 +120,7 @@ class PluginProikosContratingCompaniesQuotaCab
         return $data[0] ?? [];
     }
 
-    public function getDataByCompanyId($companyId)
+    public function getDataByCompanyId($companyId, $quota_dispon = false)
     {
         if (empty($companyId)) {
             return false;
@@ -159,54 +159,61 @@ class PluginProikosContratingCompaniesQuotaCab
             DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
             CONCAT(b.lastname, ' ', b.firstname) AS user_name
             FROM $table a
-            LEFT JOIN user b on a.created_user_id = b.user_id
-            WHERE a.contrating_company_id = $companyId
-            ORDER BY a.id DESC
-            ";
+            LEFT JOIN user b on a.created_user_id = b.user_id ";
+        if($quota_dispon) {
+            $sql .= " WHERE a.id = $companyId ";
+        } else {
+            $sql .= " WHERE a.contrating_company_id = $companyId ";
+        }
+        $sql .= " ORDER BY a.id DESC ";
         $result = Database::query($sql);
         $items = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
-                // Assign quota to session
-                $action = Display::url(
-                    Display::return_icon(
-                        'session.png',
-                        'Asignar cupos a sesiones',
-                        [],
-                        ICON_SIZE_SMALL),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_assign_quota_to_session.php?company_id=' . $companyId . '&action=assign_quota_to_session&quota_cab_id=' . $row['id']
-                );
+                if(!$quota_dispon) {
+                    // Assign quota to session
+                    $action = Display::url(
+                        Display::return_icon(
+                            'session.png',
+                            'Asignar cupos a sesiones',
+                            [],
+                            ICON_SIZE_SMALL),
+                        api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_assign_quota_to_session.php?company_id=' . $companyId . '&action=assign_quota_to_session&quota_cab_id=' . $row['id']
+                    );
 
-                // edit action
-                $action .= Display::url(
-                    Display::return_icon(
-                        'visible.png',
-                        'Ver detalle',
-                        [],
-                        ICON_SIZE_SMALL),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_det.php?company_id=' . $companyId . '&action=edit&quota_cab_id=' . $row['id']
-                );
-
-                if (api_is_platform_admin() || api_is_drh()) {
-                    // delete action
+                    // edit action
                     $action .= Display::url(
                         Display::return_icon(
-                            'delete.png',
-                            get_lang('Delete'),
+                            'visible.png',
+                            'Ver detalle',
                             [],
-                            ICON_SIZE_SMALL
-                        ),
-                        api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $companyId . '&action=delete&quota_cab_id=' . $row['id'],
-                        [
-                            'onclick' => 'javascript:if(!confirm(' . "'" .
-                                addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
-                                . "'" . ')) return false;',
-                        ]
+                            ICON_SIZE_SMALL),
+                        api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_det.php?company_id=' . $companyId . '&action=edit&quota_cab_id=' . $row['id']
                     );
-                }
 
-                $row['actions'] = $action;
-                $items[] = $row;
+                    if (api_is_platform_admin() || api_is_drh()) {
+                        // delete action
+                        $action .= Display::url(
+                            Display::return_icon(
+                                'delete.png',
+                                get_lang('Delete'),
+                                [],
+                                ICON_SIZE_SMALL
+                            ),
+                            api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $companyId . '&action=delete&quota_cab_id=' . $row['id'],
+                            [
+                                'onclick' => 'javascript:if(!confirm(' . "'" .
+                                    addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
+                                    . "'" . ')) return false;',
+                            ]
+                        );
+                    }
+
+                    $row['actions'] = $action;
+                    $items[] = $row;
+                } else {
+                    $items['quota_dispon'] = $row['quota_dispon'];
+                }
             }
         }
 
@@ -274,6 +281,7 @@ class PluginProikosContratingCompaniesQuotaCab
             return false;
         }
 
+        $quota_dispon = $this->getDataByCompanyId($cabId, true);
         $table = Database::get_main_table($this->contratingCompaniesQuotaDet);
         $sessionCategoryTable = Database::get_main_table(TABLE_MAIN_SESSION_CATEGORY);
         $sql = "SELECT
@@ -298,6 +306,7 @@ class PluginProikosContratingCompaniesQuotaCab
                     'session_category_id' => $row['session_category_id'],
                     'category_name' => $row['category_name'],
                     'quota' => $row['user_quota'],
+                    'quota_dispon' => $quota_dispon['quota_dispon'],
                     'price_unit' => $row['price_unit'],
                     'session_mode' => $row['session_mode'],
                     'session_mode_name' => $this->sessionModes[$row['session_mode']] ?? '',

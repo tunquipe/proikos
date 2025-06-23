@@ -242,6 +242,7 @@ const uuId = function() {
 
 if (detalle?.length > 0) {
     const sessionDetailContainer = document.getElementById('root_asignar_cupos');
+
     detalle.forEach((item, index) => {
         const uniqueId = uuId();
         const containerId = 'session_detail_container_' + uniqueId;
@@ -265,7 +266,7 @@ if (detalle?.length > 0) {
                                 <td style="width: 200px; vertical-align: middle;">` + item.session_mode_name + `</td>
                                 <td style="width: 300px; vertical-align: middle;">` + item.category_name + `</td>
                                 <td class="text-center" style="width: 150px;">
-                                    <input type="text" readonly class="form-control" value="` + item.quota + `" style="text-align: right;">
+                                    <input type="text" readonly class="form-control" value="` + item.quota_dispon + `" style="text-align: right;">
                                 </td>
                                 <td style="text-align: center;">
                                     <button type="button" class="btn btn-primary" id="` + plusButtonId + `">
