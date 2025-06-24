@@ -45,7 +45,6 @@ class PluginProikosContratingCompaniesQuotaSession
         LEFT JOIN user d on a.created_user_id = d.user_id
         WHERE a.det_id = $detId";
         $result = Database::query($sql);
-
         $data = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {

@@ -7,7 +7,7 @@
         <th class="text-center">{{ 'Mode'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="text-center">{{ 'Category'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="text-center">{{ 'Session'|get_plugin_lang('ProikosPlugin') }}</th>
-        <th class="text-center">{{ 'ContratingCompanyUserQuota'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th class="text-center">{{ 'ContratingCompanyUserQuotaUsed'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'ContratingCompanyCreationDate'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'ContratingCompanyAsignedByUser'|get_plugin_lang('ProikosPlugin') }}</th>
     </tr>

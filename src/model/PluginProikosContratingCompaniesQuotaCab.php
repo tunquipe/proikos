@@ -282,9 +282,33 @@ class PluginProikosContratingCompaniesQuotaCab
         $res = Database::query($sql);
         $name = null;
         while ($row = Database::fetch_array($res, 'ASSOC')) {
-            $name = $row['user_quota'];
+            $name = intval($row['user_quota']);
         }
         return $name;
+    }
+
+    public function numberOfQuotasUsed($detId, $detSessionCategoryId)
+    {
+        $table = Database::get_main_table($this->contratingCompaniesQuotaSession);
+        $sql = "
+            SELECT
+                SUM(a.user_quota) AS total_user_quota
+            FROM
+                $table a
+                    INNER JOIN
+                session_category b ON b.id = $detSessionCategoryId
+            WHERE
+                a.det_id = $detId ;
+        ";
+        $res = Database::query($sql);
+        $sum = 0;
+        if (Database::num_rows($res) > 0) {
+            while ($row = Database::fetch_array($res, 'ASSOC')) {
+                $sum = intval($row['total_user_quota']);
+            }
+        }
+
+        return $sum;
     }
     public function getDetails($cabId)
     {
@@ -292,7 +316,8 @@ class PluginProikosContratingCompaniesQuotaCab
             return false;
         }
 
-        $quota_dispon = $this->getDataByCompanyId($cabId, true);
+        //$quota_dispon = $this->getDataByCompanyId($cabId, true);
+
         $table = Database::get_main_table($this->contratingCompaniesQuotaDet);
         $sessionCategoryTable = Database::get_main_table(TABLE_MAIN_SESSION_CATEGORY);
         $sql = "SELECT
@@ -313,12 +338,16 @@ class PluginProikosContratingCompaniesQuotaCab
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
                 $quota_dis = $this->getQuotaXSessionCompany($cabId, $row['session_category_id']);
+
+                $useQuota = $this->numberOfQuotasUsed($row['id'], $row['session_category_id']);
+
                 $items[] = [
                     'id' => $row['id'],
                     'session_category_id' => $row['session_category_id'],
                     'category_name' => $row['category_name'],
                     'quota' => $row['user_quota'],
                     'qouta_dis' => $quota_dis,
+                    'qouta_total' => $quota_dis - $useQuota,
                     'price_unit' => $row['price_unit'],
                     'session_mode' => $row['session_mode'],
                     'session_mode_name' => $this->sessionModes[$row['session_mode']] ?? '',

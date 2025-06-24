@@ -89,6 +89,7 @@ $strings['UpdateContratingCompany'] = 'Actualizar empresa contratista';
 $strings['ContratingCompanyName'] = 'Nombre Empresa';
 $strings['ContratingCompanyRUC'] = 'RUC';
 $strings['ContratingCompanyUserQuota'] = 'Nº Cupos';
+$strings['ContratingCompanyUserQuotaUsed'] = 'Nº Cupos usados';
 $strings['ContratingCompanyUserQuotaTotal'] = 'Nº Cupos total adquiridos';
 $strings['ContratingCompanyUserQuotaDispon'] = 'Nº Cupos disponibles';
 $strings['AssignSeatsSessions'] = 'Asignar cupos a sesiones';
