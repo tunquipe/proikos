@@ -1439,11 +1439,11 @@ class ProikosPlugin extends Plugin
                                 $defaultData=[];
                             } else {
                                 $name = str_replace(' ', '_', strtolower($item->get_name()));
-                                $defaultData[$name] = $score;
+                                $defaultData[$name] = round($score);
                             }
                         } else{
                             $name = str_replace(' ', '_', strtolower($item->get_name()));
-                            $defaultData[$name] = $score;
+                            $defaultData[$name] = round($score);
                         }
                         break;
                     case 'ExerciseLink':
@@ -1454,11 +1454,11 @@ class ProikosPlugin extends Plugin
                                 $defaultData=[];
                             }else{
                                 $name = str_replace(' ', '_', strtolower($item->get_name()));
-                                $defaultData[$name] = $score;
+                                $defaultData[$name] = round($score);
                             }
                         } else {
                             $name = str_replace(' ', '_', strtolower($item->get_name()));
-                            $defaultData[$name] = $score;
+                            $defaultData[$name] = round($score);
                         }
                         break;
                 }
