@@ -76,7 +76,7 @@
             <td>{{ user.name_company }}</td>
             <td>{{ user.area }}</td>
 
-            <td class="text-center {% if user.exams.examen_de_entrada is not defined or user.exams.examen_de_entrada == 0 %}default-text{% elseif user.exams.examen_de_entrada < 11 %}red-text{% elseif user.exams.examen_de_entrada > 11 %}blue-text{% endif %}">
+            <td class="text-center {% if user.exams.examen_de_entrada is not defined or user.exams.examen_de_entrada == 0 %}default-text{% elseif user.exams.examen_de_entrada <= 10 %}red-text{% elseif user.exams.examen_de_entrada >= 10 %}blue-text{% endif %}">
                 {% if user.exams.examen_de_entrada == 0 or user.exams.examen_de_entrada is empty %}
                 -
                 {% else %}
@@ -84,7 +84,7 @@
                 {% endif %}
             </td>
 
-            <td class="text-center {% if user.exams.taller is not defined or user.exams.taller == 0 %}default-text{% elseif user.exams.taller < 11 %}red-text{% elseif user.exams.taller > 11 %}blue-text{% endif %}">
+            <td class="text-center {% if user.exams.taller is not defined or user.exams.taller == 0 %}default-text{% elseif user.exams.taller <= 10 %}red-text{% elseif user.exams.taller >= 10 %}blue-text{% endif %}">
                 {% if user.exams.taller == 0 or user.exams.taller is empty %}
                 -
                 {% else %}
@@ -92,7 +92,7 @@
                 {% endif %}
             </td>
 
-            <td class="text-center {% if user.exams.examen_de_salida is not defined or user.exams.examen_de_salida == 0 %}default-text{% elseif user.exams.examen_de_salida < 11 %}red-text{% elseif user.exams.examen_de_salida > 11 %}blue-text{% endif %}">
+            <td class="text-center {% if user.exams.examen_de_salida is not defined or user.exams.examen_de_salida == 0 %}default-text{% elseif user.exams.examen_de_salida <= 10 %}red-text{% elseif user.exams.examen_de_salida >= 10 %}blue-text{% endif %}">
                 {% if user.exams.examen_de_salida == 0 or user.exams.examen_de_salida is empty %}
                 -
                 {% else %}
