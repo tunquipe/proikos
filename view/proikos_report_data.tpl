@@ -103,7 +103,7 @@
 
             <td>{{ user.score }}</td>
             <td style="text-align: center">
-                {% if user.links %}
+                {% if user.score >= 70 %}
                     <span class="label label-success">Aprobado (*)</span>
                 {% else %}
                     {{ user.status }}

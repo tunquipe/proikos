@@ -4063,7 +4063,6 @@ EOT;
                 $scoreCertificate = $this->getScoreCertificate($row['id'], $row['code'], $row['session_id']);
                 //$scoreResult = $this->getScoreCertificate($row['id'], $row['code'], $row['session_id'],true);
 
-                $scoreTotal = $this->getCertificateScore($row['id']);
                 $row['exams'] = $userScore;
 
                 // Validar si los valores existen o son vacíos, y si lo son, asignar 0
@@ -4071,18 +4070,18 @@ EOT;
                 $examen_de_salida = isset($row['exams']['examen_de_salida']) && $row['exams']['examen_de_salida'] !== '' ? $row['exams']['examen_de_salida'] : 0;
                 $taller = isset($row['exams']['taller']) && $row['exams']['taller'] !== '' ? $row['exams']['taller'] : 0;
 
-// Definir los porcentajes para cada examen
+                // Definir los porcentajes para cada examen
                 $ponderacion_entrada = 0.10;  // 10%
                 $ponderacion_salida = 0.30;   // 30%
                 $ponderacion_taller = 0.60;   // 60%
 
-// Calcular el puntaje total ponderado
+                // Calcular el puntaje total ponderado
                 $puntaje_total = (($examen_de_entrada * $ponderacion_entrada) +
                         ($examen_de_salida * $ponderacion_salida) +
                         ($taller * $ponderacion_taller)) / 20 * 100;
 
-                if (isset($scoreCertificate['has_certificate'])) {
-                    $approved = $scoreCertificate['has_certificate'] && $quizCheck['passed'];
+                if ($puntaje_total>=70) {
+                    $approved = true;
                 } else {
                     $approved = false;
                 }
