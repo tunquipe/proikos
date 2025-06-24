@@ -4015,7 +4015,7 @@ EOT;
             INNER JOIN
                 $tbl_proikos_user ppu ON ppu.user_id = u.id
             WHERE
-                srcu.status = 0 ";
+                srcu.status = 0 OR srcu.status = 2 ";
 
         if(!empty($dni)){
             $sql.= " AND u.username = $dni ";
