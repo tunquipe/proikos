@@ -56,6 +56,12 @@ $form->addText('company_total_user_quota', $plugin->get_lang('ContratingCompanyU
     'value' => $cabecera['total_user_quota'],
     'disabled' => 'disabled'
 ]);
+
+$quota_dispon = $plugin->contratingCompaniesQuotaCabModel()->getDataByCompanyId($_GET['quota_cab_id'], true);
+$form->addText('company_total_quota_available', $plugin->get_lang('ContratingCompanyUserQuotaDispon'), false, [
+    'value' => $quota_dispon['quota_dispon'],
+    'disabled' => 'disabled'
+]);
 $form->addElement('text', 'validity_date', $plugin->get_lang('Validity'), [
     'value' => $cabecera['vigency_date_es'],
     'disabled' => 'disabled'

@@ -166,6 +166,7 @@ class PluginProikosContratingCompaniesQuotaCab
             $sql .= " WHERE a.contrating_company_id = $companyId ";
         }
         $sql .= " ORDER BY a.id DESC ";
+
         $result = Database::query($sql);
         $items = [];
         if (Database::num_rows($result) > 0) {
