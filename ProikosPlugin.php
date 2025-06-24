@@ -4066,6 +4066,21 @@ EOT;
                 $scoreTotal = $this->getCertificateScore($row['id']);
                 $row['exams'] = $userScore;
 
+                // Validar si los valores existen o son vacíos, y si lo son, asignar 0
+                $examen_de_entrada = isset($row['exams']['examen_de_entrada']) && $row['exams']['examen_de_entrada'] !== '' ? $row['exams']['examen_de_entrada'] : 0;
+                $examen_de_salida = isset($row['exams']['examen_de_salida']) && $row['exams']['examen_de_salida'] !== '' ? $row['exams']['examen_de_salida'] : 0;
+                $taller = isset($row['exams']['taller']) && $row['exams']['taller'] !== '' ? $row['exams']['taller'] : 0;
+
+// Definir los porcentajes para cada examen
+                $ponderacion_entrada = 0.10;  // 10%
+                $ponderacion_salida = 0.30;   // 30%
+                $ponderacion_taller = 0.60;   // 60%
+
+// Calcular el puntaje total ponderado
+                $puntaje_total = (($examen_de_entrada * $ponderacion_entrada) +
+                        ($examen_de_salida * $ponderacion_salida) +
+                        ($taller * $ponderacion_taller)) / 20 * 100;
+
                 if (isset($scoreCertificate['has_certificate'])) {
                     $approved = $scoreCertificate['has_certificate'] && $quizCheck['passed'];
                 } else {
@@ -4076,7 +4091,7 @@ EOT;
                     ? '<span class="label label-success">' . $this->get_lang('Approved') . '</span>'
                     : '<span class="label label-danger">' . $this->get_lang('Failed') . '</span>';
                 $row['status'] = $status;
-                $row['score'] = $scoreTotal;
+                $row['score'] = $puntaje_total;
                 $row['links'] = empty($userLinks);
                 $downloadCertUploadedLink = $this->generateDownloadLinkAttachCertificates($row['id'], $row['student'], $row['session_id']);
                 $row['cert'] = $downloadCertUploadedLink;
