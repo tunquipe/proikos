@@ -51,8 +51,8 @@ $form->addText('company_admin_name', $plugin->get_lang('ContratingAdminName'), f
     'disabled' => 'disabled'
 ]);
 
-$form->addHeader($plugin->get_lang('Asignar cupos'));
-$form->addText('company_total_user_quota', $plugin->get_lang('ContratingCompanyUserQuota'), false, [
+$form->addHeader($plugin->get_lang('AssignSeatsSessions'));
+$form->addText('company_total_user_quota', $plugin->get_lang('ContratingCompanyUserQuotaTotal'), false, [
     'value' => $cabecera['total_user_quota'],
     'disabled' => 'disabled'
 ]);
@@ -259,14 +259,14 @@ if (detalle?.length > 0) {
                             <tr>
                                 <th style="width: 200px;">{$plugin->get_lang('Mode')}</th>
                                 <th style="width: 300px;">{$plugin->get_lang('SessionCategory')}</th>
-                                <th class="text-center" style="width: 150px;">{$plugin->get_lang('ContratingCompanyUserQuota')}</th>
+                                <th class="text-center" style="width: 150px;">{$plugin->get_lang('ContratingCompanyUserQuotaDispon')}</th>
                                 <th></th>
                             </tr>
                             <tr>
                                 <td style="width: 200px; vertical-align: middle;">` + item.session_mode_name + `</td>
                                 <td style="width: 300px; vertical-align: middle;">` + item.category_name + `</td>
                                 <td class="text-center" style="width: 150px;">
-                                    <input type="text" readonly class="form-control" value="` + item.quota_dispon + `" style="text-align: right;">
+                                    <input type="text" readonly class="form-control qouta_dis" value="` + item.qouta_dis + `" style="text-align: right;">
                                 </td>
                                 <td style="text-align: center;">
                                     <button type="button" class="btn btn-primary" id="` + plusButtonId + `">
