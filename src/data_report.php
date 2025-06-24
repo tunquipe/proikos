@@ -175,15 +175,15 @@ $form->addText('ruc', $plugin->get_lang('SearchUserByRUC'), false, [
 ]);
 $form->addButtonSearch(get_lang('Search'));
 $actionsLeft = $form->returnForm();
-
-$actionsRight = Display::url(
+$actionsRight = '';
+/*$actionsRight = Display::url(
     Display::return_icon('export_excel.png', get_lang('ExportAsXLS'), [], ICON_SIZE_MEDIUM),
     api_get_self() . '?' . http_build_query([
         'export' => 'xls',
         'course_id' => $courseId,
         'session_id' => $sessionId,
     ])
-);
+);*/
 
 $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $actionsRight], [9, 1, 2]);
 
