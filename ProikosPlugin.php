@@ -4080,7 +4080,7 @@ EOT;
                         ($examen_de_salida * $ponderacion_salida) +
                         ($taller * $ponderacion_taller)) / 20 * 100;
 
-                if ($puntaje_total>=70) {
+                if ($puntaje_total >= 70) {
                     $approved = true;
                 } else {
                     $approved = false;
