@@ -4054,7 +4054,8 @@ EOT;
                     $row['session_id'],
                     'ORDER By id'
                 );
-
+                $date = date("Y/m/d", strtotime($row['registration_date']));
+                $row['registration_date_normal'] = $date;
                 $registrationDate = api_format_date($row['registration_date'], DATE_FORMAT_LONG_NO_DAY);
                 $row['registration_date'] = $registrationDate;
                 $userLinks = $cats[0]->get_links($row['id'], false, $row['code'], $row['session_id']);

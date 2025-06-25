@@ -24,6 +24,53 @@ if (isset($action)) {
     switch ($action) {
         case 'xls':
             $fileName = 'report_' . api_get_local_time();
+            $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc);
+            $headers = [
+                'Nº',
+                'Codigo',
+                'Fecha',
+                'Nº Horas',
+                'Curso',
+                'Sesión',
+                'Apellidos y Nombres',
+                'DNI / C.E',
+                'RUC',
+                'Nombre de Empresa',
+                'Sede',
+                'Examen de entrada - 10%',
+                'Taller - 60%',
+                'Examen de salida - 30%',
+                'Puntaje',
+                'Estado',
+                'Observaciones',
+                'Certificados Adjuntos',
+            ];
+            $cleanData = [];
+
+            foreach ($rawData as $row) {
+                $cleanData[] = [
+                    'id' => $row['id'],
+                    'code_user' => 'PROK'.$row['id'],
+                    'registration_date' => $row['registration_date_normal'],
+                    'time_course' => $row['time_course'],
+                    'session_category_name' => $row['session_category_name'],
+                    'session_name' => $row['session_name'],
+                    'student' => $row['student'],
+                    'DNI' => $row['DNI'],
+                    'ruc_company' => $row['ruc_company'],
+                    'name_company' => $row['name_company'],
+                    'area' => $row['area'],
+                    'examen_de_entrada' => $row['exams']['examen_de_entrada'],
+                    'taller' => $row['exams']['taller'],
+                    'examen_de_salida' => $row['exams']['examen_de_salida'],
+                    'score' => $row['score'],
+                    'status' => strip_tags($row['status']),
+                    'certificate_status' => $row['certificate_status'],
+                    'metadata_exists' => $row['metadata_exists'],
+                ];
+            }
+            array_unshift($cleanData, $headers);
+            Export::arrayToXls($cleanData, $fileName);
             break;
         default:
             break;
@@ -175,15 +222,15 @@ $form->addText('ruc', $plugin->get_lang('SearchUserByRUC'), false, [
 ]);
 $form->addButtonSearch(get_lang('Search'));
 $actionsLeft = $form->returnForm();
-$actionsRight = '';
-/*$actionsRight = Display::url(
+
+$actionsRight = Display::url(
     Display::return_icon('export_excel.png', get_lang('ExportAsXLS'), [], ICON_SIZE_MEDIUM),
     api_get_self() . '?' . http_build_query([
         'export' => 'xls',
         'course_id' => $courseId,
         'session_id' => $sessionId,
     ])
-);*/
+);
 
 $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $actionsRight], [9, 1, 2]);
 
