@@ -9,14 +9,26 @@ $allow = api_is_platform_admin() || api_is_drh() || api_is_contractor_admin();
 if (!$allow) {
     api_not_allowed(true);
 }
+if (api_is_platform_admin()) {
+    switch ($action) {
+        case 'delete':
+            $idReport = $_GET['id'] ?? null;
+            $res = $plugin->deleteReportLogRow($idReport);
+            if ($res) {
+                $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/reporting_quota_session_det.php';
+                header('Location: ' . $url);
+            }
+            break;
+            default;
+    }
+}
 
-$actionLinks = '';
-$actionLinks .= Display::url(
+$actionLinks = Display::url(
     Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
     api_get_path(WEB_PLUGIN_PATH) . 'proikos/start.php'
 );
 
-$tool_name = 'Reporte de administración de cupones';
+$tool_name = $plugin->get_lang('CouponRegistrationReport');
 $items = $plugin->contratingCompaniesQuotaSessionDetModel()->getData();
 
 $tpl = new Template($tool_name);

@@ -157,3 +157,5 @@ $strings['Workshop'] = 'Taller - 60%';
 $strings['ExitExam'] = 'Examen de salida - 30%';
 $strings['DNI'] = 'DNI / C.E';
 $strings['SearchUserByRUC'] = 'Buscar por RUC';
+$strings['RegistrationID'] = 'ID de registro';
+$strings['CouponRegistrationReport'] = 'Reporte de registro de cupones';

@@ -36,7 +36,7 @@ class PluginProikosContratingCompaniesQuotaSessionDet
             $where = "WHERE e.ruc = '$rucCompany'";
         }
 
-        $sql = "SELECT e.ruc, e.name as company_name, f.name as session_name,
+        $sql = "SELECT a.id, e.ruc, e.name as company_name, f.name as session_name,
                 DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS quota_created_at,
                 CONCAT(h.lastname, ' ', h.firstname) AS quota_created_by,
                 DATE_FORMAT(a.expiration_date, '%d-%m-%Y') AS quota_vigency_date,
@@ -54,10 +54,28 @@ class PluginProikosContratingCompaniesQuotaSessionDet
                 $where
 
                 ORDER BY a.id ASC;";
+
         $result = \Database::query($sql);
         $data = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
+                if (api_is_platform_admin()) {
+                    $btnDelete = Display::url(
+                        Display::return_icon(
+                            'delete.png',
+                            get_lang('Delete'),
+                            [],
+                            ICON_SIZE_SMALL
+                        ),
+                        api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/reporting_quota_session_det.php?action=delete&id=' . $row['id'],
+                        [
+                            'onclick' => 'javascript:if(!confirm(' . "'" .
+                                addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
+                                . "'" . ')) return false;',
+                        ]
+                    );
+                    $row['actions'] = $btnDelete;
+                }
                 $data[] = $row;
             }
         }

@@ -430,6 +430,23 @@ class ProikosPlugin extends Plugin
         }
         return $list;
     }
+
+    public function deleteReportLogRow($idRow): bool
+    {
+        if (empty($idRow)) {
+            return false;
+        }
+        $tableReport = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET);
+        $sql = "DELETE FROM $tableReport WHERE id = $idRow";
+        $result = Database::query($sql);
+
+        if (Database::affected_rows($result) != 1) {
+            return false;
+        }
+
+        return true;
+    }
+
     public function deleteEntity($idEntity): bool
     {
         if (empty($idEntity)) {
