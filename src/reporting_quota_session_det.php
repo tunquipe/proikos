@@ -5,6 +5,7 @@ api_block_anonymous_users();
 $action = $_GET['action'] ?? null;
 $plugin = ProikosPlugin::create();
 $allow = api_is_platform_admin() || api_is_drh() || api_is_contractor_admin();
+$htmlHeadXtra[] = api_get_css(api_get_path(WEB_PLUGIN_PATH) . 'proikos/css/style.css');
 
 if (!$allow) {
     api_not_allowed(true);

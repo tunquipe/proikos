@@ -41,6 +41,7 @@ class PluginProikosContratingCompaniesQuotaSessionDet
                 CONCAT(h.lastname, ' ', h.firstname) AS quota_created_by,
                 DATE_FORMAT(a.expiration_date, '%d-%m-%Y') AS quota_vigency_date,
                 CONCAT(g.lastname, ' ', g.firstname) AS student_name,
+                g.user_id,
                 DATE_FORMAT(a.updated_at, '%d-%m-%Y %H:%i') AS student_subscription_date
                 FROM plugin_proikos_contrating_companies_quota_session_det a
                 INNER JOIN plugin_proikos_contrating_companies_quota_session b ON b.id = a.quota_session_id
@@ -54,7 +55,7 @@ class PluginProikosContratingCompaniesQuotaSessionDet
                 $where
 
                 ORDER BY a.id ASC;";
-
+        //print_r($sql);
         $result = \Database::query($sql);
         $data = [];
         if (Database::num_rows($result) > 0) {
@@ -76,6 +77,7 @@ class PluginProikosContratingCompaniesQuotaSessionDet
                     );
                     $row['actions'] = $btnDelete;
                 }
+                $row['status'] = !empty($row['user_id']);
                 $data[] = $row;
             }
         }

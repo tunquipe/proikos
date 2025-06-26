@@ -560,6 +560,29 @@ class ProikosPlugin extends Plugin
         return $item;
     }
 
+    public function updateDeleteRemoveUserQuota($user_id, $session_id)
+    {
+        if (empty($user_id)) {
+            return false;
+        }
+        if (empty($session_id)) {
+            return false;
+        }
+        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET);
+        $params = [
+            'user_id' => null,
+            'updated_at' => null
+        ];
+        $conditions = [
+            'user_id = ? AND session_id = ?' => [$user_id, $session_id]
+        ];
+        return Database::update(
+            $table,
+            $params,
+            $conditions
+        );
+    }
+
     public function saveImage($idEntity, $fileData){
         $entity = self::getEntity($idEntity);
         if (empty($entity)) {
