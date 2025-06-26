@@ -7,8 +7,9 @@
         <th>{{ 'ContratingCompanyName'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'SessionName'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'ContratingCompanyCreatedByUser'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th>{{ 'IdUser'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'StudentName'|get_plugin_lang('ProikosPlugin') }}</th>
-        <th>{{ 'Status'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th style="width: 120px">{{ 'Status'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'StudentSubscriptionDate'|get_plugin_lang('ProikosPlugin') }}</th>
         {% if _u.is_admin %}
         <th>{{ 'Actions'|get_plugin_lang('ProikosPlugin') }}</th>
@@ -23,6 +24,7 @@
         <td>{{ item.company_name }}</td>
         <td>{{ item.session_name }}</td>
         <td>{{ item.quota_created_by }}</td>
+        <td style="text-align: center">{{ item.user_id }}</td>
         <td>
             {% if item.student_name %}
                 {{ item.student_name }}

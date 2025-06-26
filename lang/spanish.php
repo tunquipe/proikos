@@ -159,3 +159,4 @@ $strings['DNI'] = 'DNI / C.E';
 $strings['SearchUserByRUC'] = 'Buscar por RUC';
 $strings['RegistrationID'] = 'ID de registro';
 $strings['CouponRegistrationReport'] = 'Reporte de registro de cupones';
+$strings['IdUser'] = 'ID Usuario';
