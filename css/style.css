@@ -130,3 +130,9 @@
 .quote_user{
     padding: 5px;
 }
+.row-success{
+    background-color: #ecfffe;
+}
+.row-warning{
+    background-color: #FFF;
+}

@@ -17,7 +17,7 @@
     </thead>
     <tbody>
     {% for item in items %}
-    <tr style="font-size: 13px;">
+    <tr style="font-size: 13px;" class="{{ item.class }}">
         <td class="text-center">{{ item.id }}</td>
         <td class="text-center">{{ item.ruc }}</td>
         <td>{{ item.company_name }}</td>
@@ -32,12 +32,18 @@
         </td>
         <td>
             {% if item.status == 1 %}
-                <div class="alert alert-success quote_user" role="alert">Asignado</div>
+                <div class="alert alert-success quote_user" role="alert">Registrado</div>
             {% else %}
-                <div class="alert alert-warning quote_user" role="alert">Sin Asignar</div>
+                <div class="alert alert-warning quote_user" role="alert">Sin registrar</div>
             {% endif %}
         </td>
-        <td>{{ item.student_subscription_date }}</td>
+        <td>
+            {% if item.student_subscription_date %}
+                {{ item.student_subscription_date }}
+            {% else %}
+            -
+            {% endif %}
+            </td>
         {% if _u.is_admin %}
         <td>{{ item.actions }}</td>
         {% endif %}

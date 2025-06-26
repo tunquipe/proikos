@@ -78,6 +78,7 @@ class PluginProikosContratingCompaniesQuotaSessionDet
                     $row['actions'] = $btnDelete;
                 }
                 $row['status'] = !empty($row['user_id']);
+                $row['class'] = !empty($row['user_id']) ? 'row-success' : 'row-warning';
                 $data[] = $row;
             }
         }
