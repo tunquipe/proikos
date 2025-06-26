@@ -36,7 +36,7 @@ class PluginProikosContratingCompaniesQuotaSessionDet
             $where = "WHERE e.ruc = '$rucCompany'";
         }
 
-        $sql = "SELECT a.id, e.ruc, e.name as company_name, f.name as session_name,
+        $sql = "SELECT a.id, a.quota_session_id, e.ruc, e.name as company_name, f.name as session_name,
                 DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS quota_created_at,
                 CONCAT(h.lastname, ' ', h.firstname) AS quota_created_by,
                 DATE_FORMAT(a.expiration_date, '%d-%m-%Y') AS quota_vigency_date,
@@ -68,7 +68,7 @@ class PluginProikosContratingCompaniesQuotaSessionDet
                             [],
                             ICON_SIZE_SMALL
                         ),
-                        api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/reporting_quota_session_det.php?action=delete&id=' . $row['id'],
+                        api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/reporting_quota_session_det.php?action=delete&quota_id_s='.$row['quota_session_id'].'&id=' . $row['id'],
                         [
                             'onclick' => 'javascript:if(!confirm(' . "'" .
                                 addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))

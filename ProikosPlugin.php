@@ -560,6 +560,46 @@ class ProikosPlugin extends Plugin
         return $item;
     }
 
+    public function updateMinusSessionQuota($id_det)
+    {
+        if (empty($id_det)) {
+            return false;
+        }
+
+        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION);
+
+        $sql = "SELECT user_quota FROM $table WHERE id = $id_det";
+        $result = Database::query($sql);
+        $row = Database::fetch_array($result);
+
+        if ($row) {
+            $newQuota = $row['user_quota'] - 1; // Restar 1 al valor actual
+        } else {
+            return false; // No se encontró el registro
+        }
+
+        if ($newQuota == 0) {
+            $sql = "DELETE FROM $table WHERE id = $id_det";
+            $result = Database::query($sql);
+            if (Database::affected_rows($result) != 1) {
+                return false;
+            }
+        } else {
+            $params = [
+                'user_quota' => $newQuota
+            ];
+
+            $conditions = [
+                'id = ?' => [$id_det]
+            ];
+            return Database::update(
+                $table,
+                $params,
+                $conditions
+            );
+        }
+    }
+
     public function updateDeleteRemoveUserQuota($user_id, $session_id)
     {
         if (empty($user_id)) {

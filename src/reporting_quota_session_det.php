@@ -14,6 +14,8 @@ if (api_is_platform_admin()) {
     switch ($action) {
         case 'delete':
             $idReport = $_GET['id'] ?? null;
+            $idQuotaSession = $_GET['quota_id_s'] ?? null;
+            $plugin->updateMinusSessionQuota($idQuotaSession);
             $res = $plugin->deleteReportLogRow($idReport);
             if ($res) {
                 $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/reporting_quota_session_det.php';
