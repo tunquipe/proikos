@@ -54,7 +54,7 @@ class PluginProikosContratingCompaniesQuotaSessionDet
 
                 $where
 
-                ORDER BY a.id ASC;";
+                ORDER BY a.id DESC;";
         //print_r($sql);
         $result = \Database::query($sql);
         $data = [];
