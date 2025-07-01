@@ -353,7 +353,7 @@ function addNewRow(itemIndex, tableBodyId, itemSessionMode, itemSessionCategoryI
             <input type="number" name="session[` + itemIndex + `][user_quota]" class="form-control text-right">
         </td>
         <td style="text-align: center;">
-            <a href="javascript:void(0);" id="remove_item_` + itemIndex + `">
+            <a href="javascript:void(0);" class="btn btn-default" id="remove_item_` + itemIndex + `">
                 {$deleteIcon}
             </a>
         </td>`;
