@@ -14,9 +14,15 @@ if (!$allow) {
 if($set == 'remove') {
     $idDet = $_GET['idDet'] ?? null;
     $idCab = $_GET['quota_cab_id'] ?? null;
-    $plugin->deleteRowQuotaCompany($idCab, $idDet);
-    header('Location: '.api_get_self() . '?company_id=' . Security::remove_XSS($_GET['company_id']) .
-        '&action=' . $action . '&quota_cab_id=' . Security::remove_XSS($_GET['quota_cab_id']));
+    $result = $plugin->deleteRowQuotaCompany($idCab, $idDet);
+    if($result){
+        header('Location: '.api_get_path(WEB_PLUGIN_PATH).
+            'proikos/src/contrating_companies_quota_cab.php?company_id=' . Security::remove_XSS($_GET['company_id']));
+    } else {
+        header('Location: '.api_get_self() . '?company_id=' . Security::remove_XSS($_GET['company_id']) .
+            '&action=' . $action . '&quota_cab_id=' . Security::remove_XSS($_GET['quota_cab_id']));
+    }
+
 }
 
 

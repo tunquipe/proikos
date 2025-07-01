@@ -2922,9 +2922,25 @@ EOT
 
     public function deleteRowQuotaCompany($cadID, $idQuota)
     {
-        $sql = "DELETE FROM ".Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET)." pcq
-        WHERE pcq.cab_id = '$cadID' AND pcq.id = '$idQuota'; ";
+        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET);
+        $tableTwo = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB);
+        $sql = "SELECT count(*) as total FROM $table pcq WHERE pcq.cab_id = '$cadID';";
         Database::query($sql);
+        $result = Database::query($sql);
+        $total = 0;
+        while ($row = Database::fetch_array($result, 'ASSOC')) {
+            $total = intval($row['total']);
+        }
+
+        $sql = "DELETE FROM ".$table." pcq WHERE pcq.cab_id = '$cadID' AND pcq.id = '$idQuota'; ";
+        Database::query($sql);
+
+        if($total == 1){
+            $sql = "DELETE FROM ".$tableTwo." tcq WHERE tcq.id = '$cadID'; ";
+            Database::query($sql);
+            return true;
+        }
+        return false;
     }
 
     public function getCRUDQuotaDet(FormValidator $form, $defaultCourseDetail = [], $disableActions = false)
