@@ -20,6 +20,9 @@ $courseId = $_GET['course_id'] ?? '%';
 $sessionId = $_GET['session_id'] ?? '%';
 $ruc = $_GET['ruc'] ?? '0';
 
+$page = isset($_GET['page']) ? $_GET['page'] : 1;
+$perPage = isset($_GET['perPage']) ? $_GET['perPage'] : 30;
+
 if (isset($action)) {
     switch ($action) {
         case 'xls':
@@ -234,11 +237,12 @@ $actionsRight = Display::url(
 
 $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $actionsRight], [9, 1, 2]);
 
-$users = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc);
+$data = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, $page, $perPage);
 
 $tpl->assign('actions', Display::toolbarAction('toolbar', [$actionLinks]));
 $tpl->assign('message', $message);
-$tpl->assign('users', $users);
+$tpl->assign('data', $data);
+$tpl->assign('perPage', $perPage);
 $content = $tpl->fetch('proikos/view/proikos_report_data.tpl');
 $tpl->assign('content', $toolbarActions . $content);
 $tpl->display_one_col_template();

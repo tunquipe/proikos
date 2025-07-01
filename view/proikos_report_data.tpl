@@ -38,7 +38,7 @@
         text-align: center;
     }
 </style>
-{% set counter = 0 %}
+
 <table class="table table-hover table-striped table-bordered data_table" id="user_tables">
     <tr class="row_odd">
         <th class="th-header">Nº</th>
@@ -60,11 +60,10 @@
         <th class="th-header">{{ 'Observations'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'CertificatesAttached'|get_plugin_lang('ProikosPlugin') }}</th>
     </tr>
-    {% if users %}
-        {% for user in users %}
-        {% set counter = counter + 1 %}
+    {% if data.users %}
+
         <tr>
-            <td>{{ counter }}</td>
+            <td>{{ user.id }}</td>
             <td>PROK{{ user.id }}</td>
             <td>{{ user.registration_date }}</td>
             <td>{{ user.time_course }}</td>
@@ -127,6 +126,25 @@
         {% endfor %}
     {% endif %}
 </table>
+
+<div class="pagination">
+    <ul class="pagination">
+        {% if data.pagination.currentPage > 1 %}
+        <li><a href="?page={{ data.pagination.currentPage - 1 }}&perPage={{ perPage }}" aria-label="{{ 'Previous'|get_plugin_lang('ProikosPlugin') }}">&laquo; {{ 'Previous'|get_plugin_lang('ProikosPlugin') }}</a></li>
+        {% else %}
+        <li class="disabled"><a href="#" aria-label="Previous">&laquo; {{ 'Previous'|get_plugin_lang('ProikosPlugin') }}</a></li>
+        {% endif %}
+
+        <li class="disabled"><span>{{ 'Page'|get_plugin_lang('ProikosPlugin') }} {{ data.pagination.currentPage }} {{ 'Of'|get_plugin_lang('ProikosPlugin') }} {{ data.pagination.totalPages }}</span></li>
+
+        {% if data.pagination.currentPage < data.pagination.totalPages %}
+        <li><a href="?page={{ data.pagination.currentPage + 1 }}&perPage={{ perPage }}" aria-label="{{ 'Next'|get_plugin_lang('ProikosPlugin') }}">{{ 'Next'|get_plugin_lang('ProikosPlugin') }} &raquo;</a></li>
+        {% else %}
+        <li class="disabled"><a href="#" aria-label="Next">{{ 'Next'|get_plugin_lang('ProikosPlugin') }} &raquo;</a></li>
+        {% endif %}
+    </ul>
+</div>
+
 <div>
     <h5>Nota:</h5>
     <ul>

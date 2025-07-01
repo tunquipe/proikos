@@ -4070,7 +4070,7 @@ EOT;
         }
         return $score;
     }
-    public function getDataReport($dni = null, $courseId = 0, $session_id = 0, $ruc = 0): array
+    public function getDataReport($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10): array
     {
         $tbl_course = Database::get_main_table(TABLE_MAIN_COURSE);
         $tbl_session_course_user = Database::get_main_table(TABLE_MAIN_SESSION_COURSE_USER);
@@ -4079,6 +4079,10 @@ EOT;
         $tbl_session_category = Database::get_main_table(TABLE_MAIN_SESSION_CATEGORY);
         $tbl_proikos_user = Database::get_main_table(self::TABLE_PROIKOS_USERS);
         $table_plugin_easycertificate_send = Database::get_main_table(self::TABLE_PLUGIN_EASY_CERTIFICATE_SEND);
+
+        // Calcular el offset para la paginación
+        $offset = ($page - 1) * $perPage;
+
         $sql = "
             SELECT DISTINCT
                 u.id,
@@ -4150,7 +4154,7 @@ EOT;
             }
         }
 
-        $sql.= " ORDER BY u.id DESC;";
+        $sql.= " ORDER BY u.id DESC LIMIT $offset, $perPage;";
 
         $result = Database::query($sql);
         $users = [];
@@ -4221,7 +4225,53 @@ EOT;
             }
         }
 
-        return $users;
+        // Contar el total de registros sin LIMIT
+        $sqlTotal = "
+        SELECT COUNT(DISTINCT u.id) as total_users
+        FROM $tbl_session_course_user srcu
+        INNER JOIN $tbl_course c ON c.id = srcu.c_id
+        INNER JOIN $tbl_session s ON s.id = srcu.session_id
+        INNER JOIN $tbl_session_category sc ON sc.id = s.session_category_id
+        INNER JOIN $tbl_user u ON u.user_id = srcu.user_id
+        INNER JOIN $tbl_proikos_user ppu ON ppu.user_id = u.id
+        WHERE srcu.status = 0 ";
+
+        // Agregar las mismas condiciones de búsqueda
+        if (!empty($dni)) {
+            $sqlTotal .= " AND u.username = '$dni' ";
+        }
+
+        if ($courseId != 0) {
+            $sqlTotal .= " AND srcu.c_id = $courseId ";
+        }
+
+        if ($session_id != 0) {
+            $sqlTotal .= " AND srcu.session_id = $session_id ";
+        }
+
+        if (api_is_contractor_admin()) {
+            $rucCompany = self::getUserRucCompany();
+            $sqlTotal .= " AND ppu.ruc_company = $rucCompany ";
+        } else {
+            if ($ruc != 0) {
+                $sqlTotal .= " AND ppu.ruc_company = $ruc ";
+            }
+        }
+
+        // Ejecutar la consulta de total de registros
+        $resultTotal = Database::query($sqlTotal);
+        $rowTotal = Database::fetch_assoc($resultTotal);
+        $totalUsers = $rowTotal['total_users'];
+        $totalPages = ceil($totalUsers / $perPage);
+
+        return [
+            'users' => $users,
+            'pagination' => [
+                'currentPage' => $page,
+                'totalPages' => $totalPages,
+                'totalUsers' => $totalUsers,
+            ]
+        ];
 
     }
 }

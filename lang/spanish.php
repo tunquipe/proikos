@@ -163,3 +163,7 @@ $strings['IdUser'] = 'ID Usuario';
 $strings['AssignedQuotas'] = 'Cupos asignados en la sesión';
 $strings['SessionCategories'] = 'Categorías de la Sesión';
 $strings['ConfiguredModalities'] = 'Modalidades Configuradas';
+$strings['Previous'] = 'Anterior';
+$strings['Next'] = 'Siguiente';
+$strings['Page'] = 'Página';
+$strings['Of'] = 'de';
