@@ -135,6 +135,10 @@ class PluginProikosContratingCompanies
                         [],
                         ICON_SIZE_SMALL),
                     api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $row['id']
+                ,
+                    [
+                    'class' => 'btn btn-default'
+                    ]
                 );
 
                 if (api_is_platform_admin() || api_is_drh()) {
@@ -145,6 +149,10 @@ class PluginProikosContratingCompanies
                             [],
                             ICON_SIZE_SMALL),
                         api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php?action=edit&id=' . $row['id']
+                    ,
+                        [
+                            'class' => 'btn btn-default'
+                        ]
                     );
                     $action .= Display::url(
                         Display::return_icon(
@@ -155,6 +163,7 @@ class PluginProikosContratingCompanies
                         ),
                         api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php?action=delete&id=' . $row['id'],
                         [
+                            'class' => 'btn btn-default',
                             'onclick' => 'javascript:if(!confirm(' . "'" .
                                 addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
                                 . "'" . ')) return false;',

@@ -10,7 +10,7 @@
         <th>{{ 'ContratingAdminEmail'|get_plugin_lang('ProikosPlugin') }}</th>
         <th style="width: 90px;">{{ 'CompanyCode'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'Status'|get_plugin_lang('ProikosPlugin') }}</th>
-        <th class="text-center">{{ 'Actions'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th class="text-center" style="width: 180px;">{{ 'Actions'|get_plugin_lang('ProikosPlugin') }}</th>
     </tr>
     </thead>
     <tbody>

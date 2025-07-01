@@ -3138,10 +3138,10 @@ EOT
                     <input type="number" name="course_detail[` + itemIndex + `][quota]" id="quota" class="form-control text-right">
                 </td>
                 <td style="text-align: center;">
-                    <a href="javascript:void(0);" id="remove_item_` + itemIndex + `">
+                    <a href="javascript:void(0);" class="btn btn-default" id="remove_item_` + itemIndex + `">
                         {$deleteIcon}
                     </a>
-                    <a href="{$urlCurrent}&set=remove&idDet=` + id + `" id="delete_item_` + itemIndex + `">
+                    <a href="{$urlCurrent}&set=remove&idDet=` + id + `" class="btn btn-default" id="delete_item_` + itemIndex + `">
                         {$deleteIcon}
                     </a>
                 </td>`;
