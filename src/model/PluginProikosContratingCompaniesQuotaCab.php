@@ -180,7 +180,10 @@ class PluginProikosContratingCompaniesQuotaCab
                             [],
                             ICON_SIZE_SMALL),
                         api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_assign_quota_to_session.php?company_id=' . $companyId . '&action=assign_quota_to_session&quota_cab_id=' . $row['id']
-                    );
+                    ,
+                    [
+                        'class' => 'btn btn-default',
+                    ]);
 
                     // edit action
                     $action .= Display::url(
@@ -190,6 +193,9 @@ class PluginProikosContratingCompaniesQuotaCab
                             [],
                             ICON_SIZE_SMALL),
                         api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_det.php?company_id=' . $companyId . '&action=edit&quota_cab_id=' . $row['id']
+                    ,[
+                            'class' => 'btn btn-default',
+                        ]
                     );
 
                     if (api_is_platform_admin() || api_is_drh()) {
@@ -203,6 +209,7 @@ class PluginProikosContratingCompaniesQuotaCab
                             ),
                             api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id=' . $companyId . '&action=delete&quota_cab_id=' . $row['id'],
                             [
+                                'class' => 'btn btn-default',
                                 'onclick' => 'javascript:if(!confirm(' . "'" .
                                     addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
                                     . "'" . ')) return false;',

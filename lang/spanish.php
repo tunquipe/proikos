@@ -161,3 +161,5 @@ $strings['RegistrationID'] = 'ID de registro';
 $strings['CouponRegistrationReport'] = 'Reporte de registro de cupones';
 $strings['IdUser'] = 'ID Usuario';
 $strings['AssignedQuotas'] = 'Cupos asignados en la sesión';
+$strings['SessionCategories'] = 'Categorías de la Sesión';
+$strings['ConfiguredModalities'] = 'Modalidades Configuradas';

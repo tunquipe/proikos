@@ -3,15 +3,15 @@
     <thead>
     <tr>
         <th>ID</th>
-        <th>{{ 'Modalidades Configuradas'|get_plugin_lang('ProikosPlugin') }}</th>
-        <th>{{ 'Categorías de la Sesión'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th>{{ 'ConfiguredModalities'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th>{{ 'SessionCategories'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="text-center">{{ 'ContratingCompanyUserQuota'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="text-center">{{ 'ContratingCompanyUserQuotaTotalPrice'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="text-center">{{ 'ContratingCompanyUserQuotaDispon'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'ContratingCompanyValidityDate'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'ContratingCompanyCreationDate'|get_plugin_lang('ProikosPlugin') }}</th>
         <th>{{ 'ContratingCompanyCreatedByUser'|get_plugin_lang('ProikosPlugin') }}</th>
-        <th class="text-center">{{ 'Actions'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th class="text-center" style="width: 180px;">{{ 'Actions'|get_plugin_lang('ProikosPlugin') }}</th>
     </tr>
     </thead>
     <tbody>
