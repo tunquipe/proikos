@@ -61,6 +61,7 @@
         <th class="th-header">{{ 'CertificatesAttached'|get_plugin_lang('ProikosPlugin') }}</th>
     </tr>
     {% if data.users %}
+        {% for user in data.users %}
 
         <tr>
             <td>{{ user.id }}</td>
