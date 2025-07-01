@@ -4150,7 +4150,7 @@ EOT;
             }
         }
 
-
+        $sql.= " ORDER BY u.id DESC;";
 
         $result = Database::query($sql);
         $users = [];
