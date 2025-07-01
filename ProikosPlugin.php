@@ -2920,6 +2920,13 @@ EOT
         return rand(10000, 99999);
     }
 
+    public function deleteRowQuotaCompany($cadID, $idQuota)
+    {
+        $sql = "DELETE FROM ".Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET)." pcq
+        WHERE pcq.cab_id = '$cadID' AND pcq.id = '$idQuota'; ";
+        Database::query($sql);
+    }
+
     public function getCRUDQuotaDet(FormValidator $form, $defaultCourseDetail = [], $disableActions = false)
     {
         $disableActions = $disableActions ? 1 : 0;
@@ -2991,6 +2998,9 @@ EOT
                 $defaultIndex += 1;
             }
         }
+        $actionForm = $form->getAttributes();
+        $urlPlatform = substr(api_get_path('WEB_PATH'),0,-1);
+        $urlCurrent = $urlPlatform.$actionForm['action'];
 
         $defaultCourseDetail = json_encode($defaultCourseDetail);
 
@@ -3115,6 +3125,9 @@ EOT
                     <a href="javascript:void(0);" id="remove_item_` + itemIndex + `">
                         {$deleteIcon}
                     </a>
+                    <a href="{$urlCurrent}&set=remove&idDet=` + id + `" id="delete_item_` + itemIndex + `">
+                        {$deleteIcon}
+                    </a>
                 </td>`;
             tableBody.appendChild(newRow);
 
@@ -3142,6 +3155,7 @@ EOT
             }
 
             const deleteButton = newRow.querySelector('a[id="remove_item_' + itemIndex + '"]');
+            const removeButton = newRow.querySelector('a[id="delete_item_' + itemIndex + '"]');
             deleteButton.addEventListener('click', function() {
                 tableBody.removeChild(newRow);
                 updateTotalQuota();
@@ -3178,6 +3192,8 @@ EOT
                 $(sessionCategorySelectElement).selectpicker('refresh');
                 $(sessionModeSelectElement).prop("disabled", true);
                 $(sessionModeSelectElement).selectpicker('refresh');
+            } else {
+                removeButton.style.display = 'none';
             }
         }
 

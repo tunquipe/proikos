@@ -3,12 +3,22 @@
 require_once __DIR__ . '/../config.php';
 api_block_anonymous_users();
 $action = $_GET['action'] ?? null;
+$set = $_GET['set'] ?? null;
 $plugin = ProikosPlugin::create();
 $allow = api_is_platform_admin() || api_is_drh() || api_is_contractor_admin();
 
 if (!$allow) {
     api_not_allowed(true);
 }
+
+if($set == 'remove') {
+    $idDet = $_GET['idDet'] ?? null;
+    $idCab = $_GET['quota_cab_id'] ?? null;
+    $plugin->deleteRowQuotaCompany($idCab, $idDet);
+    header('Location: '.api_get_self() . '?company_id=' . Security::remove_XSS($_GET['company_id']) .
+        '&action=' . $action . '&quota_cab_id=' . Security::remove_XSS($_GET['quota_cab_id']));
+}
+
 
 $tool_name = 'Gestionar configuración de cupos';
 $tpl = new Template($tool_name);
