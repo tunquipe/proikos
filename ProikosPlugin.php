@@ -3017,7 +3017,11 @@ EOT
         $actionForm = $form->getAttributes();
         $urlPlatform = substr(api_get_path('WEB_PATH'),0,-1);
         $urlCurrent = $urlPlatform.$actionForm['action'];
-
+        $isContractor = api_is_contractor_admin();
+        $cssDelete = 'display: inline-block;';
+        if($isContractor){
+            $cssDelete = 'display: none;';
+        }
         $defaultCourseDetail = json_encode($defaultCourseDetail);
 
         $form->addHtml(
@@ -3141,7 +3145,7 @@ EOT
                     <a href="javascript:void(0);" class="btn btn-default" id="remove_item_` + itemIndex + `">
                         {$deleteIcon}
                     </a>
-                    <a href="{$urlCurrent}&set=remove&idDet=` + id + `" class="btn btn-default" id="delete_item_` + itemIndex + `">
+                    <a href="{$urlCurrent}&set=remove&idDet=` + id + `" style="{$cssDelete}" class="btn btn-default" id="delete_item_` + itemIndex + `">
                         {$deleteIcon}
                     </a>
                 </td>`;
@@ -4175,9 +4179,10 @@ EOT;
                 $registrationDate = api_format_date($row['registration_date'], DATE_FORMAT_LONG_NO_DAY);
                 $row['registration_date'] = $registrationDate;
                 $userLinks = $cats[0]->get_links($row['id'], false, $row['code'], $row['session_id']);
-                $quizCheck = ProikosPlugin::checkUserQuizCompletion($row['id'], $cats[0]->get_id());
+                var_dump($userLinks);
+                //$quizCheck = ProikosPlugin::checkUserQuizCompletion($row['id'], $cats[0]->get_id());
                 $userScore = $this->getResultExerciseStudent($row['id'], $row['c_id'], $row['session_id']);
-                $scoreCertificate = $this->getScoreCertificate($row['id'], $row['code'], $row['session_id']);
+                //$scoreCertificate = $this->getScoreCertificate($row['id'], $row['code'], $row['session_id']);
                 //$scoreResult = $this->getScoreCertificate($row['id'], $row['code'], $row['session_id'],true);
 
                 $row['exams'] = $userScore;
