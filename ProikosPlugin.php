@@ -4178,8 +4178,12 @@ EOT;
                 $row['registration_date_normal'] = $date;
                 $registrationDate = api_format_date($row['registration_date'], DATE_FORMAT_LONG_NO_DAY);
                 $row['registration_date'] = $registrationDate;
-                $userLinks = $cats[0]->get_links($row['id'], false, $row['code'], $row['session_id']);
-                var_dump($userLinks);
+                if (!empty($cats)) {
+                    // Solo si $cats tiene elementos, procedemos a obtener los enlaces
+                    $userLinks = $cats[0]->get_links($row['id'], false, $row['code'], $row['session_id']);
+                } else {
+                    $userLinks = null; // Si no hay categorías, asignamos null
+                }
                 //$quizCheck = ProikosPlugin::checkUserQuizCompletion($row['id'], $cats[0]->get_id());
                 $userScore = $this->getResultExerciseStudent($row['id'], $row['c_id'], $row['session_id']);
                 //$scoreCertificate = $this->getScoreCertificate($row['id'], $row['code'], $row['session_id']);
