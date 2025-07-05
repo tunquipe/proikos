@@ -335,12 +335,11 @@ function addNewRow(itemIndex, tableBodyId, itemSessionMode, itemSessionCategoryI
     const sessionsSelect = document.createElement('select');
     sessionsSelect.name = 'session[' + itemIndex + '][session_id]';
     sessionsSelect.className = 'form-control';
-
     sessionsSelect.innerHTML = '<option value="">{$plugin->get_lang('SelectSession')}</option>';
     sessionsByCategory.forEach(session => {
         const option = document.createElement('option');
         option.value = session.id;
-        option.text = session.name + (session.time_in_session > 0 ? (' - ' + session.time_in_session + ' Horas') : '');
+        option.text = session.name + (session.time_in_session > 0 ? (' - ' + session.time_in_session + ' Horas - ('+session.nbr_users+' / '+session.maximum_users+') Estudiantes') : '');
         sessionsSelect.appendChild(option);
     });
 
