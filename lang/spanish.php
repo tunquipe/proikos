@@ -167,3 +167,5 @@ $strings['Previous'] = 'Anterior';
 $strings['Next'] = 'Siguiente';
 $strings['Page'] = 'Página';
 $strings['Of'] = 'de';
+$strings['AsynchronousCourses'] = 'Cursos Asincrónicos';
+$strings['SynchronousCourses'] = 'Cursos Sincrónicos';
