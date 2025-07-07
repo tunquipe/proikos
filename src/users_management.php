@@ -29,6 +29,7 @@ switch ($action){
         $form->addText('lastname', get_lang('LastName'), false, ['disabled' => true]);
         $form->addText('firstname', get_lang('FirstName'), false, ['disabled' => true]);
         $form->addText('email', get_lang('Email'), false, ['disabled' => true]);
+        $form->addText('username', get_lang('Username'), false, ['disabled' => true]);
         $form->addText('phone', $plugin->get_lang('Phone'), false);
         $typesDocuments = [
             '0' => 'Seleccione una opción',

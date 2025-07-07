@@ -354,6 +354,7 @@ class ProikosPlugin extends Plugin
                     'lastname' => $row['u_lastname'],
                     'firstname' => $row['u_firstname'],
                     'email' => $row['email'],
+                    'username' => $row['username'],
                     'phone' => $row['phone'],
                     'type_document' => empty($row['type_document']) ? '1' : $row['type_document'],
                     'number_document' => empty($row['number_document']) ? $row['username'] : $row['number_document'],
