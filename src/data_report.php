@@ -27,7 +27,7 @@ if (isset($action)) {
     switch ($action) {
         case 'xls':
             $fileName = 'report_' . api_get_local_time();
-            $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc);
+            $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc,1,10, true);
             $headers = [
                 'Nº',
                 'Codigo',
@@ -50,7 +50,7 @@ if (isset($action)) {
             ];
             $cleanData = [];
 
-            foreach ($rawData as $row) {
+            foreach ($rawData['users'] as $row) {
                 $cleanData[] = [
                     'id' => $row['id'],
                     'code_user' => 'PROK'.$row['id'],
@@ -63,9 +63,9 @@ if (isset($action)) {
                     'ruc_company' => $row['ruc_company'],
                     'name_company' => $row['name_company'],
                     'area' => $row['area'],
-                    'examen_de_entrada' => $row['exams']['examen_de_entrada'],
-                    'taller' => $row['exams']['taller'],
-                    'examen_de_salida' => $row['exams']['examen_de_salida'],
+                    'examen_de_entrada' => isset($row['exams']['examen_de_entrada']) ? $row['exams']['examen_de_entrada'] : 0,
+                    'taller' => isset($row['exams']['taller']) ? $row['exams']['taller'] : 0,
+                    'examen_de_salida' => isset($row['exams']['examen_de_salida']) ? $row['exams']['examen_de_salida'] : 0,
                     'score' => $row['score'],
                     'status' => strip_tags($row['status']),
                     'certificate_status' => $row['certificate_status'],

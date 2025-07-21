@@ -4075,7 +4075,7 @@ EOT;
         }
         return $score;
     }
-    public function getDataReport($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10): array
+    public function getDataReport($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false): array
     {
         $tbl_course = Database::get_main_table(TABLE_MAIN_COURSE);
         $tbl_session_course_user = Database::get_main_table(TABLE_MAIN_SESSION_COURSE_USER);
@@ -4158,8 +4158,11 @@ EOT;
                 $sql.= " AND ppu.ruc_company = $ruc ";
             }
         }
-
-        $sql.= " ORDER BY u.id DESC LIMIT $offset, $perPage;";
+        if (!$isExport) {
+            $sql.= " ORDER BY u.id DESC LIMIT $offset, $perPage;";
+        } else {
+            $sql.= " ORDER BY u.id DESC; ";
+        }
 
         $result = Database::query($sql);
         $users = [];
@@ -4234,7 +4237,7 @@ EOT;
                 $users[] = $row;
             }
         }
-
+        ///var_dump($users); exit;
         // Contar el total de registros sin LIMIT
         $sqlTotal = "
         SELECT COUNT(DISTINCT u.id) as total_users
