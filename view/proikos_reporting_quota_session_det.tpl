@@ -34,9 +34,9 @@
         </td>
         <td>
             {% if item.status == 1 %}
-                <div class="alert alert-success quote_user" role="alert">Registrado</div>
+                <div class="alert alert-success quote_user" role="alert">Inscrito</div>
             {% else %}
-                <div class="alert alert-warning quote_user" role="alert">Sin registrar</div>
+                <div class="alert alert-warning quote_user" role="alert">Sin inscripción</div>
             {% endif %}
         </td>
         <td>

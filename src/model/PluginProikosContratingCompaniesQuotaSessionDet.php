@@ -55,7 +55,7 @@ class PluginProikosContratingCompaniesQuotaSessionDet
                 $where
 
                 ORDER BY a.id DESC;";
-        //print_r($sql);
+
         $result = \Database::query($sql);
         $data = [];
         if (Database::num_rows($result) > 0) {
