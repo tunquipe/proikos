@@ -90,10 +90,6 @@ $actionLinks .= Display::url(
     api_get_path(WEB_PLUGIN_PATH) . 'proikos/start.php'
 );
 
-
-
-
-
 $courses = [];
 $courses['%'] = $plugin->get_lang('SelectCourse');
 $coursesList = CourseManager::get_courses_list(

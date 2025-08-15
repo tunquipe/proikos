@@ -397,5 +397,28 @@ if ($action) {
             ];
 
             break;
+        case 'get_session_exercises':
+            $sessionId = isset($_POST['session_id']) ? (int)$_POST['session_id'] : 0;
+            $response = ['success' => false, 'exercises' => []];
+
+            if ($sessionId > 0) {
+                try {
+                    $exercises = $plugin->getSessionExercises($sessionId);
+                    $response = [
+                        'success' => true,
+                        'exercises' => $exercises
+                    ];
+                } catch (Exception $e) {
+                    error_log('Error getting session exercises: ' . $e->getMessage());
+                    $response = [
+                        'success' => false,
+                        'error' => 'Error interno del servidor'
+                    ];
+                }
+            }
+
+            header('Content-Type: application/json');
+            echo json_encode($response);
+            break;
     }
 }

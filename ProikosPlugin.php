@@ -4287,4 +4287,109 @@ EOT;
         ];
 
     }
+
+    public function getSessionExercises($sessionId, $courseId = null) {
+        $exercises = [];
+
+        // Obtener cursos de la sesión
+        $courses = self::getSessionCourses($sessionId);
+
+        foreach ($courses as $course) {
+            // Si se especifica un curso específico, filtrar
+            if ($courseId && $course['id'] != $courseId) {
+                continue;
+            }
+
+            // Obtener ejercicios del curso
+            $courseExercises = self::getCourseExercises($course['id'], $sessionId);
+
+            foreach ($courseExercises as $exercise) {
+                $exercises[] = [
+                    'id' => $exercise['id'],
+                    'title' => $exercise['title'],
+                    'course_id' => $course['id'],
+                    'course_title' => $course['title'],
+                    'course_code' => $course['code'],
+                    'description' => $exercise['description'],
+                    'active' => $exercise['active']
+                ];
+            }
+        }
+
+        return $exercises;
+    }
+    function getCourseExercises($courseId, $sessionId = null) {
+        $courseId = (int)$courseId;
+        $sessionId = $sessionId ? (int)$sessionId : null;
+
+        // Obtener información del curso
+        $courseInfo = api_get_course_info_by_id($courseId);
+        if (!$courseInfo) {
+            return [];
+        }
+
+        $courseTablePrefix = Database::get_course_table(TABLE_QUIZ_TEST);
+
+        $sql = "SELECT
+                q.iid,
+                q.title,
+                q.description,
+                q.active,
+                q.start_time,
+                q.end_time
+            FROM {$courseTablePrefix} q
+            WHERE q.c_id = $courseId
+            AND q.active IN (0, 1)";
+
+        // Si hay sesión, filtrar por ejercicios disponibles en la sesión
+        if ($sessionId) {
+            $sql .= " AND (q.session_id = $sessionId OR q.session_id IS NULL OR q.session_id = 0)";
+        }
+
+        $sql .= " ORDER BY q.title";
+
+        $result = Database::query($sql);
+        $exercises = [];
+
+        while ($row = Database::fetch_assoc($result)) {
+            $exercises[] = [
+                'id' => $row['iid'],
+                'title' => $row['title'],
+                'description' => $row['description'],
+                'active' => $row['active'],
+                'start_time' => $row['start_time'],
+                'end_time' => $row['end_time']
+            ];
+        }
+
+        return $exercises;
+    }
+    function getSessionCourses($sessionId) {
+        $sessionId = (int)$sessionId;
+
+        $sql = "SELECT
+                c.id,
+                c.title,
+                c.code,
+                c.directory
+            FROM " . Database::get_main_table(TABLE_MAIN_COURSE) . " c
+            INNER JOIN " . Database::get_main_table(TABLE_MAIN_SESSION_COURSE) . " sc
+                ON c.id = sc.c_id
+            WHERE sc.session_id = $sessionId
+            ORDER BY c.title";
+
+        $result = Database::query($sql);
+        $courses = [];
+
+        while ($row = Database::fetch_assoc($result)) {
+            $courses[] = [
+                'id' => $row['id'],
+                'title' => $row['title'],
+                'code' => $row['code'],
+                'directory' => $row['directory']
+            ];
+        }
+
+        return $courses;
+    }
 }
