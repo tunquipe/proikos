@@ -163,9 +163,12 @@ EOT
 $actionsLeft = $form->returnForm();
 $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft], [9, 1, 2]);
 
-switch ($action){
 
-}
+//
+
+//
+
+
 $actionLinks .= Display::url(
     Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
     api_get_path(WEB_PLUGIN_PATH) . 'proikos/start.php'
