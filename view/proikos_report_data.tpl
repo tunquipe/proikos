@@ -59,8 +59,8 @@
     <tr class="row_odd">
         <th class="th-header">Nº</th>
         <th class="th-header">Codigo</th>
-        <th class="th-header">Fecha</th>
-        <th class="th-header">Nº Horas</th>
+        <!--<th class="th-header">Fecha</th>
+        <th class="th-header">Nº Horas</th> -->
         <th class="th-header">{{ 'Course'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Session'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'LastNamesAndFirstNames'|get_plugin_lang('ProikosPlugin') }}</th>
@@ -82,8 +82,8 @@
         <tr>
             <td>{{ user.id }}</td>
             <td>PROK{{ user.id }}</td>
-            <td>{{ user.registration_date }}</td>
-            <td>{{ user.time_course }}</td>
+            <!--<td>{{ user.registration_date }}</td>
+            <td>{{ user.time_course }}</td> -->
             <td>{{ user.session_category_name }}</td>
             <td>{{ user.session_name }}</td>
             <td>{{ user.student }}</td>
@@ -119,11 +119,7 @@
 
             <td>{{ user.score }}</td>
             <td style="text-align: center">
-                {% if user.score >= 70 %}
-                    <span class="label label-success">Aprobado (*)</span>
-                {% else %}
-                    {{ user.status }}
-                {% endif %}
+                {{ user.status }}
             </td>
 
             <td style="text-align: center">

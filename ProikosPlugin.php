@@ -4210,15 +4210,26 @@ EOT;
                         ($examen_de_salida * $ponderacion_salida) +
                         ($taller * $ponderacion_taller)) / 20 * 100;
 
-                if ($puntaje_total >= 70) {
-                    $approved = true;
-                } else {
+                // Verificar el estado basado en los puntajes
+                if ($puntaje_total == 0) {
+                    // Si el puntaje total es 0, significa que no ha iniciado ningún examen
                     $approved = false;
+                    $status = '<span class="label label-warning">' . $this->get_lang('Registered') . '</span>';
+                } else if ($examen_de_entrada == 0 || $examen_de_salida == 0 || $taller == 0) {
+                    // Si alguno de los exámenes es 0 o nulo, pero el puntaje total no es 0
+                    $approved = false;
+                    $status = '<span class="label label-danger">' . $this->get_lang('Failed') . '</span>';
+                } else if ($puntaje_total >= 70) {
+                    // Si todos los exámenes tienen valor y el puntaje es >= 70
+                    $approved = true;
+                    $status = '<span class="label label-success">' . $this->get_lang('Approved') . '</span>';
+                } else {
+                    // Si todos los exámenes tienen valor pero el puntaje es < 70
+                    $approved = false;
+                    $status = '<span class="label label-danger">' . $this->get_lang('Failed') . '</span>';
                 }
 
-                $status = true === $approved
-                    ? '<span class="label label-success">' . $this->get_lang('Approved') . '</span>'
-                    : '<span class="label label-danger">' . $this->get_lang('Failed') . '</span>';
+                $row['status'] = $status;
                 $row['status'] = $status;
                 $row['score'] = $puntaje_total;
                 $row['links'] = empty($userLinks);
