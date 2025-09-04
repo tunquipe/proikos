@@ -50,7 +50,7 @@
             <div class="top-content">
                 <h3>SMOWL panel</h3>
                 <p>Registrate o accede en Smowl para activar el seguimiento y poder acceder a tu evaluación</p>
-                <a class="btn btn-primary" href="url_smowl" target="_blank">
+                <a class="btn btn-primary" href="{{ url_smowl }}" target="_blank">
                     Accede a tu examen mediante SMOWL
                 </a>
             </div>
