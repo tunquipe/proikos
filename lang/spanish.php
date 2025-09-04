@@ -170,3 +170,4 @@ $strings['Of'] = 'de';
 $strings['AsynchronousCourses'] = 'Cursos Asincrónicos';
 $strings['SynchronousCourses'] = 'Cursos Sincrónicos';
 $strings['Registered'] = 'Inscrito';
+$strings['enable_link_smowl_exercise'] = 'Ocultar boton iniciar ejercicio por monitor Smowl';
