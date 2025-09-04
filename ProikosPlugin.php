@@ -3632,6 +3632,34 @@ HTML;
         return $this->smowlFormLink($registrationEndpoint, $jwtParams, $getParams);
     }
 
+    public function smowlRegistrationPanel(
+        $userId, $userName, $userEmail, $lang, $activityUrl, $sessionId, $exerciseId
+    ): string
+    {
+        $registrationEndpoint = 'https://swl.smowltech.net/register/';
+        $jwtParams = [
+            'userId' => $userId,
+            'activityId' => $exerciseId,
+            'activityContainerId' => $sessionId
+        ];
+        $getParams = [
+            'userName' => $userName,
+            'userEmail' => $userEmail,
+            'lang' => $lang,
+            'type' => 0,
+            'activityUrl' => $activityUrl
+        ];
+
+        $urlSmowlLink = $this->smowlFormLink($registrationEndpoint, $jwtParams, $getParams);
+
+        $tpl = new Template('smowl', true, true, false, false, true, false);
+        $tpl->assign('src_plugin', api_get_path(WEB_PLUGIN_PATH) . 'proikos/');
+        $tpl->assign('url_smowl', $urlSmowlLink);
+        $content = $tpl->fetch('proikos/view/proikos_register_smowl.tpl');
+
+        return $content;
+    }
+
     public function smowlMonitoringEndpoint(
         $userId, $userName, $userEmail, $lang, $sessionId, $exerciseId
     ): string
