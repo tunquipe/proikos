@@ -77,7 +77,8 @@ class ProikosPlugin extends Plugin
             [
                 'tool_enable' => 'boolean',
                 'enable_limit_user_quotas' => 'boolean',
-                'enable_link_smowl_exercise' => 'boolean'
+                'enable_link_smowl_exercise' => 'boolean',
+                'highest_score_exercise'  => 'boolean',
             ]
         );
         $this->isAdminPlugin = true;
@@ -1556,8 +1557,17 @@ class ProikosPlugin extends Plugin
         $result = Database::query($sql);
         $score = 0;
         if (Database::num_rows($result) > 0) {
-            while ($row = Database::fetch_array($result)) {
-                $score = doubleval($row['exe_result']);
+            while ($row = Database::fetch_assoc($result)) {
+                $scoreMax = ($this->get('highest_score_exercise') == 'true');
+                if($row['status'] == 'incomplete'){
+                    continue;
+                }
+                if ($scoreMax) {
+                        $score = max($score, doubleval($row['exe_result']));
+                } else {
+                    $score = doubleval($row['exe_result']);
+                }
+
             }
         }
         return $score;
