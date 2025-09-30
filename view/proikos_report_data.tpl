@@ -80,8 +80,8 @@
         {% for user in data.users %}
 
         <tr>
-            <td>{{ user.id }}</td>
-            <td>PROK{{ user.id }}</td>
+            <td>{{ user.registration_code }}</td>
+            <td>PROK{{ user.registration_code }}</td>
             <!--<td>{{ user.registration_date }}</td>
             <td>{{ user.time_course }}</td> -->
             <td>{{ user.session_category_name }}</td>
@@ -92,27 +92,27 @@
             <td>{{ user.name_company }}</td>
             <td>{{ user.area }}</td>
 
-            <td class="text-center {% if user.exams.examen_de_entrada is not defined or user.exams.examen_de_entrada == 0 %}default-text{% elseif user.exams.examen_de_entrada <= 10 %}red-text{% elseif user.exams.examen_de_entrada >= 10 %}blue-text{% endif %}">
-                {% if user.exams.examen_de_entrada == 0 or user.exams.examen_de_entrada is empty %}
+            <td class="text-center {% if user.entrance_exam is not defined or user.entrance_exam == 0 %}default-text{% elseif user.entrance_exam <= 10 %}red-text{% elseif user.entrance_exam >= 10 %}blue-text{% endif %}">
+                {% if user.entrance_exam == 0 or user.entrance_exam is empty %}
                 -
                 {% else %}
-                {{ user.exams.examen_de_entrada }}
+                {{ user.entrance_exam }}
                 {% endif %}
             </td>
 
-            <td class="text-center {% if user.exams.taller is not defined or user.exams.taller == 0 %}default-text{% elseif user.exams.taller <= 10 %}red-text{% elseif user.exams.taller >= 10 %}blue-text{% endif %}">
-                {% if user.exams.taller == 0 or user.exams.taller is empty %}
+            <td class="text-center {% if user.workshop is not defined or user.workshop == 0 %}default-text{% elseif user.workshop <= 10 %}red-text{% elseif user.workshop >= 10 %}blue-text{% endif %}">
+                {% if user.workshop == 0 or user.workshop is empty %}
                 -
                 {% else %}
-                {{ user.exams.taller }}
+                {{ user.workshop }}
                 {% endif %}
             </td>
 
-            <td class="text-center {% if user.exams.examen_de_salida is not defined or user.exams.examen_de_salida == 0 %}default-text{% elseif user.exams.examen_de_salida <= 10 %}red-text{% elseif user.exams.examen_de_salida >= 10 %}blue-text{% endif %}">
-                {% if user.exams.examen_de_salida == 0 or user.exams.examen_de_salida is empty %}
+            <td class="text-center {% if user.exit_exam is not defined or user.exit_exam == 0 %}default-text{% elseif user.exit_exam <= 10 %}red-text{% elseif user.exit_exam >= 10 %}blue-text{% endif %}">
+                {% if user.exit_exam == 0 or user.exit_exam is empty %}
                 -
                 {% else %}
-                {{ user.exams.examen_de_salida }}
+                {{ user.exit_exam }}
                 {% endif %}
             </td>
 

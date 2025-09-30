@@ -25,6 +25,15 @@ $perPage = isset($_GET['perPage']) ? $_GET['perPage'] : 30;
 
 if (isset($action)) {
     switch ($action) {
+        case 'cron':
+            $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc,1,10, true);
+            $count = 0;
+            foreach ($rawData['users'] as $row) {
+                $count++;
+                $plugin->registerData($row);
+            }
+            echo 'se registraron ' . $count . ' registros';
+            break;
         case 'xls':
             $fileName = 'report_' . api_get_local_time();
             $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc,1,10, true);
@@ -233,7 +242,7 @@ $actionsRight = Display::url(
 
 $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $actionsRight], [9, 1, 2]);
 
-$data = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, $page, $perPage);
+$data = $plugin->getDataUsersReportProikos($dni, $courseId, $sessionId, $ruc, $page, $perPage);
 
 $tpl->assign('actions', Display::toolbarAction('toolbar', [$actionLinks]));
 $tpl->assign('message', $message);

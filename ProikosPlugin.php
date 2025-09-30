@@ -15,6 +15,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
 class ProikosPlugin extends Plugin
 {
+    const TABLE_PROIKOS_DATA = 'plugin_proikos_data';
     const TABLE_PROIKOS_USERS = 'plugin_proikos_users';
     const TABLE_PROIKOS_ENTITY = 'plugin_proikos_entity';
     const TABLE_PROIKOS_SECTOR = 'plugin_proikos_sector';
@@ -4099,6 +4100,52 @@ EOT;
         Database::query($sql);
     }
 
+    public function registerData($values = [])
+    {
+        if(empty($values)){
+            return 0;
+        }
+
+        $table = Database::get_main_table(self::TABLE_PROIKOS_DATA);
+        $params = [
+            'username' => $values['username'],
+            'registration_code' => $values['id'],
+            'course_id' => $values['c_id'],
+            'session_id' => $values['session_id'],
+            'course_code' => $values['code'],
+            'session_name' => $values['session_name'],
+            'session_category_id' => $values['session_category_id'],
+            'session_category_name' => $values['session_category_name'],
+            'email' => $values['email'],
+            'last_name' => $values['lastname'],
+            'first_name' => $values['firstname'],
+            'dni' => $values['DNI'],
+            'company_ruc' => $values['ruc_company'] ?? '-',
+            'company_name' => $values['name_company'],
+            'stakeholders' => $values['stakeholders'],
+            'area' => $values['area'],
+            'metadata_exists' => $values['metadata_exists'],
+            'entrance_exam' => $values['exams']['examen_de_entrada'] ?? 0,
+            'workshop' => $values['exams']['taller'] ?? 0,
+            'exit_exam' => $values['exams']['examen_de_salida'] ?? 0,
+            'score' => $values['score'],
+            'certificate_status' => $values['certificate_status'],
+            'status' => strip_tags($values['status']),
+            'status_id' => $values['status_id'],
+            'time_course' => $values['time_course'],
+            'observations' => $values['observations'] ?? '-',
+            //'certificate_issue_date' => $values['certificate_issue_date'],
+            //'certificate_expiration_date' => $values['certificate_expiration_date'],
+        ];
+        $id = Database::insert($table, $params);
+
+        if ($id > 0) {
+            return $id;
+        }
+
+        return 0;
+    }
+
     public function getCertificateScore($userId)
     {
         $tbl_certificate = Database::get_main_table(TABLE_MAIN_GRADEBOOK_CERTIFICATE);
@@ -4114,6 +4161,113 @@ EOT;
         }
         return $score;
     }
+
+    public function getDataUsersReportProikos($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false): array
+    {
+        $table_data = Database::get_main_table(self::TABLE_PROIKOS_DATA);
+        // Calcular el offset para la paginación
+        $offset = ($page - 1) * $perPage;
+
+        $sql = "SELECT DISTINCT
+                ppd.id,
+                ppd.registration_code,
+                ppd.username,
+                ppd.email,
+                ppd.DNI,
+                CONCAT(ppd.first_name, ' ', ppd.last_name) as student,
+                ppd.session_category_id,
+                ppd.session_category_name,
+                ppd.session_id,
+                ppd.course_id as c_id,
+                ppd.course_code as code,
+                ppd.session_name,
+                ppd.company_ruc as ruc_company,
+                ppd.company_name as name_company,
+                ppd.area,
+                ppd.entrance_exam,
+                ppd.workshop,
+                ppd.exit_exam,
+                ppd.score,
+                ppd.status,
+                ppd.certificate_status
+                FROM $table_data ppd ";
+
+        $sql.= " WHERE ppd.status = 0 ";
+
+        if(!empty($dni)){
+            $sql.= " AND ppd.username = $dni ";
+        }
+
+        if($courseId != 0){
+            $sql.= " AND ppd.course_id = $courseId ";
+        }
+
+        if($session_id != 0){
+            $sql.= " AND ppd.session_id = $session_id ";
+        }
+        if (api_is_contractor_admin()) {
+            $rucCompany = self::getUserRucCompany();
+            $sql.= " AND ppd.company_ruc = $rucCompany ";
+        } else {
+            if($ruc != 0){
+                $sql.= " AND ppd.company_ruc = $ruc ";
+            }
+        }
+        if (!$isExport) {
+            $sql.= " ORDER BY ppd.id DESC LIMIT $offset, $perPage;";
+        } else {
+            $sql.= " ORDER BY ppd.id DESC; ";
+        }
+
+        $result = Database::query($sql);
+        $users = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_assoc($result)) {
+                $users[] = $row;
+            }
+        }
+
+        $sqlTotal = "SELECT COUNT(DISTINCT ppd.id) as total_users FROM $table_data ppd ";
+        $sqlTotal.= " WHERE ppd.status = 0 ";
+
+        if (!empty($dni)) {
+            $sqlTotal .= " AND ppd.username = '$dni' ";
+        }
+
+        if ($courseId != 0) {
+            $sqlTotal .= " AND ppd.course_id = $courseId ";
+        }
+
+        if ($session_id != 0) {
+            $sqlTotal .= " AND ppd.session_id = $session_id ";
+        }
+
+        if (api_is_contractor_admin()) {
+            $rucCompany = self::getUserRucCompany();
+            $sqlTotal .= " AND ppd.company_ruc = $rucCompany ";
+        } else {
+            if ($ruc != 0) {
+                $sqlTotal .= " ppd ppu.company_ruc = $ruc ";
+            }
+        }
+
+        // Ejecutar la consulta de total de registros
+        $resultTotal = Database::query($sqlTotal);
+        $rowTotal = Database::fetch_assoc($resultTotal);
+        $totalUsers = $rowTotal['total_users'];
+        $totalPages = ceil($totalUsers / $perPage);
+
+        return [
+            'users' => $users,
+            'pagination' => [
+                'currentPage' => $page,
+                'totalPages' => $totalPages,
+                'totalUsers' => $totalUsers,
+            ]
+        ];
+
+    }
+
     public function getDataReport($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false): array
     {
         $tbl_course = Database::get_main_table(TABLE_MAIN_COURSE);
@@ -4135,6 +4289,8 @@ EOT;
                 u.email,
                 u.username as DNI,
                 CONCAT(u.firstname, ' ', u.lastname) as student,
+                u.firstname,
+                u.lastname,
                 sc.id as session_category_id,
                 sc.name as session_category_name,
                 srcu.session_id,
@@ -4227,11 +4383,8 @@ EOT;
                 } else {
                     $userLinks = null; // Si no hay categorías, asignamos null
                 }
-                //$quizCheck = ProikosPlugin::checkUserQuizCompletion($row['id'], $cats[0]->get_id());
-                $userScore = $this->getResultExerciseStudent($row['id'], $row['c_id'], $row['session_id']);
-                //$scoreCertificate = $this->getScoreCertificate($row['id'], $row['code'], $row['session_id']);
-                //$scoreResult = $this->getScoreCertificate($row['id'], $row['code'], $row['session_id'],true);
 
+                $userScore = $this->getResultExerciseStudent($row['id'], $row['c_id'], $row['session_id']);
                 $row['exams'] = $userScore;
 
                 // Validar si los valores existen o son vacíos, y si lo son, asignar 0
@@ -4251,25 +4404,21 @@ EOT;
 
                 // Verificar el estado basado en los puntajes
                 if ($puntaje_total == 0) {
-                    // Si el puntaje total es 0, significa que no ha iniciado ningún examen
-                    $approved = false;
                     $status = '<span class="label label-warning">' . $this->get_lang('Registered') . '</span>';
+                    $status_id = 1;
                 } else if ($examen_de_entrada == 0 || $examen_de_salida == 0 || $taller == 0) {
-                    // Si alguno de los exámenes es 0 o nulo, pero el puntaje total no es 0
-                    $approved = false;
                     $status = '<span class="label label-danger">' . $this->get_lang('Failed') . '</span>';
+                    $status_id = 0;
                 } else if ($puntaje_total >= 70) {
-                    // Si todos los exámenes tienen valor y el puntaje es >= 70
-                    $approved = true;
                     $status = '<span class="label label-success">' . $this->get_lang('Approved') . '</span>';
+                    $status_id = 2;
                 } else {
-                    // Si todos los exámenes tienen valor pero el puntaje es < 70
-                    $approved = false;
                     $status = '<span class="label label-danger">' . $this->get_lang('Failed') . '</span>';
+                    $status_id = 0;
                 }
 
                 $row['status'] = $status;
-                $row['status'] = $status;
+                $row['status_id'] = $status_id;
                 $row['score'] = $puntaje_total;
                 $row['links'] = empty($userLinks);
                 $downloadCertUploadedLink = $this->generateDownloadLinkAttachCertificates($row['id'], $row['student'], $row['session_id']);
