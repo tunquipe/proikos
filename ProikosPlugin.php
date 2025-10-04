@@ -15,7 +15,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
 class ProikosPlugin extends Plugin
 {
-    const TABLE_PROIKOS_DATA = 'plugin_proikos_data';
+    const TABLE_PROIKOS_DATA_LOG = 'plugin_proikos_data_log';
     const TABLE_PROIKOS_USERS = 'plugin_proikos_users';
     const TABLE_PROIKOS_ENTITY = 'plugin_proikos_entity';
     const TABLE_PROIKOS_SECTOR = 'plugin_proikos_sector';
@@ -4106,7 +4106,7 @@ EOT;
             return 0;
         }
 
-        $table = Database::get_main_table(self::TABLE_PROIKOS_DATA);
+        $table = Database::get_main_table(self::TABLE_PROIKOS_DATA_LOG);
         $params = [
             'username' => $values['username'],
             'registration_code' => $values['id'],
@@ -4164,11 +4164,11 @@ EOT;
 
     public function getDataUsersReportProikos($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false): array
     {
-        $table_data = Database::get_main_table(self::TABLE_PROIKOS_DATA);
+        $table_data = Database::get_main_table(self::TABLE_PROIKOS_DATA_LOG);
         // Calcular el offset para la paginación
         $offset = ($page - 1) * $perPage;
 
-        $sql = "SELECT DISTINCT
+        $sql = "SELECT
                 ppd.id,
                 ppd.registration_code,
                 ppd.username,
@@ -4213,10 +4213,11 @@ EOT;
                 $sql.= " AND ppd.company_ruc = $ruc ";
             }
         }
-        if (!$isExport) {
-            $sql.= " ORDER BY ppd.id DESC LIMIT $offset, $perPage;";
-        } else {
+
+        if ($isExport) {
             $sql.= " ORDER BY ppd.id DESC; ";
+        } else {
+            $sql.= " ORDER BY ppd.id DESC LIMIT $offset, $perPage;";
         }
 
         $result = Database::query($sql);
@@ -4247,7 +4248,7 @@ EOT;
             $sqlTotal .= " AND ppd.company_ruc = $rucCompany ";
         } else {
             if ($ruc != 0) {
-                $sqlTotal .= " ppd ppu.company_ruc = $ruc ";
+                $sqlTotal .= " AND ppd.company_ruc = $ruc ";
             }
         }
 
@@ -4268,7 +4269,7 @@ EOT;
 
     }
 
-    public function getDataReport($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false): array
+    public function getDataReport($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false, $order = 'DESC'): array
     {
         $tbl_course = Database::get_main_table(TABLE_MAIN_COURSE);
         $tbl_session_course_user = Database::get_main_table(TABLE_MAIN_SESSION_COURSE_USER);
@@ -4297,6 +4298,8 @@ EOT;
                 srcu.c_id,
                 c.code,
                 s.name as session_name,
+                s.display_start_date,
+                s.display_end_date,
                  ppu.name_company,
                 ppu.ruc_company,
                 ppu.stakeholders,
@@ -4353,10 +4356,10 @@ EOT;
                 $sql.= " AND ppu.ruc_company = $ruc ";
             }
         }
-        if (!$isExport) {
-            $sql.= " ORDER BY u.id DESC LIMIT $offset, $perPage;";
+        if ($isExport) {
+            $sql.= " ORDER BY u.id $order; ";
         } else {
-            $sql.= " ORDER BY u.id DESC; ";
+            $sql.= " ORDER BY u.id $order LIMIT $offset, $perPage;";
         }
 
         $result = Database::query($sql);

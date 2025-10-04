@@ -14,7 +14,7 @@ $tool_name = 'Data';
 $actionLinks = null;
 $message = null;
 
-$action = $_GET['export'] ?? null;
+$action = $_GET['action'] ?? null;
 $dni = $_GET['keyword'] ?? null;
 $courseId = $_GET['course_id'] ?? '%';
 $sessionId = $_GET['session_id'] ?? '%';
@@ -26,12 +26,16 @@ $perPage = isset($_GET['perPage']) ? $_GET['perPage'] : 30;
 if (isset($action)) {
     switch ($action) {
         case 'cron':
-            $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc,1,10, true);
+            $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc,1,10, true, 'ASC');
             $count = 0;
+
             foreach ($rawData['users'] as $row) {
-                $count++;
-                $plugin->registerData($row);
+                if ($row['status_id'] != 1) {
+                    $count++;
+                    $plugin->registerData($row);
+                }
             }
+
             echo 'se registraron ' . $count . ' registros';
             break;
         case 'xls':
@@ -234,7 +238,7 @@ $actionsLeft = $form->returnForm();
 $actionsRight = Display::url(
     Display::return_icon('export_excel.png', get_lang('ExportAsXLS'), [], ICON_SIZE_MEDIUM),
     api_get_self() . '?' . http_build_query([
-        'export' => 'xls',
+        'action' => 'xls',
         'course_id' => $courseId,
         'session_id' => $sessionId,
     ])
@@ -242,7 +246,7 @@ $actionsRight = Display::url(
 
 $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $actionsRight], [9, 1, 2]);
 
-$data = $plugin->getDataUsersReportProikos($dni, $courseId, $sessionId, $ruc, $page, $perPage);
+$data = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, $page, $perPage);
 
 $tpl->assign('actions', Display::toolbarAction('toolbar', [$actionLinks]));
 $tpl->assign('message', $message);
