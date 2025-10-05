@@ -4103,6 +4103,20 @@ EOT;
         Database::query($sql);
     }
 
+    public function checkRegisterLogData($userID, $courseID, $sessionID)
+    {
+        $tableLog = Database::get_main_table(self::TABLE_PROIKOS_DATA_LOG);
+        $sql = "SELECT count(*) as total FROM $tableLog ppl WHERE ppl.registration_code = $userID AND ppl.course_id = $courseID AND ppl.session_id = $sessionID; ";
+        $result = Database::query($sql);
+        $total = 0;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_assoc($result)) {
+                $total = $row['total'];
+            }
+        }
+        return $total;
+    }
+
     public function registerData($values = [], $format = false)
     {
         if(empty($values)){
