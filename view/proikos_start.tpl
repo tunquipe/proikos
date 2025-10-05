@@ -65,6 +65,14 @@
     </div>
     {% endif %}
     {% if is_platform_admin %}
+    <div class="col-md-3">
+        <div class="tool-box">
+            <a href="{{ src_plugin }}src/logs.php?action=list" class="tool">
+                <img src="{{ src_plugin }}/images/logs.png" alt="">
+                <div class="tool-title">Historial de Logs</div>
+            </a>
+        </div>
+    </div>
     <!--<div class="col-md-3">
         <div class="tool-box">
             <a href="{{ src_plugin }}src/smowltech.php?action=list" class="tool">
