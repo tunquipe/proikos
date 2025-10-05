@@ -26,6 +26,15 @@ $perPage = $_GET['perPage'] ?? 100;
 $tpl = new Template($tool_name);
 $isAdmin = api_is_platform_admin();
 
+$form = new FormValidator('search_simple', 'get', null, null, null, 'inline');
+$form->addText('keyword', $plugin->get_lang('SearchUserByDNI'), false, [
+    'placeholder' => 'Buscar usuario por DNI',
+    'style' => 'display: block'
+]);
+$form->addButtonSearch(get_lang('Search'));
+$actionsLeft = $form->returnForm();
+$toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft], [9, 1, 2]);
+
 $actionLinks .= Display::url(
     Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
     api_get_path(WEB_PLUGIN_PATH) . 'proikos/start.php'
@@ -38,6 +47,6 @@ $tpl->assign('message', $message);
 $tpl->assign('data', $data);
 $tpl->assign('perPage', $perPage);
 $content = $tpl->fetch('proikos/view/proikos_logs.tpl');
-$tpl->assign('content', $content);
+$tpl->assign('content', $toolbarActions. $content);
 $tpl->display_one_col_template();
 

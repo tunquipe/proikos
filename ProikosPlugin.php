@@ -351,6 +351,7 @@ class ProikosPlugin extends Plugin
 
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
+
                 $list = [
                     'user_id' => $row['u_id'],
                     'user_id_p' => $row['user_id'],
@@ -373,7 +374,8 @@ class ProikosPlugin extends Plugin
                     'department' => $row['department'],
                     'headquarters' => $row['headquarters'],
                     'code_reference' => $row['code_reference'],
-                    'ruc_company' => $row['ruc_company']
+                    'ruc_company' => $row['ruc_company'],
+                    'metadata' => $row['metadata']
                 ];
             }
         }
@@ -2498,7 +2500,8 @@ class ProikosPlugin extends Plugin
         } else {
             $sql = "SELECT * FROM $tbl_gradebook_certificate gc WHERE gc.user_id = ".$list['user_id']." AND gc.cat_id = ".$list['category_id'].";";
             $result = Database::query($sql);
-            $total = boolval(Database::num_rows($result));
+            /*$total = boolval(Database::num_rows($result));
+            var_dump($total);*/
             $has_certificate = false;
             $icon = api_get_path(WEB_PLUGIN_PATH) . 'proikos/images/sad.png';
             if (Database::num_rows($result) > 0) {
@@ -4100,44 +4103,50 @@ EOT;
         Database::query($sql);
     }
 
-    public function registerData($values = [])
+    public function registerData($values = [], $format = false)
     {
         if(empty($values)){
             return 0;
         }
 
         $table = Database::get_main_table(self::TABLE_PROIKOS_DATA_LOG);
-        $params = [
-            'username' => $values['username'],
-            'registration_code' => $values['id'],
-            'course_id' => $values['c_id'],
-            'session_id' => $values['session_id'],
-            'course_code' => $values['code'],
-            'session_name' => $values['session_name'],
-            'session_category_id' => $values['session_category_id'],
-            'session_category_name' => $values['session_category_name'],
-            'email' => $values['email'],
-            'last_name' => $values['lastname'],
-            'first_name' => $values['firstname'],
-            'dni' => $values['DNI'],
-            'company_ruc' => $values['ruc_company'] ?? '-',
-            'company_name' => $values['name_company'],
-            'stakeholders' => $values['stakeholders'],
-            'area' => $values['area'],
-            'metadata_exists' => $values['metadata_exists'],
-            'entrance_exam' => $values['exams']['examen_de_entrada'] ?? 0,
-            'workshop' => $values['exams']['taller'] ?? 0,
-            'exit_exam' => $values['exams']['examen_de_salida'] ?? 0,
-            'score' => $values['score'],
-            'certificate_status' => $values['certificate_status'],
-            'status' => strip_tags($values['status']),
-            'status_id' => $values['status_id'],
-            'time_course' => $values['time_course'],
-            'observations' => $values['observations'] ?? '-',
-            //'certificate_issue_date' => $values['certificate_issue_date'],
-            //'certificate_expiration_date' => $values['certificate_expiration_date'],
-        ];
-        $id = Database::insert($table, $params);
+
+        if($format){
+            $id = Database::insert($table, $values);
+        } else {
+            $params = [
+                'username' => $values['username'],
+                'registration_code' => $values['id'],
+                'course_id' => $values['c_id'],
+                'session_id' => $values['session_id'],
+                'course_code' => $values['code'],
+                'session_name' => $values['session_name'],
+                'session_category_id' => $values['session_category_id'],
+                'session_category_name' => $values['session_category_name'],
+                'email' => $values['email'],
+                'last_name' => $values['lastname'],
+                'first_name' => $values['firstname'],
+                'dni' => $values['DNI'],
+                'company_ruc' => $values['ruc_company'] ?? '-',
+                'company_name' => $values['name_company'],
+                'stakeholders' => $values['stakeholders'],
+                'area' => $values['area'],
+                'metadata_exists' => $values['metadata_exists'],
+                'entrance_exam' => $values['exams']['examen_de_entrada'] ?? 0,
+                'workshop' => $values['exams']['taller'] ?? 0,
+                'exit_exam' => $values['exams']['examen_de_salida'] ?? 0,
+                'score' => $values['score'],
+                'certificate_status' => $values['certificate_status'],
+                'status' => strip_tags($values['status']),
+                'status_id' => $values['status_id'],
+                'time_course' => $values['time_course'],
+                'observations' => $values['observations'] ?? '-',
+                //'certificate_issue_date' => $values['certificate_issue_date'],
+                //'certificate_expiration_date' => $values['certificate_expiration_date'],
+            ];
+            $id = Database::insert($table, $params);
+        }
+
 
         if ($id > 0) {
             return $id;
@@ -4412,7 +4421,7 @@ EOT;
                 } else if ($examen_de_entrada == 0 || $examen_de_salida == 0 || $taller == 0) {
                     $status = '<span class="label label-danger">' . $this->get_lang('Failed') . '</span>';
                     $status_id = 0;
-                } else if ($puntaje_total >= 70) {
+                } else if ($puntaje_total >= 70.5) {
                     $status = '<span class="label label-success">' . $this->get_lang('Approved') . '</span>';
                     $status_id = 2;
                 } else {
