@@ -4269,20 +4269,59 @@ EOT;
         return 0;
     }
 
-    public function getCertificateScore($userId)
+    public function getExercisesSessionAndCourse($sessionID): array
     {
-        $tbl_certificate = Database::get_main_table(TABLE_MAIN_GRADEBOOK_CERTIFICATE);
+        $tbl_quiz = Database::get_course_table(TABLE_QUIZ_TEST);
         $sql = "
-            SELECT gc.cat_id, gc.user_id, gc.score_certificate FROM $tbl_certificate gc WHERE gc.user_id = $userId;
+            SELECT cq.iid as exercise_id FROM $tbl_quiz cq
+            INNER JOIN session_rel_course src ON src.c_id = cq.c_id
+            WHERE src.session_id = $sessionID;
         ";
         $result = Database::query($sql);
-        $score = 0;
+        $exercise = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_assoc($result)) {
-                $score = $row['score_certificate'];
+                $exercise[] = $row['exercise_id'];
             }
         }
-        return $score;
+        return $exercise;
+    }
+
+    public function deleteTrackExercise($exerciseID, $userID, $sessionID): bool
+    {
+        $tbl_track_exercise = Database::get_main_table(TABLE_STATISTIC_TRACK_E_EXERCISES);
+
+        $sql = "SELECT tte.exe_id FROM $tbl_track_exercise tte WHERE exe_user_id = $userID AND exe_exo_id = $exerciseID AND session_id = $sessionID;";
+        $result = Database::query($sql);
+        $exeId = 0;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_assoc($result)) {
+                $exeId = $row['exe_id'];
+            }
+        }
+
+        $sql = "DELETE FROM $tbl_track_exercise WHERE exe_user_id = $userID AND exe_exo_id = $exerciseID AND session_id = $sessionID; ";
+        $result = Database::query($sql);
+
+        if (Database::affected_rows($result) != 1) {
+            return false;
+        }
+
+        Event::addEvent(
+            LOG_EXERCISE_ATTEMPT_DELETE,
+            LOG_EXERCISE_ATTEMPT,
+            $exeId,
+            api_get_utc_datetime()
+        );
+        Event::addEvent(
+            LOG_EXERCISE_ATTEMPT_DELETE,
+            LOG_EXERCISE_AND_USER_ID,
+            $exeId.'-'.$userID,
+            api_get_utc_datetime()
+        );
+
+        return true;
+
     }
 
     public function getDataUsersReportProikos($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false): array
