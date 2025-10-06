@@ -4105,8 +4105,9 @@ EOT;
 
     public function checkRegisterLogData($userID, $courseID, $sessionID)
     {
+        $codeRegister = $this->registerCodeSessionRelUser($userID, $sessionID);
         $tableLog = Database::get_main_table(self::TABLE_PROIKOS_DATA_LOG);
-        $sql = "SELECT count(*) as total FROM $tableLog ppl WHERE ppl.registration_code = $userID AND ppl.course_id = $courseID AND ppl.session_id = $sessionID; ";
+        $sql = "SELECT count(*) as total FROM $tableLog ppl WHERE ppl.user_id = $userID AND ppl.course_id = $courseID AND ppl.session_id = $sessionID AND ppl.registration_session_user = $codeRegister; ";
         $result = Database::query($sql);
         $total = 0;
         if (Database::num_rows($result) > 0) {
@@ -4114,7 +4115,104 @@ EOT;
                 $total = $row['total'];
             }
         }
-        return $total;
+        return intval($total);
+    }
+
+    public function getValuesRegisterData($userID, $courseID, $sessionID): array
+    {
+        $course_code = api_get_course_id();
+        $session = api_get_session_info($sessionID);
+        $em = Database::getManager();
+        /** @var \Chamilo\CoreBundle\Entity\Repository\SessionRepository $sessionRepository */
+        $sessionRepository = $em->getRepository('ChamiloCoreBundle:Session');
+        /** @var \Chamilo\CoreBundle\Entity\Session $session */
+        $sessionEM = $sessionRepository->find($sessionID);
+        $sessionCategory = $sessionEM->getCategory();
+
+        if(is_null($sessionCategory)){
+            $categoryName = 'Ninguno';
+        } else {
+            $categoryName = $sessionCategory->getName();
+        }
+
+        $userScoreExams = $this->getResultExerciseStudent($userID, $courseID, $sessionID);
+        $ponderacion_entrada = 0.10;  // 10%
+        $ponderacion_salida = 0.30;   // 30%
+        $ponderacion_taller = 0.60;   // 60%
+
+        // Calcular el puntaje total ponderado
+        $puntaje_total = (($userScoreExams['examen_de_entrada'] * $ponderacion_entrada) +
+                ($userScoreExams['examen_de_salida'] * $ponderacion_salida) +
+                ($userScoreExams['taller'] * $ponderacion_taller)) / 20 * 100;
+
+        if ($puntaje_total == 0) {
+            $status = $this->get_lang('Registered');
+            $status_id = 1;
+        } else if ($userScoreExams['examen_de_entrada'] == 0 || $userScoreExams['examen_de_salida'] == 0 || $userScoreExams['taller'] == 0) {
+            $status = $this->get_lang('Failed');
+            $status_id = 0;
+        } else if ($puntaje_total >= 70.5) {
+            $status = $this->get_lang('Approved');
+            $status_id = 2;
+        } else {
+            $status = $this->get_lang('Failed');
+            $status_id = 0;
+        }
+
+        $userInfoProikos = $this->getInfoUserProikos($userID);
+
+        $timeSpent = api_time_to_hms(
+            Tracking::get_time_spent_on_the_course(
+                $userID,
+                $courseID,
+                $sessionID
+            )
+        );
+        $registerSessionCodeUser = $this->registerCodeSessionRelUser($userID, $sessionID);
+        return [
+            'username' => $userInfoProikos['username'],
+            'registration_code' => $registerSessionCodeUser,
+            'course_id' => $courseID,
+            'session_id' => $sessionID,
+            'course_code' => $course_code,
+            'session_name' => $session['name'],
+            'session_category_id' => $session['session_category_id'],
+            'session_category_name' => $categoryName,
+            'email' => $userInfoProikos['email'],
+            'last_name' => $userInfoProikos['lastname'],
+            'first_name' => $userInfoProikos['firstname'],
+            'dni' => $userInfoProikos['number_document'],
+            'company_ruc' => $userInfoProikos['ruc_company'] ?? '-',
+            'company_name' => $userInfoProikos['name_company'],
+            'stakeholders' => $userInfoProikos['stakeholders'],
+            'area' => $userInfoProikos['area'],
+            'metadata_exists' => (bool)$userInfoProikos['metadata'],
+            'entrance_exam' => $userScoreExams['examen_de_entrada'] ?? 0,
+            'workshop' => $userScoreExams['taller'] ?? 0,
+            'exit_exam' => $userScoreExams['examen_de_salida'] ?? 0,
+            'score' => $puntaje_total,
+            'certificate_status' => $status == 'Aprobado' ? 1 : 0,
+            'status' => $status,
+            'status_id' => $status_id,
+            'time_course' => $timeSpent,
+            'observations' => $values['observations'] ?? '-',
+            //'certificate_issue_date' => $values['certificate_issue_date'],
+            //'certificate_expiration_date' => $values['certificate_expiration_date'],
+        ];
+    }
+
+    public function registerCodeSessionRelUser($userID, $sessionID)
+    {
+        $tbl_session_rel_user = Database::get_main_table(TABLE_MAIN_SESSION_USER);
+        $sql = " SELECT su.id FROM $tbl_session_rel_user su WHERE su.user_id = $userID AND su.session_id = $sessionID; ";
+        $result = Database::query($sql);
+        $codeID = 0;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_assoc($result)) {
+                $codeID = $row['id'];
+            }
+        }
+        return $codeID;
     }
 
     public function registerData($values = [], $format = false)
@@ -4130,7 +4228,8 @@ EOT;
         } else {
             $params = [
                 'username' => $values['username'],
-                'registration_code' => $values['id'],
+                'user_id' => $values['user_id'],
+                'registration_session_user' => $values['registration_session_user'],
                 'course_id' => $values['c_id'],
                 'session_id' => $values['session_id'],
                 'course_code' => $values['code'],
@@ -4193,7 +4292,8 @@ EOT;
 
         $sql = "SELECT
                 ppd.id,
-                ppd.registration_code,
+                ppd.registration_session_user,
+                ppd.user_id,
                 ppd.username,
                 ppd.email,
                 ppd.DNI,
@@ -4442,10 +4542,12 @@ EOT;
                     $status = '<span class="label label-danger">' . $this->get_lang('Failed') . '</span>';
                     $status_id = 0;
                 }
-
+                $registerCodeSession = $this->registerCodeSessionRelUser($row['id'],$row['session_id']);
+                $row['registration_session_user'] = $registerCodeSession;
                 $row['status'] = $status;
                 $row['status_id'] = $status_id;
                 $row['score'] = $puntaje_total;
+                $row['user_id'] = $row['id'];
                 $row['links'] = empty($userLinks);
                 $downloadCertUploadedLink = $this->generateDownloadLinkAttachCertificates($row['id'], $row['student'], $row['session_id']);
                 $row['cert'] = $downloadCertUploadedLink;

@@ -57,8 +57,10 @@
 </div>
 <table class="table table-hover table-striped table-bordered data_table" id="user_tables">
     <tr class="row_odd">
-        <th class="th-header">Nº</th>
+        <th class="th-header">Nº de log</th>
         <th class="th-header" style="width: 300px;">{{ 'Session'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th class="th-header">Codigo de Registro - Session</th>
+        <th class="th-header">ID de usuario</th>
         <th class="th-header">{{ 'LastNamesAndFirstNames'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'DNI'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'ContratingCompanyRUC'|get_plugin_lang('ProikosPlugin') }}</th>
@@ -75,6 +77,8 @@
     <tr>
         <td>{{ user.id }}</td>
         <td>{{ user.session_name }}</td>
+        <td>{{ user.registration_session_user }}</td>
+        <td>{{ user.user_id }}</td>
         <td>{{ user.student }}</td>
         <td>{{ user.DNI }}</td>
         <td>{{ user.ruc_company }}</td>
