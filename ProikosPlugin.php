@@ -4171,7 +4171,8 @@ EOT;
         $registerSessionCodeUser = $this->registerCodeSessionRelUser($userID, $sessionID);
         return [
             'username' => $userInfoProikos['username'],
-            'registration_code' => $registerSessionCodeUser,
+            'registration_session_user' => $registerSessionCodeUser,
+            'user_id' => $userID,
             'course_id' => $courseID,
             'session_id' => $sessionID,
             'course_code' => $course_code,
