@@ -4324,6 +4324,24 @@ EOT;
 
     }
 
+    public function getLPSession($sessionID): array
+    {
+        $tbl_lp = Database::get_course_table(TABLE_LP_MAIN);
+        $tbl_session_course = Database::get_main_table(TABLE_MAIN_SESSION_COURSE);
+        $sql = "SELECT lp.c_id as course_id, lp.iid as lp_id, src.session_id FROM $tbl_lp lp
+                INNER JOIN $tbl_session_course src ON src.c_id = lp.c_id
+                WHERE src.session_id = $sessionID;
+        ";
+        $result = Database::query($sql);
+        $lps = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_assoc($result)) {
+                $lps[] = $row;
+            }
+        }
+        return $lps;
+    }
+
     public function getDataUsersReportProikos($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false): array
     {
         $table_data = Database::get_main_table(self::TABLE_PROIKOS_DATA_LOG);
