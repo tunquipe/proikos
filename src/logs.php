@@ -23,6 +23,26 @@ $ruc = $_GET['ruc'] ?? '0';
 $page = $_GET['page'] ?? 1;
 $perPage = $_GET['perPage'] ?? 100;
 
+if (isset($action)) {
+    switch ($action) {
+        case 'delete':
+            $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc,1,10, true, 'ASC');
+            $count = 0;
+
+            foreach ($rawData['users'] as $row) {
+                if ($row['status_id'] != 1) {
+                    $count++;
+                    $plugin->registerData($row);
+                }
+            }
+
+            echo 'se registraron ' . $count . ' registros';
+            break;
+        default:
+            break;
+    }
+}
+
 $tpl = new Template($tool_name);
 $isAdmin = api_is_platform_admin();
 

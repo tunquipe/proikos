@@ -70,6 +70,8 @@
         <th class="th-header">{{ 'ExitExam'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Score'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Status'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th class="th-header">{{ 'actions'|get_plugin_lang('ProikosPlugin') }}</th>
+
     </tr>
     {% if data.users %}
     {% for user in data.users %}
@@ -113,7 +115,9 @@
         <td style="text-align: center">
             {{ user.status }}
         </td>
-
+        <td style="text-align: center">
+            {{ user.actions }}
+        </td>
 
     </tr>
     {% endfor %}
