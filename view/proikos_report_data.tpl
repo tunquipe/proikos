@@ -58,7 +58,7 @@
 <table class="table table-hover table-striped table-bordered data_table" id="user_tables">
     <tr class="row_odd">
         <th class="th-header">Nº</th>
-        <th class="th-header">Codigo</th>
+        
         <!--<th class="th-header">Fecha</th>
         <th class="th-header">Nº Horas</th> -->
         <th class="th-header">{{ 'Course'|get_plugin_lang('ProikosPlugin') }}</th>
@@ -81,7 +81,7 @@
 
     <tr>
         <td>{{ user.id }}</td>
-        <td>PROK{{ user.id }}</td>
+
         <!--<td>{{ user.registration_date }}</td>
             <td>{{ user.time_course }}</td> -->
         <td>{{ user.session_category_name }}</td>
@@ -132,6 +132,8 @@
             {% else %}
             - <!-- Si no tiene un valor 1, 2 o 3, puedes mostrar un guion o un texto por defecto -->
             {% endif %}
+            {{ user.download }}
+
         </td>
 
         <td style="text-align: center">{{ user.cert }}</td>
