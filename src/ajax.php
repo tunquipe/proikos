@@ -474,6 +474,7 @@ if ($action) {
                         'user_id = ? AND session_id = ?' => [$userId,$sessionId],
                     ]
                 );
+                echo json_encode(['success' => true, 'message' => 'Actualizado correctamente', 'action' => 'update']);
             } else {
                 $id = Database::insert($tableCheck, $params);
                 header('Content-Type: application/json');
