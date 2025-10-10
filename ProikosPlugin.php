@@ -15,6 +15,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
 class ProikosPlugin extends Plugin
 {
+    const TABLE_PROIKOS_CHECK_DOCS = 'plugin_proikos_check_docs';
     const TABLE_PROIKOS_DATA = 'plugin_proikos_data';
     const TABLE_PROIKOS_USERS = 'plugin_proikos_users';
     const TABLE_PROIKOS_ENTITY = 'plugin_proikos_entity';

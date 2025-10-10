@@ -420,6 +420,68 @@ if ($action) {
             header('Content-Type: application/json');
             echo json_encode($response);
             break;
+        case 'verify_check':
+            header('Content-Type: application/json');
 
+            if (!isset($_POST['user_id']) || !isset($_POST['session_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+                exit;
+            }
+            $userId = intval($_POST['user_id']);
+            $sessionId = intval($_POST['session_id']);
+
+            $tableCheck = Database::get_main_table($plugin::TABLE_PROIKOS_CHECK_DOCS);
+
+            $sql = "SELECT check_document FROM $tableCheck WHERE user_id = $userId AND session_id = $sessionId";
+            $result = Database::query($sql);
+            $documentCheck = 0;
+            if (Database::num_rows($result) > 0) {
+                while ($row = Database::fetch_array($result)) {
+                    $documentCheck = $row['check_document'];
+                }
+                echo json_encode(['success' => true, 'check_document' => intval($documentCheck)]);
+            }
+
+            break;
+        case 'update_check':
+            if (!isset($_POST['user_id']) || !isset($_POST['session_id']) || !isset($_POST['check_document'])) {
+                echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+                exit;
+            }
+
+            $userId = intval($_POST['user_id']);
+            $sessionId = intval($_POST['session_id']);
+            $checkDocument = intval($_POST['check_document']);
+
+            $tableCheck = Database::get_main_table($plugin::TABLE_PROIKOS_CHECK_DOCS);
+
+            $sql = "SELECT id FROM $tableCheck WHERE user_id = $userId AND session_id = $sessionId";
+            $result = Database::query($sql);
+
+            $params = [
+                'user_id' => $userId,
+                'session_id' => $sessionId,
+                'check_document' => $checkDocument,
+            ];
+
+            if (Database::num_rows($result) > 0) {
+                Database::update(
+                    $tableCheck,
+                    $params,
+                    [
+                        'user_id = ? AND session_id = ?' => [$userId,$sessionId],
+                    ]
+                );
+            } else {
+                $id = Database::insert($tableCheck, $params);
+                header('Content-Type: application/json');
+                if ($id > 0) {
+                    echo json_encode(['success' => true, 'message' => 'Creado correctamente', 'action' => 'insert']);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Error al crear el registro']);
+                }
+            }
+
+            break;
     }
 }
