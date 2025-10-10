@@ -452,6 +452,7 @@ if ($action) {
             $userId = intval($_POST['user_id']);
             $sessionId = intval($_POST['session_id']);
             $checkDocument = intval($_POST['check_document']);
+            $userIDCheck = api_get_user_id();
 
             $tableCheck = Database::get_main_table($plugin::TABLE_PROIKOS_CHECK_DOCS);
 
@@ -462,6 +463,7 @@ if ($action) {
                 'user_id' => $userId,
                 'session_id' => $sessionId,
                 'check_document' => $checkDocument,
+                'user_id_check' => $userIDCheck,
             ];
 
             if (Database::num_rows($result) > 0) {
