@@ -172,3 +172,5 @@ $strings['SynchronousCourses'] = 'Cursos Sincrónicos';
 $strings['Registered'] = 'Inscrito';
 $strings['enable_link_smowl_exercise'] = 'Ocultar boton iniciar ejercicio por monitor Smowl';
 $strings['highest_score_exercise'] = 'Mostrar siempre puntaje mas alto de un examen';
+$strings['actions'] = 'Acciones';
+$strings['Download'] = 'Descarga';

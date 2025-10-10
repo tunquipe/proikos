@@ -242,7 +242,7 @@ $actionsRight = Display::url(
 
 $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $actionsRight], [9, 1, 2]);
 
-$data = $plugin->getDataUsersReportProikos($dni, $courseId, $sessionId, $ruc, $page, $perPage);
+$data = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, $page, $perPage);
 
 $tpl->assign('actions', Display::toolbarAction('toolbar', [$actionLinks]));
 $tpl->assign('message', $message);

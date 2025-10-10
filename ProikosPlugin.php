@@ -4423,6 +4423,11 @@ EOT;
                 $row['links'] = empty($userLinks);
                 $downloadCertUploadedLink = $this->generateDownloadLinkAttachCertificates($row['id'], $row['student'], $row['session_id']);
                 $row['cert'] = $downloadCertUploadedLink;
+                $row['download'] = '';
+                if($status_id == 2){
+                    $urlCertificate = $this->getUserCertificateSession($row['id'], $row['session_id']);
+                    $row['download'] = '<a class="btn btn-default btn-sm" href="'.$urlCertificate['pdf'].'" target="_blank"><i class="fa fa-download" aria-hidden="true"></i>'.$this->get_lang('Download').'</a>';
+                }
 
                 $timeSpent = api_time_to_hms(
                     Tracking::get_time_spent_on_the_course(
@@ -4517,6 +4522,67 @@ EOT;
 
         return $exercises;
     }
+
+    function getUserCertificateSession($userId, $sessionId): array
+    {
+        $sessionCourses = SessionManager::get_course_list_by_session_id($sessionId);
+        foreach ($sessionCourses as $course) {
+            $category = Category::load(
+                null,
+                null,
+                $course['code'],
+                null,
+                null,
+                $sessionId
+            );
+
+            if (empty($category)) {
+                continue;
+            }
+
+            if (!isset($category[0])) {
+                continue;
+            }
+
+            /** @var Category $category */
+            $category = $category[0];
+
+            // Don't allow generate of certifications
+            if (empty($category->getGenerateCertificates())) {
+                continue;
+            }
+
+            $categoryId = $category->get_id();
+            $certificateInfo = self::get_certificate_by_user_id(
+                $categoryId,
+                $userId
+            );
+
+            if (empty($certificateInfo)) {
+                continue;
+            }
+
+            return [
+                'link' => api_get_path(WEB_PATH)."certificates/index.php?id={$certificateInfo['id']}",
+                'pdf' => api_get_path(WEB_PATH)."certificates/index.php?id={$certificateInfo['id']}&user_id={$userId}&action=export",
+            ];
+        }
+    }
+
+    public static function get_certificate_by_user_id($cat_id, $user_id)
+    {
+        $table = Database::get_main_table(TABLE_MAIN_GRADEBOOK_CERTIFICATE);
+        $cat_id = (int) $cat_id;
+        $user_id = (int) $user_id;
+
+        $sql = "SELECT * FROM $table
+                WHERE cat_id = $cat_id AND user_id = $user_id ";
+
+        $result = Database::query($sql);
+        return Database::fetch_array($result, 'ASSOC');
+
+    }
+
     function getCourseExercises($courseId, $sessionId = null) {
         $courseId = (int)$courseId;
         $sessionId = $sessionId ? (int)$sessionId : null;

@@ -58,7 +58,7 @@
 <table class="table table-hover table-striped table-bordered data_table" id="user_tables">
     <tr class="row_odd">
         <th class="th-header">Nº</th>
-        <th class="th-header">Codigo</th>
+        
         <!--<th class="th-header">Fecha</th>
         <th class="th-header">Nº Horas</th> -->
         <th class="th-header">{{ 'Course'|get_plugin_lang('ProikosPlugin') }}</th>
@@ -77,66 +77,68 @@
         <th class="th-header">{{ 'CertificatesAttached'|get_plugin_lang('ProikosPlugin') }}</th>
     </tr>
     {% if data.users %}
-        {% for user in data.users %}
+    {% for user in data.users %}
 
-        <tr>
-            <td>{{ user.registration_code }}</td>
-            <td>PROK{{ user.registration_code }}</td>
-            <!--<td>{{ user.registration_date }}</td>
+    <tr>
+        <td>{{ user.id }}</td>
+
+        <!--<td>{{ user.registration_date }}</td>
             <td>{{ user.time_course }}</td> -->
-            <td>{{ user.session_category_name }}</td>
-            <td>{{ user.session_name }}</td>
-            <td>{{ user.student }}</td>
-            <td>{{ user.DNI }}</td>
-            <td>{{ user.ruc_company }}</td>
-            <td>{{ user.name_company }}</td>
-            <td>{{ user.area }}</td>
+        <td>{{ user.session_category_name }}</td>
+        <td>{{ user.session_name }}</td>
+        <td>{{ user.student }}</td>
+        <td>{{ user.DNI }}</td>
+        <td>{{ user.ruc_company }}</td>
+        <td>{{ user.name_company }}</td>
+        <td>{{ user.area }}</td>
 
-            <td class="text-center {% if user.entrance_exam is not defined or user.entrance_exam == 0 %}default-text{% elseif user.entrance_exam <= 10 %}red-text{% elseif user.entrance_exam >= 10 %}blue-text{% endif %}">
-                {% if user.entrance_exam == 0 or user.entrance_exam is empty %}
-                -
-                {% else %}
-                {{ user.entrance_exam }}
-                {% endif %}
-            </td>
+        <td class="text-center {% if user.exams.examen_de_entrada is not defined or user.exams.examen_de_entrada == 0 %}default-text{% elseif user.exams.examen_de_entrada <= 10 %}red-text{% elseif user.exams.examen_de_entrada >= 10 %}blue-text{% endif %}">
+            {% if user.exams.examen_de_entrada == 0 or user.exams.examen_de_entrada is empty %}
+            -
+            {% else %}
+            {{ user.exams.examen_de_entrada }}
+            {% endif %}
+        </td>
 
-            <td class="text-center {% if user.workshop is not defined or user.workshop == 0 %}default-text{% elseif user.workshop <= 10 %}red-text{% elseif user.workshop >= 10 %}blue-text{% endif %}">
-                {% if user.workshop == 0 or user.workshop is empty %}
-                -
-                {% else %}
-                {{ user.workshop }}
-                {% endif %}
-            </td>
+        <td class="text-center {% if user.exams.taller is not defined or user.exams.taller == 0 %}default-text{% elseif user.exams.taller <= 10 %}red-text{% elseif user.exams.taller >= 10 %}blue-text{% endif %}">
+            {% if user.exams.taller == 0 or user.exams.taller is empty %}
+            -
+            {% else %}
+            {{ user.exams.taller }}
+            {% endif %}
+        </td>
 
-            <td class="text-center {% if user.exit_exam is not defined or user.exit_exam == 0 %}default-text{% elseif user.exit_exam <= 10 %}red-text{% elseif user.exit_exam >= 10 %}blue-text{% endif %}">
-                {% if user.exit_exam == 0 or user.exit_exam is empty %}
-                -
-                {% else %}
-                {{ user.exit_exam }}
-                {% endif %}
-            </td>
+        <td class="text-center {% if user.exams.examen_de_salida is not defined or user.exams.examen_de_salida == 0 %}default-text{% elseif user.exams.examen_de_salida <= 10 %}red-text{% elseif user.exams.examen_de_salida >= 10 %}blue-text{% endif %}">
+            {% if user.exams.examen_de_salida == 0 or user.exams.examen_de_salida is empty %}
+            -
+            {% else %}
+            {{ user.exams.examen_de_salida }}
+            {% endif %}
+        </td>
 
 
-            <td>{{ user.score }}</td>
-            <td style="text-align: center">
-                {{ user.status }}
-            </td>
+        <td>{{ user.score }}</td>
+        <td style="text-align: center">
+            {{ user.status }}
+        </td>
 
-            <td style="text-align: center">
-                {% if user.certificate_status == 1 %}
-                    <span class="label label-success">Vigente</span>
-                {% elseif user.certificate_status == 2 %}
-                    <span class="label label-warning">Caducado</span>
-                {% elseif user.certificate_status == 3 %}
-                    <span class="label label-default">No generado</span>
-                {% else %}
-                - <!-- Si no tiene un valor 1, 2 o 3, puedes mostrar un guion o un texto por defecto -->
-                {% endif %}
-            </td>
+        <td style="text-align: center">
+            {% if user.certificate_status == 1 %}
+            <span class="label label-success">Vigente</span>
+            {% elseif user.certificate_status == 2 %}
+            <span class="label label-warning">Caducado</span>
+            {% elseif user.certificate_status == 3 %}
+            <span class="label label-default">No generado</span>
+            {% else %}
+            - <!-- Si no tiene un valor 1, 2 o 3, puedes mostrar un guion o un texto por defecto -->
+            {% endif %}
+            {{ user.download }}
 
-            <td style="text-align: center">{{ user.cert }}</td>
-        </tr>
-        {% endfor %}
+        </td>
+
+        <td style="text-align: center">{{ user.cert }}</td>
+    </tr>
+    {% endfor %}
     {% endif %}
 </table>
 
