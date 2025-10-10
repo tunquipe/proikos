@@ -58,7 +58,7 @@
 <table class="table table-hover table-striped table-bordered data_table" id="user_tables">
     <tr class="row_odd">
         <th class="th-header">Nº</th>
-        
+
         <!--<th class="th-header">Fecha</th>
         <th class="th-header">Nº Horas</th> -->
         <th class="th-header">{{ 'Course'|get_plugin_lang('ProikosPlugin') }}</th>
