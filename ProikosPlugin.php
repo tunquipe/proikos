@@ -4590,6 +4590,7 @@ EOT;
                 'pdf' => api_get_path(WEB_PATH)."certificates/index.php?id={$certificateInfo['id']}&user_id={$userId}&action=export",
             ];
         }
+        return [];
     }
 
     public static function get_certificate_by_user_id($cat_id, $user_id)
