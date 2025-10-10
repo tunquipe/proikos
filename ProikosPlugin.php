@@ -4429,6 +4429,8 @@ EOT;
                     $urlCertificate = $this->getUserCertificateSession($row['id'], $row['session_id']);
                     $row['download'] = '<a class="btn btn-default btn-sm" href="'.$urlCertificate['pdf'].'" target="_blank"><i class="fa fa-download" aria-hidden="true"></i>'.$this->get_lang('Download').'</a>';
                 }
+                $checkDocument = $this->checkDocuments($row['id'],$row['session_id']);
+                $row['check_document'] = $checkDocument;
 
                 $timeSpent = api_time_to_hms(
                     Tracking::get_time_spent_on_the_course(
@@ -4492,7 +4494,28 @@ EOT;
         ];
 
     }
+    public function checkDocuments($userId, $sessionId)
+    {
+        $tableCheck = Database::get_main_table(self::TABLE_PROIKOS_CHECK_DOCS);
 
+        $sql = "SELECT check_document FROM $tableCheck WHERE user_id = $userId AND session_id = $sessionId";
+        $result = Database::query($sql);
+        $documentCheck = 0;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $documentCheck = intval($row['check_document']);
+            }
+        }
+        if($documentCheck == 1){
+
+            $checkImg = Display::img(api_get_path(WEB_IMG_PATH)."icons/22/check.png",'');
+        } else {
+            $checkImg = Display::img(api_get_path(WEB_IMG_PATH)."icons/22/check_na.png",'');
+        }
+
+        return $checkImg;
+
+    }
     public function getSessionExercises($sessionId, $courseId = null) {
         $exercises = [];
 

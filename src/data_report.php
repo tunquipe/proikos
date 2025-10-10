@@ -21,7 +21,7 @@ $sessionId = $_GET['session_id'] ?? '%';
 $ruc = $_GET['ruc'] ?? '0';
 
 $page = isset($_GET['page']) ? $_GET['page'] : 1;
-$perPage = isset($_GET['perPage']) ? $_GET['perPage'] : 30;
+$perPage = isset($_GET['perPage']) ? $_GET['perPage'] : 100;
 
 if (isset($action)) {
     switch ($action) {

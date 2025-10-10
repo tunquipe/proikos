@@ -136,7 +136,10 @@
 
         </td>
 
-        <td style="text-align: center">{{ user.cert }}</td>
+        <td style="text-align: center">
+            {{ user.cert }}
+            {{ user.check_document }}
+        </td>
     </tr>
     {% endfor %}
     {% endif %}
