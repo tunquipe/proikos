@@ -4507,10 +4507,9 @@ EOT;
             }
         }
         if($documentCheck == 1){
-
-            $checkImg = Display::img(api_get_path(WEB_IMG_PATH)."icons/22/check.png",'');
+            $checkImg = Display::img(api_get_path(WEB_IMG_PATH)."icons/22/check.png",$this->get_lang('VerifiedDocuments'));
         } else {
-            $checkImg = Display::img(api_get_path(WEB_IMG_PATH)."icons/22/check_na.png",'');
+            $checkImg = Display::img(api_get_path(WEB_IMG_PATH)."icons/22/check_na.png",$this->get_lang('UnverifiedDocuments'));
         }
 
         return $checkImg;

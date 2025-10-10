@@ -175,3 +175,5 @@ $strings['highest_score_exercise'] = 'Mostrar siempre puntaje mas alto de un exa
 $strings['actions'] = 'Acciones';
 $strings['Download'] = 'Descarga';
 $strings['VerifiedAttachedDocuments'] = 'Click para indicar documentos adjuntos verificados';
+$strings['VerifiedDocuments'] = 'Documentos verificados';
+$strings['UnverifiedDocuments'] = 'Documentos sin verificar';
