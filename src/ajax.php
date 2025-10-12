@@ -484,6 +484,169 @@ if ($action) {
                     echo json_encode(['success' => false, 'message' => 'Error al crear el registro']);
                 }
             }
+            break;
+        case 'save_sustenance':
+            header('Content-Type: application/json');
+            header('Access-Control-Allow-Origin: *');
+            header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+            header('Access-Control-Allow-Headers: Content-Type');
+
+            if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+                http_response_code(200);
+                exit;
+            }
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                http_response_code(405);
+                echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+                exit;
+            }
+            $data = $_POST;
+
+            // Obtener y validar parámetros
+            $user_id = intval($data['user_id'] ?? 0);
+            $course_id = intval($data['course_id'] ?? 0);
+            $session_id = intval($data['session_id'] ?? 0);
+            $record_id = intval($data['record_id'] ?? 0);
+
+            $sustenance_codes = $data['sustenance_codes'] ?? array();
+            if (is_string($sustenance_codes)) {
+                $sustenance_codes = explode(',', $sustenance_codes);
+            }
+            $sustenance_codes = array_filter(array_map('trim', (array)$sustenance_codes));
+
+            $comment = trim($data['comment'] ?? '');
+
+            if ($user_id === 0 || $course_id === 0 || $session_id === 0) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Error: Faltan datos requeridos (user_id, course_id, session_id)',
+                    'received' => ['user_id' => $user_id, 'course_id' => $course_id, 'session_id' => $session_id]
+                ]);
+                exit;
+            }
+
+            // Validación: al menos un sustento seleccionado
+            if (empty($sustenance_codes)) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Debes seleccionar al menos un tipo de incidencia'
+                ]);
+                exit;
+            }
+
+            // Validar que todos los códigos sean números válidos (0-11)
+            $sustenance_codes = array_filter(
+                array_map('intval', $sustenance_codes),
+                function($code) {
+                    return $code >= 0 && $code <= 11;
+                }
+            );
+
+            if (empty($sustenance_codes)) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Códigos de incidencia inválidos. Deben estar entre 0 y 11'
+                ]);
+                exit;
+            }
+
+            // Incluir la clase SustenanceManager
+            require_once '../src/SustenanceManager.php';
+
+            $result = false;
+            $message = '';
+
+            if ($record_id > 0) {
+                // update
+                $result = \src\SustenanceManager::updateSustenance(
+                    $record_id,
+                    $sustenance_codes,
+                    $comment
+                );
+
+                $message = 'Incidencia actualizada exitosamente';
+                $action = 'updated';
+            } else {
+                // register
+                $result = \src\SustenanceManager::saveSustenance(
+                    $user_id,
+                    $course_id,
+                    $session_id,
+                    $sustenance_codes,
+                    $comment
+                );
+
+                $message = 'Incidencia registrada exitosamente';
+                $action = 'created';
+            }
+
+            if ($result) {
+                http_response_code(200);
+                echo json_encode([
+                    'success' => true,
+                    'message' => $message,
+                    'action' => $action,
+                    'id' => $result,
+                    'data' => [
+                        'user_id' => $user_id,
+                        'course_id' => $course_id,
+                        'session_id' => $session_id,
+                        'sustenance_codes' => implode(',', $sustenance_codes),
+                        'comment' => $comment
+                    ]
+                ]);
+            } else {
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Error al guardar los datos en la base de datos'
+                ]);
+            }
+
+            break;
+        case 'get_sustenance':
+            header('Content-Type: application/json');
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+                exit;
+            }
+            // Obtener datos POST
+            $user_id = intval($_POST['user_id'] ?? 0);
+            $course_id = intval($_POST['course_id'] ?? 0);
+            $session_id = intval($_POST['session_id'] ?? 0);
+
+            if ($user_id === 0 || $course_id === 0 || $session_id === 0) {
+                echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+                exit;
+            }
+
+            // Incluir la clase SustenanceManager
+            require_once '../src/SustenanceManager.php';
+
+            try {
+                // Obtener datos existentes
+                $existingSustenances = \src\SustenanceManager::getSustenance($user_id, $course_id, $session_id);
+
+                if (!empty($existingSustenances)) {
+                    echo json_encode([
+                        'success' => true,
+                        'data' => $existingSustenances[0]
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => true,
+                        'data' => null
+                    ]);
+                }
+            } catch (Exception $e) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Error: ' . $e->getMessage()
+                ]);
+            }
 
             break;
     }
