@@ -4431,6 +4431,7 @@ EOT;
                 }
                 $checkDocument = $this->checkDocuments($row['id'],$row['session_id']);
                 $row['check_document'] = $checkDocument;
+                $row['sustenance'] = $this->getSustenanceIconFA($row['id'],$row['c_id'],$row['session_id']);
 
                 $timeSpent = api_time_to_hms(
                     Tracking::get_time_spent_on_the_course(

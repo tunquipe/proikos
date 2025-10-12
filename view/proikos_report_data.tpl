@@ -74,7 +74,8 @@
         <th class="th-header">{{ 'Score'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Status'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Observations'|get_plugin_lang('ProikosPlugin') }}</th>
-        <th class="th-header">{{ 'CertificatesAttached'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th class="th-header">{{ 'Actions'|get_plugin_lang('ProikosPlugin') }}</th>
+
     </tr>
     {% if data.users %}
     {% for user in data.users %}
@@ -139,7 +140,9 @@
         <td style="text-align: center">
             {{ user.cert }}
             {{ user.check_document }}
+            {{ user.sustenance }}
         </td>
+
     </tr>
     {% endfor %}
     {% endif %}
