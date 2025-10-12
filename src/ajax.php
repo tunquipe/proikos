@@ -633,7 +633,7 @@ if ($action) {
                 if (!empty($existingSustenances)) {
                     echo json_encode([
                         'success' => true,
-                        'data' => $existingSustenances[0]
+                        'data' => $existingSustenances
                     ]);
                 } else {
                     echo json_encode([
