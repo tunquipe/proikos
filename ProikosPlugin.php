@@ -4681,4 +4681,30 @@ EOT;
 
         return $courses;
     }
+
+    public function getSustenanceIconFA($user_id, $course_id, $session_id = null): string
+    {
+        $tableSustenance = Database::get_main_table('plugin_proikos_sustenance');
+
+        $sql = "SELECT id FROM $tableSustenance
+                WHERE user_id = $user_id
+                AND course_id = $course_id ";
+
+        if ($session_id !== null) {
+            $sql .= " AND session_id = $session_id ";
+        }
+
+        $result = Database::query($sql);
+        $hasRecord = Database::num_rows($result) > 0;
+
+        // Si existe registro - Ícono verde con checkmark
+        if ($hasRecord) {
+            return '<i class="fa fa-bookmark" style="color: #dc3545; "
+                       title="Sustento registrado"></i> ';
+        }
+
+        // Si no existe registro - Ícono rojo con X
+        return '<i class="fa fa-bookmark" style="color: #28a745; "
+                   title="Sin sustento registrado"></i> ';
+    }
 }
