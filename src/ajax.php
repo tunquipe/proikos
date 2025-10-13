@@ -12,6 +12,7 @@ function sanitize_filename(string $name): string
     $name = preg_replace('/[^A-Za-z0-9_\-]/', '_', $name);
     return trim($name, '_');
 }
+
 if ($action) {
 
     switch ($action) {
@@ -43,7 +44,7 @@ if ($action) {
             if (isset($_POST)) {
                 $start_date = $_POST['start_date'] ?? null;
                 $end_date = $_POST['end_date'] ?? null;
-                $list = $plugin->getStudentsApprovedDisapproved($start_date,$end_date);
+                $list = $plugin->getStudentsApprovedDisapproved($start_date, $end_date);
 
                 $totalApproved = 0;
                 $totalDisapproved = 0;
@@ -66,7 +67,7 @@ if ($action) {
             if (isset($_POST)) {
                 $start_date = $_POST['start_date'] ?? null;
                 $end_date = $_POST['end_date'] ?? null;
-                $list = $plugin->getStudentsApprovedDisapproved($start_date,$end_date);
+                $list = $plugin->getStudentsApprovedDisapproved($start_date, $end_date);
                 echo json_encode($list);
             }
             break;
@@ -100,7 +101,7 @@ if ($action) {
                 $end_date = $_POST['end_date'] ?? null;
                 $users = $plugin->getUserParticipatesExam($start_date, $end_date);
                 $list = [];
-                foreach ($users as $user){
+                foreach ($users as $user) {
                     $idStakeholder = $plugin->getStakeholderForUserId($user['user_id']);
                     $list[$user['user_id']] = [
                         'stakeholder_id' => $idStakeholder,
@@ -136,12 +137,12 @@ if ($action) {
                 $totalDisapproved = 0;
                 foreach ($sessions as $item) {
                     //var_dump($item);
-                    if($item['nbr_users']>=1){
-                        $totalCurrent+= intval($item['nbr_users']);
+                    if ($item['nbr_users'] >= 1) {
+                        $totalCurrent += intval($item['nbr_users']);
                     }
                 }
                 $result = [
-                    'total_global' => $totalStudents-$totalCurrent,
+                    'total_global' => $totalStudents - $totalCurrent,
                     'total_current' => $totalCurrent,
                 ];
                 echo json_encode($result);
@@ -153,7 +154,7 @@ if ($action) {
                 $companyId = $_POST['id_company'] ?? null;
                 $compare = $plugin->contratingCompaniesModel()->getValidateCodeCompany($companyCode, $companyId);
                 $message = $plugin->get_lang('CodeIsCorrect');
-                if(!$compare){
+                if (!$compare) {
                     $message = $plugin->get_lang('InvalidCodeCompany');
                 }
                 $json = [
@@ -170,8 +171,8 @@ if ($action) {
                 $end_date = $_POST['end_date'] ?? null;
                 $list = $plugin->getExamsSession($start_date, $end_date);
                 $result = [];
-                foreach ($list as $row){
-                    $result[] = $plugin->processStudentList(70,$row['exercises_id'],$row['course_code'],$row['session_id'], $row['title']);
+                foreach ($list as $row) {
+                    $result[] = $plugin->processStudentList(70, $row['exercises_id'], $row['course_code'], $row['session_id'], $row['title']);
                 }
                 $unifiedArray = [];
                 $finalArray = [];
@@ -194,8 +195,8 @@ if ($action) {
                 // Convierte el array unificado en un array indexado
                 $unifiedArray = array_values($unifiedArray);
 
-                foreach ($unifiedArray as $element){
-                    if($element['exam_taken'] >= 1){
+                foreach ($unifiedArray as $element) {
+                    if ($element['exam_taken'] >= 1) {
                         $finalArray[] = $element;
                     }
                 }
@@ -220,7 +221,7 @@ if ($action) {
             break;
         case 'download_session_uploaded_documents':
 
-            $sessionId = (int) ($_GET['session_id'] ?? 0);
+            $sessionId = (int)($_GET['session_id'] ?? 0);
             if ($sessionId === 0) {
                 header("HTTP/1.0 400 Bad Request");
                 exit('Parámetro session_id inválido.');
@@ -244,7 +245,7 @@ if ($action) {
             $totalFilesAdded = 0;
 
             foreach ($users as $u) {
-                $userId = (int) $u['user_id'];
+                $userId = (int)$u['user_id'];
                 $userFolderPath = $basePath . $userId . '/' . $sessionId;
 
                 if (!is_dir($userFolderPath)) {
@@ -276,7 +277,7 @@ if ($action) {
             @unlink($zipFilePath);
             exit;
         case 'download_user_uploaded_documents':
-            $userId = (int) $_GET['user_id'];
+            $userId = (int)$_GET['user_id'];
             $sessionId = $_GET['session_id'];
             $basePath = api_get_path(SYS_APP_PATH) . 'upload/proikos_user_documents/';
             $dirPath = $basePath . $userId . '/' . $sessionId;
@@ -471,7 +472,7 @@ if ($action) {
                     $tableCheck,
                     $params,
                     [
-                        'user_id = ? AND session_id = ?' => [$userId,$sessionId],
+                        'user_id = ? AND session_id = ?' => [$userId, $sessionId],
                     ]
                 );
                 echo json_encode(['success' => true, 'message' => 'Actualizado correctamente', 'action' => 'update']);
@@ -539,7 +540,7 @@ if ($action) {
             // Validar que todos los códigos sean números válidos (0-11)
             $sustenance_codes = array_filter(
                 array_map('intval', $sustenance_codes),
-                function($code) {
+                function ($code) {
                     return $code >= 0 && $code <= 11;
                 }
             );
@@ -649,27 +650,27 @@ if ($action) {
             }
 
             break;
-            case 'get_sustenance_by_id':
-                header('Content-Type: application/json');
-                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                    http_response_code(405);
-                    echo json_encode(['success' => false, 'message' => 'Método no permitido']);
-                    exit;
-                }
-                $data = $_POST;
-                $sustenance_id = intval($data['sustenance_id'] ?? 0);
+        case 'get_sustenance_by_id':
+            header('Content-Type: application/json');
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                http_response_code(405);
+                echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+                exit;
+            }
+            $data = $_POST;
+            $sustenance_id = intval($data['sustenance_id'] ?? 0);
 
-                if ($sustenance_id === 0) {
-                    http_response_code(400);
-                    echo json_encode(['success' => false, 'message' => 'ID de incidencia no válido']);
-                    exit;
-                }
+            if ($sustenance_id === 0) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'ID de incidencia no válido']);
+                exit;
+            }
 
-                try {
-                    $tableSustenance = Database::get_main_table('plugin_proikos_sustenance');
-                    $tableUsers = Database::get_main_table('user');
+            try {
+                $tableSustenance = Database::get_main_table('plugin_proikos_sustenance');
+                $tableUsers = Database::get_main_table('user');
 
-                    $sql = "SELECT
+                $sql = "SELECT
                             ps.id,
                             ps.user_id,
                             ps.course_id,
@@ -685,45 +686,99 @@ if ($action) {
                         WHERE ps.id = $sustenance_id
                         LIMIT 1; ";
 
-                    $result = Database::query($sql);
+                $result = Database::query($sql);
 
-                    if (Database::num_rows($result) === 0) {
-                        http_response_code(404);
-                        echo json_encode([
-                            'success' => false,
-                            'message' => 'Incidencia no encontrada'
-                        ]);
-                        exit;
-                    }
-
-                    // Obtener datos
-                    $incidencia = Database::fetch_assoc($result);
-
-                    // Preparar respuesta
-                    http_response_code(200);
-                    echo json_encode([
-                        'success' => true,
-                        'data' => [
-                            'id' => $incidencia['id'],
-                            'user_id' => $incidencia['user_id'],
-                            'user_name' => $incidencia['firstname'] . ' ' . $incidencia['lastname'],
-                            'course_id' => $incidencia['course_id'],
-                            'session_id' => $incidencia['session_id'],
-                            'sustenance_codes' => $incidencia['sustenance_codes'],
-                            'comment' => $incidencia['comment'],
-                            'created_at' => $incidencia['created_at'],
-                            'updated_at' => $incidencia['updated_at']
-                        ]
-                    ]);
-
-                } catch (Exception $e) {
-                    http_response_code(500);
+                if (Database::num_rows($result) === 0) {
+                    http_response_code(404);
                     echo json_encode([
                         'success' => false,
-                        'message' => 'Error: ' . $e->getMessage()
+                        'message' => 'Incidencia no encontrada'
                     ]);
+                    exit;
                 }
 
-                break;
+                // Obtener datos
+                $incidencia = Database::fetch_assoc($result);
+
+                // Preparar respuesta
+                http_response_code(200);
+                echo json_encode([
+                    'success' => true,
+                    'data' => [
+                        'id' => $incidencia['id'],
+                        'user_id' => $incidencia['user_id'],
+                        'user_name' => $incidencia['firstname'] . ' ' . $incidencia['lastname'],
+                        'course_id' => $incidencia['course_id'],
+                        'session_id' => $incidencia['session_id'],
+                        'sustenance_codes' => $incidencia['sustenance_codes'],
+                        'comment' => $incidencia['comment'],
+                        'created_at' => $incidencia['created_at'],
+                        'updated_at' => $incidencia['updated_at']
+                    ]
+                ]);
+
+            } catch (Exception $e) {
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Error: ' . $e->getMessage()
+                ]);
+            }
+
+            break;
+        case 'get_course_quizzes':
+
+            header('Content-Type: application/json');
+
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                http_response_code(405);
+                echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+                exit;
+            }
+
+            $user_id = intval($_POST['user_id'] ?? 0);
+            $course_id = intval($_POST['course_id'] ?? 0);
+            $session_id = intval($_POST['session_id'] ?? 0);
+
+            if ($user_id === 0 || $course_id === 0) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Datos incompletos (user_id o course_id)']);
+                exit;
+            }
+            require_once api_get_path(SYS_PLUGIN_PATH) . 'proikos/src/QuizBlockManager.php';
+            try {
+                // Obtener todos los ejercicios del curso
+                $quizzes = \src\QuizBlockManager::getCourseQuizzes($course_id, $session_id);
+
+                // Obtener bloqueos existentes del usuario
+                $existingBlocks = \src\QuizBlockManager::getQuizBlocks($user_id, $course_id, $session_id);
+
+                $blocked_ids = [];
+                $record_id = null;
+
+                if (!empty($existingBlocks)) {
+                    $blocked_ids = explode(',', $existingBlocks['exam_ids']);
+                    $blocked_ids = array_map('trim', $blocked_ids);
+                    $record_id = $existingBlocks['id'];
+                }
+
+                http_response_code(200);
+                echo json_encode([
+                    'success' => true,
+                    'quizzes' => $quizzes,
+                    'blocked_ids' => $blocked_ids,
+                    'record_id' => $record_id,
+                    'message' => 'Exámenes cargados correctamente'
+                ]);
+
+            } catch (Exception $e) {
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Error: ' . $e->getMessage()
+                ]);
+            }
+
+            break;
     }
 }
