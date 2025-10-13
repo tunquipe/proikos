@@ -281,6 +281,8 @@
          * Desbloquear todos los exámenes
          */
         $('#clearQuizBlockBtn').click(function() {
+            let urlAjax = '{{ url_ajax }}'
+
             if (!confirm('¿Estás seguro de desbloquear TODOS los exámenes para este usuario?')) {
                 return;
             }
@@ -291,7 +293,7 @@
 
             $.ajax({
 
-                url: 'delete_quiz_block.php',
+                url: urlAjax + '?action=delete_quiz_block',
                 method: 'POST',
                 dataType: 'json',
                 data: {
@@ -301,9 +303,10 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        mostrarAlertaQuiz('success', '✓ Todos los exámenes han sido desbloqueados');
+                        mostrarAlertaQuiz('success', 'Todos los exámenes han sido desbloqueados');
                         setTimeout(function() {
                             $('#modalBloquearQuiz').modal('hide');
+                            // location.reload(); // Descomentar si quieres recargar
                         }, 1500);
                     } else {
                         mostrarAlertaQuiz('danger', '✗ Error: ' + response.message);
