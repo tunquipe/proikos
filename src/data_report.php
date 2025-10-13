@@ -244,8 +244,10 @@ $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $acti
 
 $data = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, $page, $perPage);
 
+$urlAjaxPlugin = api_get_path(WEB_PLUGIN_PATH)."proikos/src/ajax.php";
 $tpl->assign('actions', Display::toolbarAction('toolbar', [$actionLinks]));
 $tpl->assign('message', $message);
+$tpl->assign('url_ajax', $urlAjaxPlugin);
 $tpl->assign('data', $data);
 $tpl->assign('perPage', $perPage);
 $content = $tpl->fetch('proikos/view/proikos_report_data.tpl');

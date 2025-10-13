@@ -649,5 +649,81 @@ if ($action) {
             }
 
             break;
+            case 'get_sustenance_by_id':
+                header('Content-Type: application/json');
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                    http_response_code(405);
+                    echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+                    exit;
+                }
+                $data = $_POST;
+                $sustenance_id = intval($data['sustenance_id'] ?? 0);
+
+                if ($sustenance_id === 0) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => 'ID de incidencia no válido']);
+                    exit;
+                }
+
+                try {
+                    $tableSustenance = Database::get_main_table('plugin_proikos_sustenance');
+                    $tableUsers = Database::get_main_table('user');
+
+                    $sql = "SELECT
+                            ps.id,
+                            ps.user_id,
+                            ps.course_id,
+                            ps.session_id,
+                            ps.sustenance_codes,
+                            ps.comment,
+                            ps.created_at,
+                            ps.updated_at,
+                            u.firstname,
+                            u.lastname
+                        FROM $tableSustenance ps
+                        LEFT JOIN $tableUsers u ON ps.user_id = u.id
+                        WHERE ps.id = $sustenance_id
+                        LIMIT 1; ";
+
+                    $result = Database::query($sql);
+
+                    if (Database::num_rows($result) === 0) {
+                        http_response_code(404);
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'Incidencia no encontrada'
+                        ]);
+                        exit;
+                    }
+
+                    // Obtener datos
+                    $incidencia = Database::fetch_assoc($result);
+
+                    // Preparar respuesta
+                    http_response_code(200);
+                    echo json_encode([
+                        'success' => true,
+                        'data' => [
+                            'id' => $incidencia['id'],
+                            'user_id' => $incidencia['user_id'],
+                            'user_name' => $incidencia['firstname'] . ' ' . $incidencia['lastname'],
+                            'course_id' => $incidencia['course_id'],
+                            'session_id' => $incidencia['session_id'],
+                            'sustenance_codes' => $incidencia['sustenance_codes'],
+                            'comment' => $incidencia['comment'],
+                            'created_at' => $incidencia['created_at'],
+                            'updated_at' => $incidencia['updated_at']
+                        ]
+                    ]);
+
+                } catch (Exception $e) {
+                    http_response_code(500);
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Error: ' . $e->getMessage()
+                    ]);
+                }
+
+                break;
     }
 }

@@ -4427,11 +4427,11 @@ EOT;
                 $row['download'] = '';
                 if($status_id == 2){
                     $urlCertificate = $this->getUserCertificateSession($row['id'], $row['session_id']);
-                    $row['download'] = '<a class="btn btn-default btn-sm" href="'.$urlCertificate['pdf'].'" target="_blank"><i class="fa fa-download" aria-hidden="true"></i>'.$this->get_lang('Download').'</a>';
+                    $row['download'] = '<a class="btn btn-default btn-sm" href="'.$urlCertificate.'" target="_blank"><i class="fa fa-download" aria-hidden="true"></i>'.$this->get_lang('Download').'</a>';
                 }
                 $checkDocument = $this->checkDocuments($row['id'],$row['session_id']);
                 $row['check_document'] = $checkDocument;
-                $row['sustenance'] = $this->getSustenanceIconFA($row['id'],$row['c_id'],$row['session_id']);
+                $row['sustenance'] = $this->getSustenanceIconFA($row['id'],$row['c_id'],$row['session_id'], true);
 
                 $timeSpent = api_time_to_hms(
                     Tracking::get_time_spent_on_the_course(
@@ -4547,7 +4547,7 @@ EOT;
         return $exercises;
     }
 
-    function getUserCertificateSession($userId, $sessionId): array
+    function getUserCertificateSession($userId, $sessionId): string
     {
         $sessionCourses = SessionManager::get_course_list_by_session_id($sessionId);
         foreach ($sessionCourses as $course) {
@@ -4586,12 +4586,9 @@ EOT;
                 continue;
             }
 
-            return [
-                'link' => api_get_path(WEB_PATH)."certificates/index.php?id={$certificateInfo['id']}",
-                'pdf' => api_get_path(WEB_PATH)."certificates/index.php?id={$certificateInfo['id']}&user_id={$userId}&action=export",
-            ];
+            return api_get_path(WEB_PATH)."certificates/index.php?id={$certificateInfo['id']}&user_id={$userId}&action=export";
         }
-        return [];
+        return '';
     }
 
     public static function get_certificate_by_user_id($cat_id, $user_id)
@@ -4683,7 +4680,7 @@ EOT;
         return $courses;
     }
 
-    public function getSustenanceIconFA($user_id, $course_id, $session_id = null): string
+    public function getSustenanceIconFA($user_id, $course_id, $session_id = null, $typeIconImg = false): string
     {
         $tableSustenance = Database::get_main_table('plugin_proikos_sustenance');
 
@@ -4697,15 +4694,28 @@ EOT;
 
         $result = Database::query($sql);
         $hasRecord = Database::num_rows($result) > 0;
+        $idSustenance = 0;
+        while ($row = Database::fetch_assoc($result)) {
+            $idSustenance = $row['id'];
+        }
+
+        if($typeIconImg){
+            $iconRed = Display::url(Display::return_icon('bookmark_red.png',''),'#',['data-sustenance-id' => $idSustenance, 'class'=>'viewModalSustenance']);
+            $iconGreen = Display::url(Display::return_icon('bookmark_green.png',''),'#', ['data-sustenance-id' => 0, 'class'=>'viewModalSustenance']);
+        } else {
+            $iconRed = '<i class="fa fa-bookmark" style="color: #dc3545; "
+                       title="Sustento registrado"></i> ';
+            $iconGreen =  '<i class="fa fa-bookmark" style="color: #28a745; "
+                   title="Sin sustento registrado"></i> ';
+        }
+
 
         // Si existe registro - Ícono verde con checkmark
         if ($hasRecord) {
-            return '<i class="fa fa-bookmark" style="color: #dc3545; "
-                       title="Sustento registrado"></i> ';
+            return $iconRed;
         }
 
         // Si no existe registro - Ícono rojo con X
-        return '<i class="fa fa-bookmark" style="color: #28a745; "
-                   title="Sin sustento registrado"></i> ';
+        return $iconGreen;
     }
 }
