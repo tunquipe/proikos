@@ -420,5 +420,310 @@ if ($action) {
             header('Content-Type: application/json');
             echo json_encode($response);
             break;
+        case 'verify_check':
+            header('Content-Type: application/json');
+
+            if (!isset($_POST['user_id']) || !isset($_POST['session_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+                exit;
+            }
+            $userId = intval($_POST['user_id']);
+            $sessionId = intval($_POST['session_id']);
+
+            $tableCheck = Database::get_main_table($plugin::TABLE_PROIKOS_CHECK_DOCS);
+
+            $sql = "SELECT check_document FROM $tableCheck WHERE user_id = $userId AND session_id = $sessionId";
+            $result = Database::query($sql);
+            $documentCheck = 0;
+            if (Database::num_rows($result) > 0) {
+                while ($row = Database::fetch_array($result)) {
+                    $documentCheck = $row['check_document'];
+                }
+                echo json_encode(['success' => true, 'check_document' => intval($documentCheck)]);
+            }
+
+            break;
+        case 'update_check':
+            if (!isset($_POST['user_id']) || !isset($_POST['session_id']) || !isset($_POST['check_document'])) {
+                echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+                exit;
+            }
+
+            $userId = intval($_POST['user_id']);
+            $sessionId = intval($_POST['session_id']);
+            $checkDocument = intval($_POST['check_document']);
+            $userIDCheck = api_get_user_id();
+
+            $tableCheck = Database::get_main_table($plugin::TABLE_PROIKOS_CHECK_DOCS);
+
+            $sql = "SELECT id FROM $tableCheck WHERE user_id = $userId AND session_id = $sessionId";
+            $result = Database::query($sql);
+
+            $params = [
+                'user_id' => $userId,
+                'session_id' => $sessionId,
+                'check_document' => $checkDocument,
+                'user_id_check' => $userIDCheck,
+            ];
+
+            if (Database::num_rows($result) > 0) {
+                Database::update(
+                    $tableCheck,
+                    $params,
+                    [
+                        'user_id = ? AND session_id = ?' => [$userId,$sessionId],
+                    ]
+                );
+                echo json_encode(['success' => true, 'message' => 'Actualizado correctamente', 'action' => 'update']);
+            } else {
+                $id = Database::insert($tableCheck, $params);
+                header('Content-Type: application/json');
+                if ($id > 0) {
+                    echo json_encode(['success' => true, 'message' => 'Creado correctamente', 'action' => 'insert']);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Error al crear el registro']);
+                }
+            }
+            break;
+        case 'save_sustenance':
+            header('Content-Type: application/json');
+            header('Access-Control-Allow-Origin: *');
+            header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+            header('Access-Control-Allow-Headers: Content-Type');
+
+            if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+                http_response_code(200);
+                exit;
+            }
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                http_response_code(405);
+                echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+                exit;
+            }
+            $data = $_POST;
+
+            // Obtener y validar parámetros
+            $user_id = intval($data['user_id'] ?? 0);
+            $course_id = intval($data['course_id'] ?? 0);
+            $session_id = intval($data['session_id'] ?? 0);
+            $record_id = intval($data['record_id'] ?? 0);
+
+            $sustenance_codes = $data['sustenance_codes'] ?? array();
+            if (is_string($sustenance_codes)) {
+                $sustenance_codes = explode(',', $sustenance_codes);
+            }
+            $sustenance_codes = array_filter(array_map('trim', (array)$sustenance_codes));
+
+            $comment = trim($data['comment'] ?? '');
+
+            if ($user_id === 0 || $course_id === 0 || $session_id === 0) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Error: Faltan datos requeridos (user_id, course_id, session_id)',
+                    'received' => ['user_id' => $user_id, 'course_id' => $course_id, 'session_id' => $session_id]
+                ]);
+                exit;
+            }
+
+            // Validación: al menos un sustento seleccionado
+            if (empty($sustenance_codes)) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Debes seleccionar al menos un tipo de incidencia'
+                ]);
+                exit;
+            }
+
+            // Validar que todos los códigos sean números válidos (0-11)
+            $sustenance_codes = array_filter(
+                array_map('intval', $sustenance_codes),
+                function($code) {
+                    return $code >= 0 && $code <= 11;
+                }
+            );
+
+            if (empty($sustenance_codes)) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Códigos de incidencia inválidos. Deben estar entre 0 y 11'
+                ]);
+                exit;
+            }
+
+            // Incluir la clase SustenanceManager
+            require_once '../src/SustenanceManager.php';
+
+            $result = false;
+            $message = '';
+
+            if ($record_id > 0) {
+                // update
+                $result = \src\SustenanceManager::updateSustenance(
+                    $record_id,
+                    $sustenance_codes,
+                    $comment
+                );
+
+                $message = 'Incidencia actualizada exitosamente';
+                $action = 'updated';
+            } else {
+                // register
+                $result = \src\SustenanceManager::saveSustenance(
+                    $user_id,
+                    $course_id,
+                    $session_id,
+                    $sustenance_codes,
+                    $comment
+                );
+
+                $message = 'Incidencia registrada exitosamente';
+                $action = 'created';
+            }
+
+            if ($result) {
+                http_response_code(200);
+                echo json_encode([
+                    'success' => true,
+                    'message' => $message,
+                    'action' => $action,
+                    'id' => $result,
+                    'data' => [
+                        'user_id' => $user_id,
+                        'course_id' => $course_id,
+                        'session_id' => $session_id,
+                        'sustenance_codes' => implode(',', $sustenance_codes),
+                        'comment' => $comment
+                    ]
+                ]);
+            } else {
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Error al guardar los datos en la base de datos'
+                ]);
+            }
+
+            break;
+        case 'get_sustenance':
+            header('Content-Type: application/json');
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+                exit;
+            }
+            // Obtener datos POST
+            $user_id = intval($_POST['user_id'] ?? 0);
+            $course_id = intval($_POST['course_id'] ?? 0);
+            $session_id = intval($_POST['session_id'] ?? 0);
+
+            if ($user_id === 0 || $course_id === 0 || $session_id === 0) {
+                echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+                exit;
+            }
+
+            // Incluir la clase SustenanceManager
+            require_once '../src/SustenanceManager.php';
+
+            try {
+                // Obtener datos existentes
+                $existingSustenances = \src\SustenanceManager::getSustenance($user_id, $course_id, $session_id);
+
+                if (!empty($existingSustenances)) {
+                    echo json_encode([
+                        'success' => true,
+                        'data' => $existingSustenances
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => true,
+                        'data' => null
+                    ]);
+                }
+            } catch (Exception $e) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Error: ' . $e->getMessage()
+                ]);
+            }
+
+            break;
+            case 'get_sustenance_by_id':
+                header('Content-Type: application/json');
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                    http_response_code(405);
+                    echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+                    exit;
+                }
+                $data = $_POST;
+                $sustenance_id = intval($data['sustenance_id'] ?? 0);
+
+                if ($sustenance_id === 0) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => 'ID de incidencia no válido']);
+                    exit;
+                }
+
+                try {
+                    $tableSustenance = Database::get_main_table('plugin_proikos_sustenance');
+                    $tableUsers = Database::get_main_table('user');
+
+                    $sql = "SELECT
+                            ps.id,
+                            ps.user_id,
+                            ps.course_id,
+                            ps.session_id,
+                            ps.sustenance_codes,
+                            ps.comment,
+                            ps.created_at,
+                            ps.updated_at,
+                            u.firstname,
+                            u.lastname
+                        FROM $tableSustenance ps
+                        LEFT JOIN $tableUsers u ON ps.user_id = u.id
+                        WHERE ps.id = $sustenance_id
+                        LIMIT 1; ";
+
+                    $result = Database::query($sql);
+
+                    if (Database::num_rows($result) === 0) {
+                        http_response_code(404);
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'Incidencia no encontrada'
+                        ]);
+                        exit;
+                    }
+
+                    // Obtener datos
+                    $incidencia = Database::fetch_assoc($result);
+
+                    // Preparar respuesta
+                    http_response_code(200);
+                    echo json_encode([
+                        'success' => true,
+                        'data' => [
+                            'id' => $incidencia['id'],
+                            'user_id' => $incidencia['user_id'],
+                            'user_name' => $incidencia['firstname'] . ' ' . $incidencia['lastname'],
+                            'course_id' => $incidencia['course_id'],
+                            'session_id' => $incidencia['session_id'],
+                            'sustenance_codes' => $incidencia['sustenance_codes'],
+                            'comment' => $incidencia['comment'],
+                            'created_at' => $incidencia['created_at'],
+                            'updated_at' => $incidencia['updated_at']
+                        ]
+                    ]);
+
+                } catch (Exception $e) {
+                    http_response_code(500);
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Error: ' . $e->getMessage()
+                    ]);
+                }
+
+                break;
     }
 }

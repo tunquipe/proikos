@@ -15,8 +15,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
 class ProikosPlugin extends Plugin
 {
-    const TABLE_PROIKOS_DATA_LOG = 'plugin_proikos_data_log';
-
+    const TABLE_PROIKOS_CHECK_DOCS = 'plugin_proikos_check_docs';
+    const TABLE_PROIKOS_DATA = 'plugin_proikos_data';
     const TABLE_PROIKOS_USERS = 'plugin_proikos_users';
     const TABLE_PROIKOS_ENTITY = 'plugin_proikos_entity';
     const TABLE_PROIKOS_SECTOR = 'plugin_proikos_sector';
@@ -4446,7 +4446,7 @@ EOT;
             $sqlTotal .= " AND ppd.company_ruc = $rucCompany ";
         } else {
             if ($ruc != 0) {
-                $sqlTotal .= " AND ppd.company_ruc = $ruc ";
+                $sqlTotal .= " ppd ppu.company_ruc = $ruc ";
             }
         }
 
@@ -4467,7 +4467,7 @@ EOT;
 
     }
 
-    public function getDataReport($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false, $order = 'DESC'): array
+    public function getDataReport($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false): array
     {
         $tbl_course = Database::get_main_table(TABLE_MAIN_COURSE);
         $tbl_session_course_user = Database::get_main_table(TABLE_MAIN_SESSION_COURSE_USER);
@@ -4629,8 +4629,11 @@ EOT;
                 $row['download'] = '';
                 if($status_id == 2){
                     $urlCertificate = $this->getUserCertificateSession($row['id'], $row['session_id']);
-                    $row['download'] = '<a class="btn btn-default" href="'.$urlCertificate['pdf'].'" target="_blank"><i class="fa fa-download" aria-hidden="true"></i>'.$this->get_lang('Download').'</a>';
+                    $row['download'] = '<a class="btn btn-default btn-sm" href="'.$urlCertificate.'" target="_blank"><i class="fa fa-download" aria-hidden="true"></i>'.$this->get_lang('Download').'</a>';
                 }
+                $checkDocument = $this->checkDocuments($row['id'],$row['session_id']);
+                $row['check_document'] = $checkDocument;
+                $row['sustenance'] = $this->getSustenanceIconFA($row['id'],$row['c_id'],$row['session_id'], true);
 
                 $timeSpent = api_time_to_hms(
                     Tracking::get_time_spent_on_the_course(
@@ -4694,7 +4697,27 @@ EOT;
         ];
 
     }
+    public function checkDocuments($userId, $sessionId)
+    {
+        $tableCheck = Database::get_main_table(self::TABLE_PROIKOS_CHECK_DOCS);
 
+        $sql = "SELECT check_document FROM $tableCheck WHERE user_id = $userId AND session_id = $sessionId";
+        $result = Database::query($sql);
+        $documentCheck = 0;
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $documentCheck = intval($row['check_document']);
+            }
+        }
+        if($documentCheck == 1){
+            $checkImg = Display::img(api_get_path(WEB_IMG_PATH)."icons/22/check.png",$this->get_lang('VerifiedDocuments'));
+        } else {
+            $checkImg = Display::img(api_get_path(WEB_IMG_PATH)."icons/22/check_na.png",$this->get_lang('UnverifiedDocuments'));
+        }
+
+        return $checkImg;
+
+    }
     public function getSessionExercises($sessionId, $courseId = null) {
         $exercises = [];
 
@@ -4726,7 +4749,7 @@ EOT;
         return $exercises;
     }
 
-    function getUserCertificateSession($userId, $sessionId): array
+    function getUserCertificateSession($userId, $sessionId): string
     {
         $sessionCourses = SessionManager::get_course_list_by_session_id($sessionId);
         foreach ($sessionCourses as $course) {
@@ -4765,11 +4788,9 @@ EOT;
                 continue;
             }
 
-            return [
-                'link' => api_get_path(WEB_PATH)."certificates/index.php?id={$certificateInfo['id']}",
-                'pdf' => api_get_path(WEB_PATH)."certificates/index.php?id={$certificateInfo['id']}&user_id={$userId}&action=export",
-            ];
+            return api_get_path(WEB_PATH)."certificates/index.php?id={$certificateInfo['id']}&user_id={$userId}&action=export";
         }
+        return '';
     }
 
     public static function get_certificate_by_user_id($cat_id, $user_id)
@@ -4859,5 +4880,44 @@ EOT;
         }
 
         return $courses;
+    }
+
+    public function getSustenanceIconFA($user_id, $course_id, $session_id = null, $typeIconImg = false): string
+    {
+        $tableSustenance = Database::get_main_table('plugin_proikos_sustenance');
+
+        $sql = "SELECT id FROM $tableSustenance
+                WHERE user_id = $user_id
+                AND course_id = $course_id ";
+
+        if ($session_id !== null) {
+            $sql .= " AND session_id = $session_id ";
+        }
+
+        $result = Database::query($sql);
+        $hasRecord = Database::num_rows($result) > 0;
+        $idSustenance = 0;
+        while ($row = Database::fetch_assoc($result)) {
+            $idSustenance = $row['id'];
+        }
+
+        if($typeIconImg){
+            $iconRed = Display::url(Display::return_icon('bookmark_red.png',''),'#',['data-sustenance-id' => $idSustenance, 'class'=>'viewModalSustenance']);
+            $iconGreen = Display::url(Display::return_icon('bookmark_green.png',''),'#', ['data-sustenance-id' => 0, 'class'=>'viewModalSustenance']);
+        } else {
+            $iconRed = '<i class="fa fa-bookmark" style="color: #dc3545; "
+                       title="Sustento registrado"></i> ';
+            $iconGreen =  '<i class="fa fa-bookmark" style="color: #28a745; "
+                   title="Sin sustento registrado"></i> ';
+        }
+
+
+        // Si existe registro - Ícono verde con checkmark
+        if ($hasRecord) {
+            return $iconRed;
+        }
+
+        // Si no existe registro - Ícono rojo con X
+        return $iconGreen;
     }
 }
