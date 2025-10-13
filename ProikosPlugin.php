@@ -16,7 +16,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 class ProikosPlugin extends Plugin
 {
     const TABLE_PROIKOS_CHECK_DOCS = 'plugin_proikos_check_docs';
-    const TABLE_PROIKOS_DATA = 'plugin_proikos_data';
+    const TABLE_PROIKOS_DATA = 'plugin_proikos_data_log';
     const TABLE_PROIKOS_USERS = 'plugin_proikos_users';
     const TABLE_PROIKOS_ENTITY = 'plugin_proikos_entity';
     const TABLE_PROIKOS_SECTOR = 'plugin_proikos_sector';
@@ -4345,7 +4345,7 @@ EOT;
 
     public function getDataUsersReportProikos($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false): array
     {
-        $table_data = Database::get_main_table(self::TABLE_PROIKOS_DATA_LOG);
+        $table_data = Database::get_main_table(self::TABLE_PROIKOS_DATA);
         // Calcular el offset para la paginación
         $offset = ($page - 1) * $perPage;
 
@@ -4554,10 +4554,10 @@ EOT;
                 $sql.= " AND ppu.ruc_company = $ruc ";
             }
         }
-        if ($isExport) {
-            $sql.= " ORDER BY u.id $order; ";
+        if (!$isExport) {
+            $sql.= " ORDER BY u.id DESC LIMIT $offset, $perPage;";
         } else {
-            $sql.= " ORDER BY u.id $order LIMIT $offset, $perPage;";
+            $sql.= " ORDER BY u.id DESC; ";
         }
 
         $result = Database::query($sql);
