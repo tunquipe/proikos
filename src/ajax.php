@@ -748,7 +748,7 @@ if ($action) {
             require_once api_get_path(SYS_PLUGIN_PATH) . 'proikos/src/QuizBlockManager.php';
             try {
                 // Obtener todos los ejercicios del curso
-                $quizzes = \src\QuizBlockManager::getCourseQuizzes($course_id, $session_id);
+                $quizzes = \src\QuizBlockManager::getCourseQuizzes($course_id);
 
                 // Obtener bloqueos existentes del usuario
                 $existingBlocks = \src\QuizBlockManager::getQuizBlocks($user_id, $course_id, $session_id);

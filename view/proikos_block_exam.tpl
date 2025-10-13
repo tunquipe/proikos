@@ -1,5 +1,5 @@
 <!-- Modal para Bloquear Exámenes -->
-<div class="modal fade" id="modalBloquearQuiz" tabindex="-1" role="dialog" aria-labelledby="modalBloquearQuizLabel" aria-hidden="true">
+<div class="modal fade" id="modalBloquearQuiz" tabindex="-1" role="dialog" aria-labelledby="modalBloquearQuizLabel" >
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
@@ -9,7 +9,6 @@
                 </button>
             </div>
             <div class="modal-body">
-                <!-- Indicador de carga -->
                 <div id="loadingQuizzes" class="text-center">
                     <div class="spinner-border text-danger" role="status">
                         <span class="sr-only">Cargando exámenes...</span>
@@ -17,7 +16,6 @@
                     <p>Cargando exámenes disponibles...</p>
                 </div>
 
-                <!-- Contenedor del formulario (oculto hasta cargar) -->
                 <div id="quizBlockForm" style="display: none;">
                     <form id="formBloquearQuiz">
                         <!-- Información del Usuario -->
@@ -28,7 +26,7 @@
                         <!-- Select múltiple de exámenes -->
                         <div class="form-group">
                             <label for="quiz_select"><strong>Selecciona los exámenes a bloquear:</strong></label>
-                            <select id="quiz_select" name="quiz_ids[]" multiple class="form-control" size="10" required>
+                            <select id="quiz_select" name="quiz_ids[]" multiple class="form-control" size="4" required>
                                 <!-- Se llena dinámicamente -->
                             </select>
                             <small class="form-text text-muted">
@@ -110,38 +108,26 @@
             const userId = $(this).data('user-id');
             const courseId = $(this).data('course-id');
             const sessionId = $(this).data('session-id');
-            console.log(userId);
-            console.log(courseId);
-            console.log(sessionId);
 
             if (!userId) {
                 mostrarErrorQuiz('ID de usuario no válido');
                 return;
             }
+            //console.log('Abriendo modal para usuario:', userId, 'Curso:', courseId, 'Sesión:', sessionId);
 
-            // Obtener course_id y session_id desde la URL o contexto
-
-
-            console.log('Abriendo modal para usuario:', userId, 'Curso:', courseId, 'Sesión:', sessionId);
-
-            // Limpiar modal
             limpiarModalQuiz();
 
-            // Llenar campos ocultos
             $('#quiz_block_user_id').val(userId);
             $('#quiz_block_user_id_display').text(userId);
             $('#quiz_block_course_id').val(courseId);
             $('#quiz_block_session_id').val(sessionId);
 
-            // Mostrar spinner
             $('#loadingQuizzes').show();
             $('#quizBlockForm').hide();
             $('#errorQuizMessage').hide();
 
-            // Abrir modal
             $('#modalBloquearQuiz').modal('show');
 
-            // Cargar exámenes disponibles
             cargarExamenesDisponibles(userId, courseId, sessionId);
         });
 
@@ -206,9 +192,10 @@
 
             quizzes.forEach(function(quiz) {
                 const isBlocked = blockedIds.includes(quiz.id.toString()) || blockedIds.includes(parseInt(quiz.id));
+                //(quiz.active == 1 ? ' (Activo) ' : ' (Inactivo)')
                 const option = $('<option>')
                     .val(quiz.id)
-                    .text(quiz.title + (quiz.active == 1 ? ' ✓' : ' (Inactivo)'))
+                    .text(quiz.title)
                     .prop('selected', isBlocked);
 
                 $select.append(option);

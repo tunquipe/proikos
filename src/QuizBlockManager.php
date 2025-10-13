@@ -128,7 +128,7 @@ class QuizBlockManager
      * @param int $session_id ID de la sesión (0 para curso base)
      * @return array Lista de ejercicios
      */
-    public static function getCourseQuizzes($course_id, $session_id = 0): array
+    public static function getCourseQuizzes($course_id): array
     {
         $tableQuiz = Database::get_course_table('quiz');
         if (!$course_id) {
@@ -138,7 +138,6 @@ class QuizBlockManager
         $sql = "SELECT iid as id, title, description, active
                 FROM $tableQuiz
                 WHERE c_id = $course_id
-                AND session_id = $session_id
                 AND active >= 0
                 ORDER BY title ASC";
 
