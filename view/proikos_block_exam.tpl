@@ -18,12 +18,11 @@
 
                 <div id="quizBlockForm" style="display: none;">
                     <form id="formBloquearQuiz">
-                        <!-- Información del Usuario -->
+
                         <div class="alert alert-info">
                             <strong>Usuario ID:</strong> <span id="quiz_block_user_id_display">-</span>
                         </div>
 
-                        <!-- Select múltiple de exámenes -->
                         <div class="form-group">
                             <label for="quiz_select"><strong>Selecciona los exámenes a bloquear:</strong></label>
                             <select id="quiz_select" name="quiz_ids[]" multiple class="form-control" size="4" required>
@@ -34,15 +33,15 @@
                             </small>
                         </div>
 
-                        <!-- Contador de seleccionados -->
                         <div class="alert alert-warning" id="selectedCount" style="display: none;">
                             <i class="fa fa-exclamation-triangle"></i> <span id="countText">0 exámenes seleccionados</span>
                         </div>
 
-                        <!-- Campos ocultos -->
                         <input type="hidden" id="quiz_block_user_id" name="user_id">
                         <input type="hidden" id="quiz_block_course_id" name="course_id">
                         <input type="hidden" id="quiz_block_session_id" name="session_id">
+                        <input type="hidden" id="quiz_block_record_id" name="record_id">
+
                     </form>
                 </div>
 
@@ -243,9 +242,9 @@
 
             // Deshabilitar botón mientras se guarda
             $('#saveQuizBlockBtn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Guardando...');
-
+            let urlAjax = '{{ url_ajax }}'
             $.ajax({
-                url: 'save_quiz_block.php',
+                url: urlAjax + '?action=save_quiz_block',
                 method: 'POST',
                 dataType: 'json',
                 data: {
@@ -291,6 +290,7 @@
             const sessionId = $('#quiz_block_session_id').val();
 
             $.ajax({
+
                 url: 'delete_quiz_block.php',
                 method: 'POST',
                 dataType: 'json',

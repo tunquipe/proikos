@@ -780,5 +780,75 @@ if ($action) {
             }
 
             break;
+        case 'save_quiz_block':
+            header('Content-Type: application/json');
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                http_response_code(405);
+                echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+                exit;
+            }
+
+            $user_id = intval($_POST['user_id'] ?? 0);
+            $course_id = intval($_POST['course_id'] ?? 0);
+            $session_id = intval($_POST['session_id'] ?? 0);
+            $record_id = intval($_POST['record_id'] ?? 0);
+            $quiz_ids = $_POST['quiz_ids'] ?? [];
+
+            if ($user_id === 0 || $course_id === 0) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+                exit;
+            }
+
+            if (empty($quiz_ids)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Debes seleccionar al menos un examen']);
+                exit;
+            }
+
+            require_once api_get_path(SYS_PLUGIN_PATH) . 'proikos/src/QuizBlockManager.php';
+
+            try {
+                $result = false;
+                $message = '';
+                $action = '';
+
+                if ($record_id > 0) {
+                    // Actualizar registro existente
+                    $result = \src\QuizBlockManager::updateQuizBlock($record_id, $quiz_ids);
+                    $message = 'Bloqueos actualizados correctamente';
+                    $action = 'updated';
+                } else {
+                    // Crear nuevo registro
+                    $result = \src\QuizBlockManager::saveQuizBlock($user_id, $course_id, $session_id, $quiz_ids);
+                    $message = 'Bloqueos registrados correctamente';
+                    $action = 'created';
+                }
+
+                if ($result) {
+                    http_response_code(200);
+                    echo json_encode([
+                        'success' => true,
+                        'message' => $message,
+                        'action' => $action,
+                        'id' => $result
+                    ]);
+                } else {
+                    http_response_code(500);
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Error al guardar los bloqueos'
+                    ]);
+                }
+
+            } catch (Exception $e) {
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Error: ' . $e->getMessage()
+                ]);
+            }
+
+            break;
     }
 }
