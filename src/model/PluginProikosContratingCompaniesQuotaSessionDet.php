@@ -86,6 +86,92 @@ class PluginProikosContratingCompaniesQuotaSessionDet
         return $data;
     }
 
+
+    public function getPaginatedData($page = 1, $perPage = 30): array
+    {
+        $where = "";
+
+        if (api_is_contractor_admin()) {
+            $rucCompany = Database::escape_string(ProikosPlugin::getUserRucCompany());
+            $where = "WHERE e.ruc = '$rucCompany'";
+        }
+
+        // Calcular el offset
+        $offset = ($page - 1) * $perPage;
+
+        $sql = "SELECT a.id, a.quota_session_id, e.ruc, e.name as company_name, f.name as session_name,
+            DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS quota_created_at,
+            CONCAT(h.lastname, ' ', h.firstname) AS quota_created_by,
+            DATE_FORMAT(a.expiration_date, '%d-%m-%Y') AS quota_vigency_date,
+            CONCAT(g.lastname, ' ', g.firstname) AS student_name,
+            g.user_id,
+            DATE_FORMAT(a.updated_at, '%d-%m-%Y %H:%i') AS student_subscription_date
+            FROM plugin_proikos_contrating_companies_quota_session_det a
+            INNER JOIN plugin_proikos_contrating_companies_quota_session b ON b.id = a.quota_session_id
+            INNER JOIN plugin_proikos_contrating_companies_quota_det c ON c.id = b.det_id
+            INNER JOIN plugin_proikos_contrating_companies_quota_cab d ON d.id = c.cab_id
+            INNER JOIN plugin_proikos_contrating_companies e ON e.id = d.contrating_company_id
+            INNER JOIN session f ON f.id = a.session_id
+            LEFT JOIN user g ON g.user_id = a.user_id
+            LEFT JOIN user h ON h.user_id = a.created_user_id
+            $where
+            ORDER BY a.id DESC
+            LIMIT $perPage OFFSET $offset;";
+
+        $result = \Database::query($sql);
+        $data = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                if (api_is_platform_admin()) {
+                    $btnDelete = Display::url(
+                        Display::return_icon(
+                            'delete.png',
+                            get_lang('Delete'),
+                            [],
+                            ICON_SIZE_SMALL
+                        ),
+                        api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/reporting_quota_session_det.php?action=delete&quota_id_s='.$row['quota_session_id'].'&id=' . $row['id'],
+                        [
+                            'onclick' => 'javascript:if(!confirm(' . "'" .
+                                addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
+                                . "'" . ')) return false;',
+                        ]
+                    );
+                    $row['actions'] = $btnDelete;
+                }
+                $row['status'] = !empty($row['user_id']);
+                $row['class'] = !empty($row['user_id']) ? 'row-success' : 'row-warning';
+                $data[] = $row;
+            }
+        }
+
+        return $data;
+    }
+
+    public function getTotalRecords()
+    {
+        $where = "";
+
+        if (api_is_contractor_admin()) {
+            $rucCompany = ProikosPlugin::getUserRucCompany();
+            $where = "WHERE e.ruc = '$rucCompany'";
+        }
+
+        $sql = "SELECT COUNT(a.id) as total
+            FROM plugin_proikos_contrating_companies_quota_session_det a
+            INNER JOIN plugin_proikos_contrating_companies_quota_session b ON b.id = a.quota_session_id
+            INNER JOIN plugin_proikos_contrating_companies_quota_det c ON c.id = b.det_id
+            INNER JOIN plugin_proikos_contrating_companies_quota_cab d ON d.id = c.cab_id
+            INNER JOIN plugin_proikos_contrating_companies e ON e.id = d.contrating_company_id
+            INNER JOIN session f ON f.id = a.session_id
+            $where;";
+
+        $result = \Database::query($sql);
+        $row = Database::fetch_array($result);
+
+        return $row['total'];
+    }
+
     public function getQuotaBySessionId($sessionId, $userId)
     {
         $userTable = Database::get_main_table($this->userTable);
