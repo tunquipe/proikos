@@ -55,10 +55,10 @@
         {% endfor %}
         </tbody>
     </table>
-
+    <input type="hidden" name="action" value="">
     {# Paginación #}
     {% if total_pages > 1 %}
-    <div class="text-center">
+    <div class="left-center">
         <ul class="pagination">
             {# Botón Anterior #}
             <li class="{% if current_page == 1 %}disabled{% endif %}">
@@ -95,8 +95,6 @@
     </div>
     {% endif %}
 
-</form>
-
 <div class="btn-toolbar">
     <div class="btn-group">
         <a class="btn btn-default" href="#" onclick="javascript: setCheckbox(true, 'report_user_quota'); return false;">
@@ -120,3 +118,5 @@
         </ul>
     </div>
 </div>
+
+</form>

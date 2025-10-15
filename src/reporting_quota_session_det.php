@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/../config.php';
 api_block_anonymous_users();
-$action = $_GET['action'] ?? null;
+$action = $_REQUEST['action'] ?? null;
 $plugin = ProikosPlugin::create();
 $allow = api_is_platform_admin() || api_is_drh() || api_is_contractor_admin();
 $htmlHeadXtra[] = api_get_css(api_get_path(WEB_PLUGIN_PATH) . 'proikos/css/style.css');
@@ -26,9 +26,17 @@ if (api_is_platform_admin()) {
             }
             break;
             case 'delete_select';
-                $idQuotaSession = $_GET['quota_id_s'] ?? null;
-            echo 'elkiminados';
-            exit;
+                $idQuotas = $_REQUEST['ids'] ?? null;
+                foreach ($idQuotas as $idReport) {
+                    $idQuotaSession = $plugin->getIDSessionQuota($idReport);
+                    $plugin->updateMinusSessionQuota($idQuotaSession);
+                    $res = $plugin->deleteReportLogRow($idReport);
+                    var_dump($idReport);
+                    var_dump($idQuotaSession);
+                }
+                $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/reporting_quota_session_det.php';
+                header('Location: ' . $url);
+                break;
             default;
     }
 }

@@ -567,6 +567,27 @@ class ProikosPlugin extends Plugin
         return $item;
     }
 
+    public function getIDSessionQuota($idReport)
+    {
+        if (empty($idReport)) {
+            return false;
+        }
+
+        $table = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET);
+
+        $sql = "SELECT * FROM $table WHERE id = $idReport";
+        $result = Database::query($sql);
+        $item = null;
+
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_array($result)) {
+                $item = $row['quota_session_id'];
+            }
+        }
+        return $item;
+
+    }
+
     public function updateMinusSessionQuota($id_det)
     {
         if (empty($id_det)) {
