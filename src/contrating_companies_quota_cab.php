@@ -1,6 +1,11 @@
 <?php
 
 require_once __DIR__ . '/../config.php';
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+
 api_block_anonymous_users();
 $action = $_GET['action'] ?? null;
 $plugin = ProikosPlugin::create();
@@ -23,7 +28,95 @@ if (empty($companyId)) {
 
 if ($action === 'export_xls') {
     $items = $plugin->contratingCompaniesQuotaCabModel()->getDataByCompanyIdForExport($companyId);
-    print_r($items);
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+    $sheet->setTitle('Cuotas Detalladas');
+
+    $headers = [
+        'ID Cuota',
+        'Total Cupos',
+        'Cupos Disponibles',
+        'Precio Total',
+        'Modalidades',
+        'Fecha Vigencia',
+        'Fecha Creación',
+        'Usuario Creador',
+        'ID Detalle',
+        'Categoría',
+        'Cupo Categoría',
+        'Cupo Disponible',
+        'Cupo Total',
+        'Precio Unitario',
+        'Modalidad'
+    ];
+
+    $sheet->fromArray($headers, NULL, 'A1');
+    // Estilo para encabezados
+    $headerStyle = [
+        'font' => ['bold' => true],
+        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+        'fill' => [
+            'fillType' => Fill::FILL_SOLID,
+            'startColor' => ['rgb' => 'CCCCCC']
+        ]
+    ];
+
+    $sheet->getStyle('A1:O1')->applyFromArray($headerStyle);
+    foreach(range('A','O') as $col) {
+        $sheet->getColumnDimension($col)->setAutoSize(true);
+    }
+
+
+    // Datos
+    $row = 2;
+    foreach ($items as $item) {
+        if (isset($item['register']) && is_array($item['register']) && count($item['register']) > 0) {
+            foreach ($item['register'] as $register) {
+                $data = [
+                    $item['id'],
+                    $item['total_user_quota'],
+                    $item['quota_dispon'],
+                    $item['total_price_unit_quota'],
+                    $item['modalidades'],
+                    $item['formatted_validity_date'],
+                    $item['formatted_created_at'],
+                    $item['user_name'],
+                    $register['id'],
+                    $register['category_name'],
+                    $register['quota'],
+                    $register['qouta_dis'],
+                    $register['qouta_total'],
+                    'S/ ' . $register['price_unit'],
+                    $register['session_mode_name']
+                ];
+                $sheet->fromArray($data, NULL, 'A'.$row);
+                $row++;
+            }
+        } else {
+            $data = [
+                $item['id'],
+                $item['total_user_quota'],
+                $item['quota_dispon'],
+                $item['total_price_unit_quota'],
+                $item['modalidades'],
+                $item['formatted_validity_date'],
+                $item['formatted_created_at'],
+                $item['user_name'],
+                '', '', '', '', '', '', ''
+            ];
+            $sheet->fromArray($data, NULL, 'A'.$row);
+            $row++;
+        }
+    }
+    $writer = new Xlsx($spreadsheet);
+    $filename = 'reporte_cuotas_detallado_'.date('Y-m-d_His').'.xlsx';
+
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment;filename="'.$filename.'"');
+    header('Cache-Control: max-age=0');
+
+    $writer->save('php://output');
+    exit;
 
 }
 
