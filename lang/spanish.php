@@ -177,3 +177,4 @@ $strings['Download'] = 'Descarga';
 $strings['VerifiedAttachedDocuments'] = 'Click para indicar documentos adjuntos verificados';
 $strings['VerifiedDocuments'] = 'Documentos verificados';
 $strings['UnverifiedDocuments'] = 'Documentos sin verificar';
+$strings['ManageCompanyQuotas'] = 'Gestionar cupos de la empresa';

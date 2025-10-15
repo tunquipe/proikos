@@ -21,6 +21,12 @@ if (empty($companyId)) {
     api_not_allowed(true);
 }
 
+if ($action === 'export_xls') {
+    $items = $plugin->contratingCompaniesQuotaCabModel()->getDataByCompanyIdForExport($companyId);
+    print_r($items);
+
+}
+
 $message = '';
 $actionLinks = '';
 $actionLinks .= Display::url(
@@ -31,9 +37,13 @@ $actionLinks .= Display::url(
     Display::return_icon('home.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
     api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies.php'
 );
+$actionLinks .= Display::url(
+    Display::return_icon('excel.png', get_lang('Export'), [], ICON_SIZE_MEDIUM),
+    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/contrating_companies_quota_cab.php?company_id='.$companyId.'&action=export_xls'
+);
 
 $empresa = $plugin->contratingCompaniesModel()->getData($companyId);
-$tool_name = 'Gestionar cupos de la empresa';
+$tool_name = $plugin->get_lang('ManageCompanyQuotas');
 $tpl = new Template($tool_name);
 $items = $plugin->contratingCompaniesQuotaCabModel()->getDataByCompanyId($companyId);
 

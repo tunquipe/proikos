@@ -120,6 +120,71 @@ class PluginProikosContratingCompaniesQuotaCab
         return $data[0] ?? [];
     }
 
+    public function getDataByCompanyIdForExport($companyId, $quota_dispon = false)
+    {
+        if (empty($companyId)) {
+            return false;
+        }
+
+        $table = Database::get_main_table($this->table);
+        $sql = "SELECT
+        a.id,
+        a.contrating_company_id,
+        (SELECT SUM(user_quota) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) AS total_user_quota,
+        (
+            (SELECT SUM(user_quota) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) -
+            IFNULL((SELECT SUM(qs.user_quota) FROM plugin_proikos_contrating_companies_quota_session qs
+            INNER JOIN " . $this->contratingCompaniesQuotaDet . " sqd ON sqd.id = qs.det_id
+            WHERE sqd.cab_id = a.id), 0)
+        ) AS quota_dispon,
+        (SELECT CONCAT('S/ ', FORMAT(SUM(price_unit * user_quota), 2)) FROM " . $this->contratingCompaniesQuotaDet . " WHERE cab_id = a.id) AS total_price_unit_quota,
+        (
+             SELECT GROUP_CONCAT(DISTINCT
+             CASE session_mode
+               WHEN 1 THEN 'Asincrónico'
+               WHEN 2 THEN 'Sincrónico'
+             END
+             ORDER BY session_mode SEPARATOR ', ') AS modalidades
+             FROM plugin_proikos_contrating_companies_quota_det where cab_id = a.id
+        ) AS modalidades,
+        (
+             SELECT GROUP_CONCAT(DISTINCT
+             sc.name
+             ORDER BY sqd.id SEPARATOR ', ') AS categorias_session
+             FROM plugin_proikos_contrating_companies_quota_det sqd
+             INNER JOIN session_category sc ON sc.id = sqd.session_category_id
+             where sqd.cab_id = a.id
+        ) AS categorias_session,
+        DATE_FORMAT(a.validity_date, '%d-%m-%Y') AS formatted_validity_date,
+        DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i') AS formatted_created_at,
+        CONCAT(b.lastname, ' ', b.firstname) AS user_name
+        FROM $table a
+        LEFT JOIN user b on a.created_user_id = b.user_id ";
+        if($quota_dispon) {
+            $sql .= " WHERE a.id = $companyId ";
+        } else {
+            $sql .= " WHERE a.contrating_company_id = $companyId ";
+        }
+        $sql .= " ORDER BY a.id DESC ";
+
+        $result = Database::query($sql);
+        $items = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_assoc($result)) {
+                $row['register'] = $this->getDetails($row['id']);
+                if(!$quota_dispon) {
+                    // Solo agregar los datos sin acciones
+                    $items[] = $row;
+                } else {
+                    $items['quota_dispon'] = $row['quota_dispon'];
+                }
+
+            }
+        }
+
+        return $items;
+    }
+
     public function getDataByCompanyId($companyId, $quota_dispon = false)
     {
         if (empty($companyId)) {
