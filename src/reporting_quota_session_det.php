@@ -57,12 +57,14 @@ $tpl->assign(
     'actions',
     Display::toolbarAction('toolbar', [$actionLinks])
 );
+$isAdmin = api_is_platform_admin();
 $tpl->assign('items', $items);
 $tpl->assign('url_self', $url_self);
 $tpl->assign('current_page', $page);
 $tpl->assign('total_pages', $totalPages);
 $tpl->assign('total_records', $total);
 $tpl->assign('per_page', $perPage);
+$tpl->assign('is_admin', $isAdmin);
 
 $content = $tpl->fetch('proikos/view/proikos_reporting_quota_session_det.tpl');
 $tpl->assign('content', $content);

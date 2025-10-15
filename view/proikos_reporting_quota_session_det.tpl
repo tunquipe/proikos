@@ -2,7 +2,7 @@
     <table class="table table-bordered ">
         <thead>
         <tr>
-            <th></th>
+            {% if is_admin %}<th></th>{% endif %}
             <th class="text-center">{{ 'RegistrationID'|get_plugin_lang('ProikosPlugin') }}</th>
             <th class="text-center">{{ 'ContratingCompanyRUC'|get_plugin_lang('ProikosPlugin') }}</th>
             <th>{{ 'ContratingCompanyName'|get_plugin_lang('ProikosPlugin') }}</th>
@@ -20,7 +20,7 @@
         <tbody>
         {% for item in items %}
         <tr style="font-size: 13px;" class="{{ item.class }}">
-            <td><input type="checkbox" name="ids[]" value="{{ item.id }}"/></td>
+            {% if is_admin %}<td><input type="checkbox" name="ids[]" value="{{ item.id }}"/></td>{% endif %}
             <td class="text-center">{{ item.id }}</td>
             <td class="text-center">{{ item.ruc }}</td>
             <td>{{ item.company_name }}</td>
@@ -94,7 +94,7 @@
         </p>
     </div>
     {% endif %}
-
+{% if is_admin %}
 <div class="btn-toolbar">
     <div class="btn-group">
         <a class="btn btn-default" href="#" onclick="javascript: setCheckbox(true, 'report_user_quota'); return false;">
@@ -118,5 +118,5 @@
         </ul>
     </div>
 </div>
-
+{% endif %}
 </form>

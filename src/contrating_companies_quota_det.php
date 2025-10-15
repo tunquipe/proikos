@@ -31,7 +31,7 @@ $tpl = new Template($tool_name);
 $empresa = $plugin->contratingCompaniesModel()->getData($_GET['company_id']);
 $cabecera = $plugin->contratingCompaniesQuotaCabModel()->getData($_GET['quota_cab_id']);
 $detalle = $plugin->contratingCompaniesQuotaCabModel()->getDetails($_GET['quota_cab_id']);
-var_dump($detalle);
+
 $actionLinks = '';
 $actionLinks .= Display::url(
     Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
