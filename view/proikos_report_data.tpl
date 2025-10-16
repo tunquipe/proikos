@@ -72,9 +72,10 @@
         <th class="th-header">{{ 'Workshop'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'ExitExam'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Score'|get_plugin_lang('ProikosPlugin') }}</th>
-        <th class="th-header">{{ 'Status'|get_plugin_lang('ProikosPlugin') }}</th>
-        <th class="th-header">{{ 'Observations'|get_plugin_lang('ProikosPlugin') }}</th>
-        <th style="width: 120px" class="th-header">{{ 'Actions'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th style="width: 120px" class="th-header">{{ 'Status'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th class="th-header">{{ 'DownloadCertificate'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th style="width: 100px" class="th-header">{{ 'CertificatesAttachedStudent'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th style="width: 100px" class="th-header">{{ 'Incidents'|get_plugin_lang('ProikosPlugin') }}</th>
 
     </tr>
     {% if data.users %}
@@ -121,26 +122,27 @@
         <td>{{ user.score }}</td>
         <td style="text-align: center">
             {{ user.status }}
-        </td>
-
-        <td style="text-align: center">
+            <br>
             {% if user.certificate_status == 1 %}
-            <span class="label label-success">Vigente</span>
+            <span style="font-size: 12px"><strong>Certificado:</strong> Vigente</span>
             {% elseif user.certificate_status == 2 %}
-            <span class="label label-warning">Caducado</span>
+            <span style="font-size: 12px"><strong>Certificado:</strong> Caducado</span>
             {% elseif user.certificate_status == 3 %}
-            <span class="label label-default">No generado</span>
+            <span style="font-size: 12px"><strong>Certificado:</strong> No generado</span>
             {% else %}
             - <!-- Si no tiene un valor 1, 2 o 3, puedes mostrar un guion o un texto por defecto -->
             {% endif %}
-            {{ user.download }}
-
         </td>
 
         <td style="text-align: center">
+            {{ user.download }}
+        </td>
+        <td>
+            {{ user.cert }}
+            {{ user.check_document }}
+        </td>
+        <td style="text-align: center">
             <div class="link-group" role="group" >
-                {{ user.cert }}
-                {{ user.check_document }}
                 {{ user.sustenance }}
             </div>
         </td>

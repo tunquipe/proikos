@@ -2837,8 +2837,8 @@ EOT
     {
         $baseUploadDir = api_get_path(SYS_APP_PATH) . 'upload/proikos_user_documents/';
         $userSessionDir = $baseUploadDir . $userId . '/' . $sessionId;
-        $icon = $this->get_icon('certificate');
-        $icon_na = $this->get_icon('certificate_na');
+        $icon = $this->get_icon('attach');
+        $icon_na = $this->get_icon('attach_na');
         // if directory $userSessionDir exists and is not empty
         if (is_dir($userSessionDir) && count(scandir($userSessionDir)) > 2) {
             $downloadUrl = api_get_path(WEB_PATH) . 'plugin/proikos/src/ajax.php?action=download_user_uploaded_documents&user_id=' . $userId
@@ -2848,7 +2848,7 @@ EOT
                 $downloadUrl
             );
         } else {
-            $downloadCertUploadedLink = Display::img($icon_na, $this->get_lang('DownloadAttachedCertificates'),['width' => '32px']);
+            $downloadCertUploadedLink = Display::img($icon_na, $this->get_lang('AttachedDocumentsNotAvailable'),['width' => '32px']);
         }
 
         return $downloadCertUploadedLink;
@@ -4647,10 +4647,16 @@ EOT;
                 $row['links'] = empty($userLinks);
                 $downloadCertUploadedLink = $this->generateDownloadLinkAttachCertificates($row['id'], $row['student'], $row['session_id']);
                 $row['cert'] = $downloadCertUploadedLink;
-                $row['download'] = '';
+
+                $iconCertificate = $this->get_icon('certificate');
+                $iconCertificate_na = $this->get_icon('certificate_na');
+                $row['download'] = Display::img($iconCertificate_na, $this->get_lang('CertificateNotGenerated'),['width' => '32px']);
+
                 if($status_id == 2){
                     $urlCertificate = $this->getUserCertificateSession($row['id'], $row['session_id']);
-                    $row['download'] = '<a class="btn btn-default btn-sm" href="'.$urlCertificate.'" target="_blank"><i class="fa fa-download" aria-hidden="true"></i>'.$this->get_lang('Download').'</a>';
+                    $row['download'] = '<a href="'.$urlCertificate.'" target="_blank">'.
+                        Display::img($iconCertificate, $this->get_lang('DownloadCertificate'),['width' => '32px']).
+                        '</a>';
                 }
                 $checkDocument = $this->checkDocuments($row['id'],$row['session_id']);
                 $row['check_document'] = $checkDocument;
