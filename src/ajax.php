@@ -699,6 +699,7 @@ if ($action) {
 
                 // Obtener datos
                 $incidencia = Database::fetch_assoc($result);
+                $sessionName = api_get_session_name($incidencia['session_id']);
 
                 // Preparar respuesta
                 http_response_code(200);
@@ -710,6 +711,7 @@ if ($action) {
                         'user_name' => $incidencia['firstname'] . ' ' . $incidencia['lastname'],
                         'course_id' => $incidencia['course_id'],
                         'session_id' => $incidencia['session_id'],
+                        'session_name' => $sessionName,
                         'sustenance_codes' => $incidencia['sustenance_codes'],
                         'comment' => $incidencia['comment'],
                         'created_at' => $incidencia['created_at'],

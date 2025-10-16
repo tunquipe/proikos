@@ -209,11 +209,11 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <p><strong>ID Usuario:</strong> <span id="incidencia_user_id">-</span></p>
-                                    <p><strong>Nombre Usuario:</strong> <span id="incidencia_user_name">-</span></p>
+                                    <p><strong>Estudiante:</strong> <span id="incidencia_user_name">-</span></p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p><strong>ID Curso:</strong> <span id="incidencia_course_id">-</span></p>
                                     <p><strong>ID Sesión:</strong> <span id="incidencia_session_id">-</span></p>
+                                    <p><strong>Nombre de la Sesión:</strong> <span id="incidencia_session_name">-</span></p>
                                 </div>
                             </div>
                         </div>
@@ -279,12 +279,22 @@
         flex-wrap: wrap;
         gap: 8px;
     }
-
+    .modal-title{
+        margin: 0;
+        padding: 0;
+        font-weight: 800;
+        font-size: 16px;
+    }
+    .modal-header .close {
+        margin-top: -22px;
+    }
     .badge-group .badge {
         padding: 8px 12px;
         font-size: 14px;
     }
-
+    #incidencia_codes .badge-info{
+        background-color: #da0000 !important;
+    }
     .modal-header.bg-info {
         background-color: #17a2b8 !important;
     }
@@ -392,8 +402,8 @@
             // Información del usuario
             $('#incidencia_user_id').text(data.user_id || '-');
             $('#incidencia_user_name').text(data.user_name || '-');
-            $('#incidencia_course_id').text(data.course_id || '-');
             $('#incidencia_session_id').text(data.session_id || '-');
+            $('#incidencia_session_name').text(data.session_name || '-');
 
             // Tipos de incidencia
             mostrarCodigosIncidencia(data.sustenance_codes || '');
@@ -464,8 +474,8 @@
         function limpiarModal() {
             $('#incidencia_user_id').text('-');
             $('#incidencia_user_name').text('-');
-            $('#incidencia_course_id').text('-');
             $('#incidencia_session_id').text('-');
+            $('#incidencia_session_name').text('-');
             $('#incidencia_codes').empty();
             $('#incidencia_comment').text('-');
             $('#incidencia_grade').text('-');
