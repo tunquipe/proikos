@@ -75,7 +75,7 @@
         <th style="width: 120px" class="th-header">{{ 'Status'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'DownloadCertificate'|get_plugin_lang('ProikosPlugin') }}</th>
         <th style="width: 100px" class="th-header">{{ 'CertificatesAttachedStudent'|get_plugin_lang('ProikosPlugin') }}</th>
-        <th style="width: 100px" class="th-header">{{ 'Incidents'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th style="width: 90px" class="th-header">{{ 'Incidents'|get_plugin_lang('ProikosPlugin') }}</th>
 
     </tr>
     {% if data.users %}
@@ -137,7 +137,7 @@
         <td style="text-align: center">
             {{ user.download }}
         </td>
-        <td>
+        <td style="text-align: center">
             {{ user.cert }}
             {{ user.check_document }}
         </td>

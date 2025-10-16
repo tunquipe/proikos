@@ -4929,8 +4929,8 @@ EOT;
         }
 
         if($typeIconImg){
-            $iconRed = Display::url(Display::return_icon('bookmark_red.png',''),'#',['data-sustenance-id' => $idSustenance, 'class'=>'viewModalSustenance']);
-            $iconGreen = Display::url(Display::return_icon('bookmark_green.png',''),'#', ['data-sustenance-id' => 0, 'class'=>'viewModalSustenance']);
+            $iconRed = Display::url(Display::return_icon('bookmark_red.png',$this->get_lang('WithReportedIncidence')),'#',['data-sustenance-id' => $idSustenance, 'class'=>'viewModalSustenance']);
+            $iconGreen = Display::url(Display::return_icon('bookmark_green.png',$this->get_lang('NoIncidents')),'#', ['data-sustenance-id' => 0, 'class'=>'viewModalSustenance']);
         } else {
             $iconRed = '<i class="fa fa-bookmark" style="color: #dc3545; "
                        title="Sustento registrado"></i> ';
