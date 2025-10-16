@@ -10,9 +10,14 @@ $htmlHeadXtra[] = api_get_css(api_get_path(WEB_PLUGIN_PATH) . 'proikos/css/style
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $perPage = 30;
 
+// Capturar parámetros de búsqueda
+$searchBy = $_GET['search_by'] ?? '';
+$searchTerm = $_GET['search_term'] ?? '';
+
 if (!$allow) {
     api_not_allowed(true);
 }
+
 if (api_is_platform_admin()) {
     switch ($action) {
         case 'delete':
@@ -25,21 +30,42 @@ if (api_is_platform_admin()) {
                 header('Location: ' . $url);
             }
             break;
-            case 'delete_select';
-                $idQuotas = $_REQUEST['ids'] ?? null;
-                foreach ($idQuotas as $idReport) {
-                    $idQuotaSession = $plugin->getIDSessionQuota($idReport);
-                    $plugin->updateMinusSessionQuota($idQuotaSession);
-                    $res = $plugin->deleteReportLogRow($idReport);
-                    var_dump($idReport);
-                    var_dump($idQuotaSession);
-                }
-                $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/reporting_quota_session_det.php';
-                header('Location: ' . $url);
-                break;
-            default;
+        case 'delete_select':
+            $idQuotas = $_REQUEST['ids'] ?? null;
+            foreach ($idQuotas as $idReport) {
+                $idQuotaSession = $plugin->getIDSessionQuota($idReport);
+                $plugin->updateMinusSessionQuota($idQuotaSession);
+                $res = $plugin->deleteReportLogRow($idReport);
+            }
+            $url = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/reporting_quota_session_det.php';
+            header('Location: ' . $url);
+            break;
+        default:
     }
 }
+
+// Crear el formulario de búsqueda
+$searchForm = '
+<form method="get" class="form-inline" style="margin-bottom: 10px;">
+    <div class="form-group" style="margin-right: 10px;">
+        <select name="search_by" class="form-control" required>
+            <option value="">Buscar por...</option>
+            <option value="ruc" ' . ($searchBy == 'ruc' ? 'selected' : '') . '>RUC</option>
+            <option value="company" ' . ($searchBy == 'company' ? 'selected' : '') . '>Nombre de Empresa</option>
+            <option value="student" ' . ($searchBy == 'student' ? 'selected' : '') . '>Nombre de Estudiante</option>
+        </select>
+    </div>
+    <div class="form-group" style="margin-right: 10px;">
+        <input type="text" name="search_term" class="form-control" placeholder="Término de búsqueda" value="' . htmlspecialchars($searchTerm) . '" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        <i class="fa fa-search"></i> Buscar
+    </button>
+    <a href="' . api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/reporting_quota_session_det.php" class="btn btn-default">
+        <i class="fa fa-refresh"></i> Limpiar
+    </a>
+</form>';
 
 $actionLinks = Display::url(
     Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
@@ -47,19 +73,32 @@ $actionLinks = Display::url(
 );
 
 $tool_name = $plugin->get_lang('CouponRegistrationReport');
-$items = $plugin->contratingCompaniesQuotaSessionDetModel()->getPaginatedData($page, $perPage);
-$total = $plugin->contratingCompaniesQuotaSessionDetModel()->getTotalRecords();
-$totalPages = ceil($total / 30);
 
+// Pasar parámetros de búsqueda a las funciones
+$searchParams = [
+    'search_by' => $searchBy,
+    'search_term' => $searchTerm
+];
+
+$items = $plugin->contratingCompaniesQuotaSessionDetModel()->getPaginatedData($page, $perPage, $searchParams);
+$total = $plugin->contratingCompaniesQuotaSessionDetModel()->getTotalRecords($searchParams);
+$totalPages = ceil($total / $perPage);
+
+// Construir URL con parámetros de búsqueda para la paginación
 $url_self = api_get_self();
+$queryParams = [];
+if (!empty($searchBy)) $queryParams[] = 'search_by=' . urlencode($searchBy);
+if (!empty($searchTerm)) $queryParams[] = 'search_term=' . urlencode($searchTerm);
+$queryString = !empty($queryParams) ? '?' . implode('&', $queryParams) : '';
+
 $tpl = new Template($tool_name);
 $tpl->assign(
     'actions',
-    Display::toolbarAction('toolbar', [$actionLinks])
+    Display::toolbarAction('toolbar', [$actionLinks, $searchForm],[5,7])
 );
 $isAdmin = api_is_platform_admin();
 $tpl->assign('items', $items);
-$tpl->assign('url_self', $url_self);
+$tpl->assign('url_self', $url_self . $queryString);
 $tpl->assign('current_page', $page);
 $tpl->assign('total_pages', $totalPages);
 $tpl->assign('total_records', $total);

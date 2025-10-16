@@ -87,14 +87,33 @@ class PluginProikosContratingCompaniesQuotaSessionDet
     }
 
 
-    public function getPaginatedData($page = 1, $perPage = 30): array
+    public function getPaginatedData($page = 1, $perPage = 30, $searchParams = []): array
     {
-        $where = "";
+        $where = [];
 
         if (api_is_contractor_admin()) {
             $rucCompany = Database::escape_string(ProikosPlugin::getUserRucCompany());
-            $where = "WHERE e.ruc = '$rucCompany'";
+            $where[] = "e.ruc = '$rucCompany'";
         }
+
+        // Agregar filtro de búsqueda según el criterio seleccionado
+        if (!empty($searchParams['search_by']) && !empty($searchParams['search_term'])) {
+            $term = Database::escape_string($searchParams['search_term']);
+
+            switch ($searchParams['search_by']) {
+                case 'ruc':
+                    $where[] = "e.ruc LIKE '%$term%'";
+                    break;
+                case 'company':
+                    $where[] = "e.name LIKE '%$term%'";
+                    break;
+                case 'student':
+                    $where[] = "(g.firstname LIKE '%$term%' OR g.lastname LIKE '%$term%' OR CONCAT(g.lastname, ' ', g.firstname) LIKE '%$term%')";
+                    break;
+            }
+        }
+
+        $whereClause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
 
         // Calcular el offset
         $offset = ($page - 1) * $perPage;
@@ -114,7 +133,7 @@ class PluginProikosContratingCompaniesQuotaSessionDet
             INNER JOIN session f ON f.id = a.session_id
             LEFT JOIN user g ON g.user_id = a.user_id
             LEFT JOIN user h ON h.user_id = a.created_user_id
-            $where
+            $whereClause
             ORDER BY a.id DESC
             LIMIT $perPage OFFSET $offset;";
 
@@ -148,14 +167,33 @@ class PluginProikosContratingCompaniesQuotaSessionDet
         return $data;
     }
 
-    public function getTotalRecords()
+    public function getTotalRecords($searchParams = []): int
     {
-        $where = "";
+        $where = [];
 
         if (api_is_contractor_admin()) {
-            $rucCompany = ProikosPlugin::getUserRucCompany();
-            $where = "WHERE e.ruc = '$rucCompany'";
+            $rucCompany = Database::escape_string(ProikosPlugin::getUserRucCompany());
+            $where[] = "e.ruc = '$rucCompany'";
         }
+
+        // Agregar filtro de búsqueda según el criterio seleccionado
+        if (!empty($searchParams['search_by']) && !empty($searchParams['search_term'])) {
+            $term = Database::escape_string($searchParams['search_term']);
+
+            switch ($searchParams['search_by']) {
+                case 'ruc':
+                    $where[] = "e.ruc LIKE '%$term%'";
+                    break;
+                case 'company':
+                    $where[] = "e.name LIKE '%$term%'";
+                    break;
+                case 'student':
+                    $where[] = "(g.firstname LIKE '%$term%' OR g.lastname LIKE '%$term%' OR CONCAT(g.lastname, ' ', g.firstname) LIKE '%$term%')";
+                    break;
+            }
+        }
+
+        $whereClause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
 
         $sql = "SELECT COUNT(a.id) as total
             FROM plugin_proikos_contrating_companies_quota_session_det a
@@ -164,12 +202,13 @@ class PluginProikosContratingCompaniesQuotaSessionDet
             INNER JOIN plugin_proikos_contrating_companies_quota_cab d ON d.id = c.cab_id
             INNER JOIN plugin_proikos_contrating_companies e ON e.id = d.contrating_company_id
             INNER JOIN session f ON f.id = a.session_id
-            $where;";
+            LEFT JOIN user g ON g.user_id = a.user_id
+            $whereClause;";
 
         $result = \Database::query($sql);
         $row = Database::fetch_array($result);
 
-        return $row['total'];
+        return (int)$row['total'];
     }
 
     public function getQuotaBySessionId($sessionId, $userId)
