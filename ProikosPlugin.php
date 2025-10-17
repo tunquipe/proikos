@@ -4745,6 +4745,127 @@ EOT;
         return $checkImg;
 
     }
+
+    /**
+     * Opciones de códigos de sustentación
+     */
+    function getSustenanceOptions() {
+        return array(
+            0 => 'Sin observaciones',
+            1 => 'Falta examen entrada',
+            2 => 'Falta examen salida',
+            3 => 'Falta taller',
+            4 => 'No ingreso al curso',
+            5 => 'No alcanzo nota minima',
+            6 => 'Copio',
+            7 => 'Conducta inapropiada',
+            8 => 'No respondio al llamado',
+            9 => 'Realizo otra actividad',
+            10 => 'Suplantación',
+            11 => 'Otros'
+        );
+    }
+
+    /**
+     * Convierte los códigos de incidencia a sus descripciones
+     * @param string $codes Ej: "1,2,3"
+     * @return array Array de descripciones
+     */
+    function getCodesDescriptions($codes) {
+        if (empty($codes)) {
+            return [];
+        }
+
+        $options = $this->getSustenanceOptions();
+        $codesArray = explode(',', $codes);
+        $descriptions = [];
+
+        foreach ($codesArray as $code) {
+            $code = trim($code);
+            if (isset($options[$code])) {
+                $descriptions[] = $options[$code];
+            }
+        }
+
+        return $descriptions;
+    }
+
+    /**
+     * Obtiene las incidencias por usuario y sesión
+     */
+    function getSustenanceByUserAndSession($user_id, $session_id) {
+        try {
+            $tableSustenance = Database::get_main_table('plugin_proikos_sustenance');
+            $tableUsers = Database::get_main_table('user');
+
+            $sql = "SELECT
+                    ps.id,
+                    ps.user_id,
+                    ps.course_id,
+                    ps.session_id,
+                    ps.sustenance_codes,
+                    ps.comment,
+                    ps.created_at,
+                    ps.updated_at,
+                    u.firstname,
+                    u.lastname
+                FROM $tableSustenance ps
+                LEFT JOIN $tableUsers u ON ps.user_id = u.id
+                WHERE ps.user_id = " . intval($user_id) . "
+                AND ps.session_id = " . intval($session_id);
+
+            $result = Database::query($sql);
+
+            // Si no hay incidencias registradas
+            if (Database::num_rows($result) === 0) {
+                return 'Sin incidencia';
+            }
+
+            // Obtener todas las incidencias
+            $incidencias = [];
+            while ($row = Database::fetch_assoc($result)) {
+                $sessionName = api_get_session_name($row['session_id']);
+
+                // Obtener las descripciones de los códigos
+                $codesDescriptions = $this->getCodesDescriptions($row['sustenance_codes']);
+
+                $incidencias[] = [
+                    'id' => $row['id'],
+                    'user_id' => $row['user_id'],
+                    'user_name' => $row['firstname'] . ' ' . $row['lastname'],
+                    'course_id' => $row['course_id'],
+                    'session_id' => $row['session_id'],
+                    'session_name' => $sessionName,
+                    'sustenance_codes' => $row['sustenance_codes'],
+                    'sustenance_descriptions' => $codesDescriptions,
+                    'comment' => $row['comment'],
+                    'created_at' => $row['created_at'],
+                    'updated_at' => $row['updated_at']
+                ];
+            }
+
+            // Generar mensaje con todas las descripciones
+            $allDescriptions = [];
+            foreach ($incidencias as $inc) {
+                $allDescriptions = array_merge($allDescriptions, $inc['sustenance_descriptions']);
+            }
+            $allDescriptions = array_unique($allDescriptions);
+            return implode(', ', $allDescriptions);
+
+            /*return [
+                'message' => $message,
+                'has_incidence' => true,
+                'data' => $incidencias,
+                'count' => count($incidencias)
+            ];*/
+
+        } catch (Exception $e) {
+            error_log('Error en getSustenanceByUserAndSession: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+
     public function getSessionExercises($sessionId, $courseId = null) {
         $exercises = [];
 
