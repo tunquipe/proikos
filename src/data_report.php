@@ -58,12 +58,14 @@ if (isset($action)) {
                 'Examen de salida - 30%',
                 'Puntaje',
                 'Estado',
-                'Observaciones',
-                'Certificados Adjuntos',
+                'Observaciones certificado',
+                'Adjuntos por el estudiante	',
+                'Incidencias'
             ];
             $cleanData = [];
 
             foreach ($rawData['users'] as $row) {
+                $sustenance = $plugin->getSustenanceByUserAndSession($row['id'], $row['session_id']);
                 $cleanData[] = [
                     'id' => $row['id'],
                     'code_user' => 'PROK'.$row['id'],
@@ -83,6 +85,7 @@ if (isset($action)) {
                     'status' => strip_tags($row['status']),
                     'certificate_status' => $row['certificate_status'],
                     'metadata_exists' => $row['metadata_exists'],
+                    'sustenance' => $sustenance,
                 ];
             }
             array_unshift($cleanData, $headers);
