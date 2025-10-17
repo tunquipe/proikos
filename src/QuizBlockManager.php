@@ -167,6 +167,7 @@ class QuizBlockManager
 
         $sql = "DELETE FROM $tableQuizBlock
                 WHERE user_id = $user_id
+                AND course_id = $course_id
                 AND session_id = $session_id";
 
         $result = Database::query($sql);
