@@ -170,7 +170,8 @@ class QuizBlockManager
                 AND course_id = $course_id
                 AND session_id = $session_id";
 
-        return Database::query($sql);
+        $result = Database::query($sql);
+        return $result !== false;
     }
 
     /**
