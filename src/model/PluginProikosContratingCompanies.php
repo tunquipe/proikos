@@ -238,6 +238,10 @@ class PluginProikosContratingCompanies
             $params['admin_email'] = $values['admin_email'];
         }
 
+        if (isset($values['company_code'])) {
+            $params['company_code'] = $values['company_code'];
+        }
+
         if (isset($values['status'])) {
             $params['status'] = $values['status'];
         }

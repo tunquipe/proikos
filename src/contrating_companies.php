@@ -122,8 +122,7 @@ switch ($action) {
             ],
             false,
             [
-                'maxlength' => 5,
-                'disabled' => true,
+                'maxlength' => 5
             ]
         );
         $group = [];
