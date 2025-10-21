@@ -186,3 +186,5 @@ $strings['CertificateNotGenerated'] = 'Certificado aun no fue generado';
 $strings['AttachedDocumentsNotAvailable'] = 'Documentos adjuntos no disponibles';
 $strings['NoIncidents'] = 'Sin incidencias';
 $strings['WithReportedIncidence'] = 'Con incidencia reportada';
+$strings['CertificateValidity'] = 'Vigencia de certificado';
+

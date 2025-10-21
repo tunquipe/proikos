@@ -74,6 +74,7 @@
         <th class="th-header">{{ 'Score'|get_plugin_lang('ProikosPlugin') }}</th>
         <th style="width: 120px" class="th-header">{{ 'Status'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'DownloadCertificate'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th style="width: 100px" class="th-header">{{ 'CertificateValidity'|get_plugin_lang('ProikosPlugin') }}</th>
         <th style="width: 100px" class="th-header">{{ 'CertificatesAttachedStudent'|get_plugin_lang('ProikosPlugin') }}</th>
         <th style="width: 90px" class="th-header">{{ 'Incidents'|get_plugin_lang('ProikosPlugin') }}</th>
 
@@ -136,6 +137,16 @@
 
         <td style="text-align: center">
             {{ user.download }}
+        </td>
+        <td>
+            {% if user.certificate_date.created_at != '-' %}
+            <div style="font-size: 12px">
+                <strong>F.E:</strong> {{ user.certificate_date.created_at }}<br>
+                <strong>F.V:</strong> {{ user.certificate_date.expiration_date }}
+            </div>
+            {% else %}
+            -
+            {% endif %}
         </td>
         <td style="text-align: center">
             {{ user.cert }}

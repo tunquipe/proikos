@@ -1505,6 +1505,22 @@ class ProikosPlugin extends Plugin
         }
         return $courses;
     }
+    public function getCertificateDates($user_id, $session_id)
+    {
+        $tableCertificate = Database::get_main_table(TABLE_MAIN_GRADEBOOK_CERTIFICATE);
+        $tableCategory = Database::get_main_table(TABLE_MAIN_GRADEBOOK_CATEGORY);
+        $sql = "SELECT cert.* FROM $tableCertificate cert INNER JOIN $tableCategory cat ON cat.id = cert.cat_id
+              WHERE cert.user_id = $user_id AND cat.session_id = $session_id";
+        $result = Database::query($sql);
+        $list = [];
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_assoc($result)) {
+                $list = $row;
+            }
+        }
+
+        return $list;
+    }
     public function getCourseCode($courseId)
     {
         $tableCourse = Database::get_main_table(TABLE_MAIN_COURSE);
@@ -4647,11 +4663,9 @@ EOT;
                 $row['links'] = empty($userLinks);
                 $downloadCertUploadedLink = $this->generateDownloadLinkAttachCertificates($row['id'], $row['student'], $row['session_id']);
                 $row['cert'] = $downloadCertUploadedLink;
-
                 $iconCertificate = $this->get_icon('certificate');
                 $iconCertificate_na = $this->get_icon('certificate_na');
                 $row['download'] = Display::img($iconCertificate_na, $this->get_lang('CertificateNotGenerated'),['width' => '32px']);
-
                 if($status_id == 2){
                     $urlCertificate = $this->getUserCertificateSession($row['id'], $row['session_id']);
                     $row['download'] = '<a href="'.$urlCertificate.'" target="_blank">'.
@@ -4659,6 +4673,15 @@ EOT;
                         '</a>';
                 }
                 $checkDocument = $this->checkDocuments($row['id'],$row['session_id']);
+                $certificateDates = $this->getCertificateDates($row['id'],$row['session_id']);
+                $row['certificate_date'] = [
+                    'created_at' => !empty($certificateDates['created_at'])
+                        ? date('d-m-Y', strtotime($certificateDates['created_at']))
+                        : '-',
+                    'expiration_date' => !empty($certificateDates['expiration_date'])
+                        ? date('d-m-Y', strtotime($certificateDates['expiration_date']))
+                        : '-',
+                ];
                 $row['check_document'] = $checkDocument;
                 $row['sustenance'] = $this->getSustenanceIconFA($row['id'],$row['c_id'],$row['session_id'], true);
 
