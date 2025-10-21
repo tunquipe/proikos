@@ -59,6 +59,8 @@ if (isset($action)) {
                 'Puntaje',
                 'Estado',
                 'Observaciones certificado',
+                'F. Emision Certificado',
+                'F. Vencimiento Certificado',
                 'Adjuntos por el estudiante	',
                 'Incidencias'
             ];
@@ -84,6 +86,8 @@ if (isset($action)) {
                     'score' => $row['score'],
                     'status' => strip_tags($row['status']),
                     'certificate_status' => $row['certificate_status'],
+                    'created_at' => $row['certificate_date']['created_at'],
+                    'expiration_date' => $row['certificate_date']['expiration_date'],
                     'metadata_exists' => $row['metadata_exists'],
                     'sustenance' => $sustenance,
                 ];
