@@ -526,8 +526,12 @@ class ProikosPlugin extends Plugin
     public function getRUC($name)
     {
         $tableCompanies = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES);
+
+        // Escapar el nombre correctamente
+        $name = Database::escape_string($name); // o mysqli_real_escape_string()
         $sql = "SELECT * FROM $tableCompanies c WHERE c.name = '".$name."'";
         $result = Database::query($sql);
+
         $item = null;
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
@@ -538,6 +542,7 @@ class ProikosPlugin extends Plugin
             $entity = $plugin->getEntity(1);
             $item = $entity['ruc'];
         }
+
         return $item;
     }
     public function getEntity($idEntity){
