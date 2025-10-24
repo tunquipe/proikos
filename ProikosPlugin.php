@@ -5073,56 +5073,52 @@ EOT;
         $result = Database::query($sql);
         $hasRecord = Database::num_rows($result) > 0;
 
+        var_dump($hasRecord);
         $idSustenance = 0;
         $sustenanceCodes = '';
+        $hasIncidents = false;
+        $code = 0;
 
         if ($hasRecord) {
             $row = Database::fetch_assoc($result);
             $idSustenance = $row['id'];
             $sustenanceCodes = $row['sustenance_codes'];
-        }
-
-        // Determinar si hay incidencias (códigos 1-11 o 99)
-        $hasIncidents = false;
-        if ($hasRecord && !empty($sustenanceCodes)) {
-            $codes = explode(',', $sustenanceCodes);
-            foreach ($codes as $code) {
-                $code = intval(trim($code));
-                // Si hay algún código diferente de 0, hay incidencias
-                if (($code >= 1 && $code <= 11) || $code == 99) {
-                    $hasIncidents = true;
-                    break;
+            if (!empty($sustenanceCodes)) {
+                $codes = explode(',', $sustenanceCodes);
+                foreach ($codes as $code) {
+                    $code = intval(trim($code));
+                    // Si hay algún código diferente de 0, hay incidencias
+                    if (($code >= 0 && $code <= 11) || $code == 99) {
+                        $hasIncidents = true;
+                        break;
+                    }
                 }
             }
         }
 
+        // Determinar si hay incidencias (códigos 1-11 o 99)
+
         // Generar íconos según el tipo y la existencia de incidencias
         if ($typeIconImg) {
-            if ($hasIncidents) {
-                // Hay incidencias - Rojo
-                return Display::url(
-                    Display::return_icon('bookmark_red.png', $this->get_lang('WithReportedIncidence')),
-                    '#',
-                    ['data-sustenance-id' => $idSustenance, 'class' => 'viewModalSustenance']
-                );
-            } else {
-                // Sin incidencias o sin registro - Verde
-                return Display::url(
-                    Display::return_icon('bookmark_green.png', $this->get_lang('NoIncidents')),
-                    '#',
-                    ['data-sustenance-id' => $idSustenance, 'class' => 'viewModalSustenance']
-                );
-            }
+            $iconRed = Display::url(Display::return_icon('bookmark_red.png',$this->get_lang('WithReportedIncidence')),'#',['data-sustenance-id' => $idSustenance, 'class'=>'viewModalSustenance']);
+            $iconGreen = Display::url(Display::return_icon('bookmark_green.png',$this->get_lang('NoIncidents')),'#', ['data-sustenance-id' => 0, 'class'=>'viewModalSustenance']);
         } else {
-            if ($hasIncidents) {
-                // Hay incidencias - Rojo
-                return '<i class="fa fa-bookmark" style="color: #dc3545;"
-                   title="Sustento registrado"></i> ';
+            $iconRed = '<i class="fa fa-bookmark" style="color: #dc3545; "
+                       title="Sustento registrado"></i> ';
+            $iconGreen =  '<i class="fa fa-bookmark" style="color: #28a745; "
+                   title="Sin sustento registrado"></i> ';
+        }
+
+        // Si existe registro - Ícono verde con checkmark
+        if ($hasIncidents) {
+            if($hasRecord && $code == 99){
+                return $iconGreen;
             } else {
-                // Sin incidencias o sin registro - Verde
-                return '<i class="fa fa-bookmark" style="color: #28a745;"
-               title="Sin sustento registrado"></i> ';
+                return $iconRed;
             }
         }
+
+        // Si no existe registro - Ícono rojo con X
+        return $iconGreen;
     }
 }
