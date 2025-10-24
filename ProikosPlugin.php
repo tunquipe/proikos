@@ -4652,7 +4652,7 @@ EOT;
                 } else if ($examen_de_entrada == 0 || $examen_de_salida == 0 || $taller == 0) {
                     $status = '<span class="label label-danger">' . $this->get_lang('Failed') . '</span>';
                     $status_id = 0;
-                } else if ($puntaje_total >= 70.5) {
+                } else if ($puntaje_total >= 70.4) {
                     $status = '<span class="label label-success">' . $this->get_lang('Approved') . '</span>';
                     $status_id = 2;
                 } else {
