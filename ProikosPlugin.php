@@ -5073,7 +5073,6 @@ EOT;
         $result = Database::query($sql);
         $hasRecord = Database::num_rows($result) > 0;
 
-        var_dump($hasRecord);
         $idSustenance = 0;
         $sustenanceCodes = '';
         $hasIncidents = false;
