@@ -4194,7 +4194,7 @@ EOT;
         } else if ($userScoreExams['examen_de_entrada'] == 0 || $userScoreExams['examen_de_salida'] == 0 || $userScoreExams['taller'] == 0) {
             $status = $this->get_lang('Failed');
             $status_id = 0;
-        } else if ($puntaje_total >= 70.5) {
+        } else if ($puntaje_total >= 70) {
             $status = $this->get_lang('Approved');
             $status_id = 2;
         } else {
@@ -4779,7 +4779,7 @@ EOT;
      */
     function getSustenanceOptions() {
         return array(
-            0 => 'Sin observaciones',
+            99 => 'Sin observaciones',
             1 => 'Falta examen entrada',
             2 => 'Falta examen salida',
             3 => 'Falta taller',
@@ -5062,9 +5062,9 @@ EOT;
     {
         $tableSustenance = Database::get_main_table('plugin_proikos_sustenance');
 
-        $sql = "SELECT id FROM $tableSustenance
-                WHERE user_id = $user_id
-                AND course_id = $course_id ";
+        $sql = "SELECT id, sustenance_codes FROM $tableSustenance
+            WHERE user_id = $user_id
+            AND course_id = $course_id ";
 
         if ($session_id !== null) {
             $sql .= " AND session_id = $session_id ";
@@ -5072,28 +5072,57 @@ EOT;
 
         $result = Database::query($sql);
         $hasRecord = Database::num_rows($result) > 0;
+
         $idSustenance = 0;
-        while ($row = Database::fetch_assoc($result)) {
-            $idSustenance = $row['id'];
-        }
+        $sustenanceCodes = '';
 
-        if($typeIconImg){
-            $iconRed = Display::url(Display::return_icon('bookmark_red.png',$this->get_lang('WithReportedIncidence')),'#',['data-sustenance-id' => $idSustenance, 'class'=>'viewModalSustenance']);
-            $iconGreen = Display::url(Display::return_icon('bookmark_green.png',$this->get_lang('NoIncidents')),'#', ['data-sustenance-id' => 0, 'class'=>'viewModalSustenance']);
-        } else {
-            $iconRed = '<i class="fa fa-bookmark" style="color: #dc3545; "
-                       title="Sustento registrado"></i> ';
-            $iconGreen =  '<i class="fa fa-bookmark" style="color: #28a745; "
-                   title="Sin sustento registrado"></i> ';
-        }
-
-
-        // Si existe registro - Ícono verde con checkmark
         if ($hasRecord) {
-            return $iconRed;
+            $row = Database::fetch_assoc($result);
+            $idSustenance = $row['id'];
+            $sustenanceCodes = $row['sustenance_codes'];
         }
 
-        // Si no existe registro - Ícono rojo con X
-        return $iconGreen;
+        // Determinar si hay incidencias (códigos 1-11 o 99)
+        $hasIncidents = false;
+        if ($hasRecord && !empty($sustenanceCodes)) {
+            $codes = explode(',', $sustenanceCodes);
+            foreach ($codes as $code) {
+                $code = intval(trim($code));
+                // Si hay algún código diferente de 0, hay incidencias
+                if (($code >= 1 && $code <= 11) || $code == 99) {
+                    $hasIncidents = true;
+                    break;
+                }
+            }
+        }
+
+        // Generar íconos según el tipo y la existencia de incidencias
+        if ($typeIconImg) {
+            if ($hasIncidents) {
+                // Hay incidencias - Rojo
+                return Display::url(
+                    Display::return_icon('bookmark_red.png', $this->get_lang('WithReportedIncidence')),
+                    '#',
+                    ['data-sustenance-id' => $idSustenance, 'class' => 'viewModalSustenance']
+                );
+            } else {
+                // Sin incidencias o sin registro - Verde
+                return Display::url(
+                    Display::return_icon('bookmark_green.png', $this->get_lang('NoIncidents')),
+                    '#',
+                    ['data-sustenance-id' => $idSustenance, 'class' => 'viewModalSustenance']
+                );
+            }
+        } else {
+            if ($hasIncidents) {
+                // Hay incidencias - Rojo
+                return '<i class="fa fa-bookmark" style="color: #dc3545;"
+                   title="Sustento registrado"></i> ';
+            } else {
+                // Sin incidencias o sin registro - Verde
+                return '<i class="fa fa-bookmark" style="color: #28a745;"
+               title="Sin sustento registrado"></i> ';
+            }
+        }
     }
 }

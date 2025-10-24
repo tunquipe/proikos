@@ -327,7 +327,7 @@
          * Opciones disponibles de incidencia
          */
         const sustenance_options = {
-            0 : 'Sin observaciones',
+           99 : 'Sin observaciones',
             1 : 'Falta examen entrada',
             2 : 'Falta examen salida',
             3 : 'Falta taller',

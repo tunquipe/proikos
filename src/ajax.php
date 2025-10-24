@@ -541,7 +541,7 @@ if ($action) {
             $sustenance_codes = array_filter(
                 array_map('intval', $sustenance_codes),
                 function ($code) {
-                    return $code >= 0 && $code <= 11;
+                    return ($code >= 1 && $code <= 11) || $code == 99;
                 }
             );
 

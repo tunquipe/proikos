@@ -16,7 +16,7 @@ class SustenanceManager
      * Opciones disponibles para los sustentos
      */
     public static $options = array(
-        0 => 'Sin observaciones',
+        99 => 'Sin observaciones',
         1 => 'Falta examen entrada',
         2 => 'Falta examen salida',
         3 => 'Falta taller',
