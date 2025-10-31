@@ -411,7 +411,6 @@ class PluginProikosContratingCompaniesQuotaCab
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
                 $quota_dis = $this->getQuotaXSessionCompany($cabId, $row['session_category_id']);
-
                 $useQuota = $this->numberOfQuotasUsed($row['id'], $row['session_category_id']);
 
                 $items[] = [
