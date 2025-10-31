@@ -348,10 +348,10 @@ class PluginProikosContratingCompaniesQuotaCab
         return false;
     }
 
-    public function getQuotaXSessionCompany($cab_id, $session_id)
+    public function getQuotaXSessionCompany($cab_id, $session_id, $session_mode)
     {
         $table = Database::get_main_table($this->contratingCompaniesQuotaDet);
-        $sql = "SELECT pp.* FROM $table pp WHERE pp.cab_id = $cab_id AND pp.session_category_id = $session_id";
+        $sql = "SELECT pp.* FROM $table pp WHERE pp.cab_id = $cab_id AND pp.session_category_id = $session_id AND pp.session_mode = $session_mode";
         $res = Database::query($sql);
         $name = null;
         while ($row = Database::fetch_array($res, 'ASSOC')) {
@@ -410,7 +410,7 @@ class PluginProikosContratingCompaniesQuotaCab
         $items = [];
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
-                $quota_dis = $this->getQuotaXSessionCompany($cabId, $row['session_category_id']);
+                $quota_dis = $this->getQuotaXSessionCompany($cabId, $row['session_category_id'], $row['session_mode']);
                 $useQuota = $this->numberOfQuotasUsed($row['id'], $row['session_category_id']);
 
                 $items[] = [
