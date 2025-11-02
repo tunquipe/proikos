@@ -20,24 +20,27 @@ $courseId = $_GET['course_id'] ?? '%';
 $sessionId = $_GET['session_id'] ?? '%';
 $ruc = $_GET['ruc'] ?? '0';
 
+$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
 $page = $_GET['page'] ?? 1;
 $perPage = $_GET['perPage'] ?? 100;
 
 if (isset($action)) {
     switch ($action) {
         case 'delete':
-            $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc,1,10, true, 'ASC');
-            $count = 0;
-
-            foreach ($rawData['users'] as $row) {
-                if ($row['status_id'] != 1) {
-                    $count++;
-                    $plugin->registerData($row);
-                }
+            $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+            $result = $plugin->deleteProikosLogRecord($id);
+            if ($result) {
+                Display::addFlash(
+                    Display::return_message('Registro eliminado exitosamente', 'success')
+                );
+            } else {
+                Display::addFlash(
+                    Display::return_message('Error al eliminar el registro', 'error')
+                );
             }
-
-            echo 'se registraron ' . $count . ' registros';
             break;
+        case 'update':
         default:
             break;
     }

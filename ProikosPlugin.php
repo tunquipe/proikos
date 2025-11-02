@@ -5287,4 +5287,17 @@ EOT;
             );
         }
     }
+    public function deleteProikosLogRecord($id) {
+        $table = Database::get_main_table('plugin_proikos_data_log');
+        $id = intval($id);
+
+        if ($id <= 0) {
+            return false;
+        }
+
+        $sql = "DELETE FROM $table WHERE id = $id";
+        $result = Database::query($sql);
+
+        return $result !== false;
+    }
 }
