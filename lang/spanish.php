@@ -187,4 +187,7 @@ $strings['AttachedDocumentsNotAvailable'] = 'Documentos adjuntos no disponibles'
 $strings['NoIncidents'] = 'Sin incidencias';
 $strings['WithReportedIncidence'] = 'Con incidencia reportada';
 $strings['CertificateValidity'] = 'Vigencia de certificado';
+$strings['UserBlockedMaxAttemptsReached'] = 'Has alcanzado el máximo de intentos permitidos para este curso. No puedes inscribirte nuevamente.';
+$strings['WarningAttempts'] = 'Atención: Llevas %s intento(s) fallido(s). Al tercer intento fallido quedarás bloqueado.';
+$strings['CourseAccessDenied'] = 'Acceso denegado al curso';
 

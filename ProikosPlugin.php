@@ -5120,4 +5120,171 @@ EOT;
         // Si no existe registro - Ícono rojo con X
         return $iconGreen;
     }
+
+    /**
+     * Verifica si un usuario está bloqueado para inscribirse en un curso
+     *
+     * @param int $userId ID del usuario
+     * @param int $sessionId ID de la sesión/curso
+     * @return array ['blocked' => bool, 'attempts' => int, 'message' => string]
+     */
+    public function checkUserCourseRestriction($userId, $sessionId) {
+        $table = Database::get_main_table('plugin_proikos_data_log');
+
+        // Obtener la categoría del curso
+        $sql = "SELECT session_category_id
+            FROM $table
+            WHERE session_id = " . intval($sessionId) . "
+            LIMIT 1";
+        $result = Database::query($sql);
+        $row = Database::fetch_assoc($result);
+
+        if (!$row) {
+            return ['blocked' => false, 'attempts' => 0, 'message' => ''];
+        }
+
+        $categoryId = $row['session_category_id'];
+
+        // Contar intentos fallidos consecutivos en la categoría
+        $sql = "SELECT COUNT(*) as failed_attempts
+            FROM $table
+            WHERE user_id = " . intval($userId) . "
+            AND session_id = " . intval($sessionId) . "
+            AND session_category_id = " . intval($categoryId) . "
+            AND status = 'desaprobado'
+            AND user_id NOT IN (
+                SELECT DISTINCT user_id
+                FROM $table t2
+                WHERE t2.user_id = " . intval($userId) . "
+                AND t2.session_id = " . intval($sessionId) . "
+                AND t2.status = 'aprobado'
+                AND t2.created_at > (
+                    SELECT MAX(created_at)
+                    FROM $table t3
+                    WHERE t3.user_id = " . intval($userId) . "
+                    AND t3.session_id = " . intval($sessionId) . "
+                    AND t3.status = 'desaprobado'
+                )
+            )";
+
+        $result = Database::query($sql);
+        $data = Database::fetch_assoc($result);
+        $failedAttempts = intval($data['failed_attempts']);
+
+        if ($failedAttempts >= 3) {
+            return [
+                'blocked' => true,
+                'attempts' => $failedAttempts,
+                'message' => get_lang('UserBlockedMaxAttemptsReached')
+            ];
+        }
+
+        return [
+            'blocked' => false,
+            'attempts' => $failedAttempts,
+            'message' => ''
+        ];
+    }
+
+    /**
+     * Cuenta los intentos fallidos desde el último intento aprobado
+     *
+     * @param int $userId
+     * @param int $sessionId
+     * @return int Número de intentos fallidos consecutivos
+     */
+    public function countConsecutiveFailedAttempts($userId, $sessionId) {
+        $table = Database::get_main_table('plugin_proikos_data_log');
+
+        // Buscar la fecha del último intento aprobado
+        $sql = "SELECT MAX(created_at) as last_approved
+            FROM $table
+            WHERE user_id = " . intval($userId) . "
+            AND session_id = " . intval($sessionId) . "
+            AND status = 'aprobado'";
+
+        $result = Database::query($sql);
+        $row = Database::fetch_assoc($result);
+        $lastApproved = $row['last_approved'];
+
+        // Contar desaprobados después del último aprobado (o todos si nunca aprobó)
+        if ($lastApproved) {
+            $sql = "SELECT COUNT(*) as failed_count
+                FROM $table
+                WHERE user_id = " . intval($userId) . "
+                AND session_id = " . intval($sessionId) . "
+                AND status = 'desaprobado'
+                AND created_at > '" . Database::escape_string($lastApproved) . "'";
+        } else {
+            $sql = "SELECT COUNT(*) as failed_count
+                FROM $table
+                WHERE user_id = " . intval($userId) . "
+                AND session_id = " . intval($sessionId) . "
+                AND status = 'desaprobado'";
+        }
+
+        $result = Database::query($sql);
+        $row = Database::fetch_assoc($result);
+
+        return intval($row['failed_count']);
+    }
+
+    /**
+     * Verifica si el usuario puede inscribirse en el curso
+     *
+     * @param int $userId
+     * @param int $sessionId
+     * @return array
+     */
+    public function canUserEnrollInCourse($userId, $sessionId) {
+        $failedAttempts = self::countConsecutiveFailedAttempts($userId, $sessionId);
+
+        if ($failedAttempts >= 3) {
+            return [
+                'can_enroll' => false,
+                'blocked' => true,
+                'attempts' => $failedAttempts,
+                'message' => 'Has alcanzado el máximo de intentos permitidos (3) para este curso. Estás bloqueado y no puedes inscribirte nuevamente.'
+            ];
+        }
+
+        return [
+            'can_enroll' => true,
+            'blocked' => false,
+            'attempts' => $failedAttempts,
+            'message' => $failedAttempts > 0 ? "Llevas $failedAttempts intento(s) fallido(s). Ten en cuenta que al tercer intento fallido quedarás bloqueado." : ''
+        ];
+    }
+    /**
+     * Hook antes de la inscripción a una sesión
+     */
+    public function hookBeforeSessionSubscription($userId, $sessionId) {
+        $restriction = self::canUserEnrollInCourse($userId, $sessionId);
+
+        if ($restriction['blocked']) {
+            // Mostrar mensaje de error
+            Display::addFlash(
+                Display::return_message(
+                    $restriction['message'],
+                    'error',
+                    false
+                )
+            );
+
+            // Redirigir o detener la inscripción
+            header('Location: ' . api_get_path(WEB_CODE_PATH) . 'session/course_catalog.php');
+            exit;
+        }
+
+        // Mostrar advertencia si ya tiene intentos fallidos
+        if ($restriction['attempts'] > 0) {
+            Display::addFlash(
+                Display::return_message(
+                    $restriction['message'],
+                    'warning',
+                    false
+                )
+            );
+        }
+    }
 }
