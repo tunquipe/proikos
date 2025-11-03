@@ -40,19 +40,27 @@ $has_filters = ($company_id > 0 || !empty($date_from) || !empty($date_to));
 
 if ($has_filters) {
 
-    // Construir consulta SQL con nombre de empresa
+    // Construir consulta SQL con JOINs a tablas de Chamilo
     $sql = "SELECT
                 pqc.id,
                 pqc.contrating_company_id,
                 cc.name as company_name,
                 pqc.created_at,
                 pqcd.session_category_id,
+                sc.name as session_category_name,
                 pqcd.user_quota as quota_total,
                 pqcd.price_unit,
                 pqcd.session_mode,
+                CASE
+                    WHEN pqcd.session_mode = 1 THEN 'Asincrónico'
+                    WHEN pqcd.session_mode = 2 THEN 'Sincrónico'
+                    ELSE CONCAT('Modo ', pqcd.session_mode)
+                END as session_mode_text,
                 pqcs.session_id,
+                s.name as session_name,
                 pqcs.user_quota,
-                pqcs.created_user_id as gestor
+                pqcs.created_user_id as gestor,
+                CONCAT(u.firstname, ' ', u.lastname) as gestor_name
             FROM plugin_proikos_contrating_companies_quota_cab pqc
             INNER JOIN plugin_proikos_contrating_companies_quota_det pqcd
                 ON pqcd.cab_id = pqc.id
@@ -60,6 +68,12 @@ if ($has_filters) {
                 ON pqcd.id = pqcs.det_id
             LEFT JOIN plugin_proikos_contrating_companies cc
                 ON pqc.contrating_company_id = cc.id
+            LEFT JOIN session s
+                ON pqcs.session_id = s.id
+            LEFT JOIN session_category sc
+                ON pqcd.session_category_id = sc.id
+            LEFT JOIN user u
+                ON pqcs.created_user_id = u.id
             WHERE 1=1";
 
     // Agregar filtro de empresa si se seleccionó una específica
@@ -90,19 +104,18 @@ if ($has_filters) {
     if (!empty($data)) {
         $table = new HTML_Table(['class' => 'table table-hover table-striped']);
 
-        // Encabezados (agregar nombre de empresa)
+        // Encabezados actualizados
         $headers = [
             $plugin->get_lang('Id'),
-            $plugin->get_lang('CompanyId'),
             $plugin->get_lang('CompanyName'),
             $plugin->get_lang('CreatedAt'),
-            $plugin->get_lang('SessionCategory'),
+            $plugin->get_lang('SessionCategoryName'),
+            $plugin->get_lang('SessionName'),
+            $plugin->get_lang('SessionModeText'),
             $plugin->get_lang('QuotaTotal'),
             $plugin->get_lang('PriceUnit'),
-            $plugin->get_lang('SessionMode'),
-            $plugin->get_lang('SessionId'),
             $plugin->get_lang('UserQuota'),
-            $plugin->get_lang('Gestor')
+            $plugin->get_lang('GestorName')
         ];
         $table->setHeaderContents(0, 0, $headers);
 
@@ -111,16 +124,15 @@ if ($has_filters) {
         foreach ($data as $item) {
             $col = 0;
             $table->setCellContents($row, $col++, $item['id']);
-            $table->setCellContents($row, $col++, $item['contrating_company_id']);
-            $table->setCellContents($row, $col++, $item['company_name']);
+            $table->setCellContents($row, $col++, $item['company_name'] ?: 'N/A');
             $table->setCellContents($row, $col++, api_convert_and_format_date($item['created_at']));
-            $table->setCellContents($row, $col++, $item['session_category_id']);
+            $table->setCellContents($row, $col++, $item['session_category_name'] ?: 'Sin categoría');
+            $table->setCellContents($row, $col++, $item['session_name'] ?: 'N/A');
+            $table->setCellContents($row, $col++, $item['session_mode_text']);
             $table->setCellContents($row, $col++, $item['quota_total']);
             $table->setCellContents($row, $col++, number_format($item['price_unit'], 2));
-            $table->setCellContents($row, $col++, $item['session_mode']);
-            $table->setCellContents($row, $col++, $item['session_id']);
             $table->setCellContents($row, $col++, $item['user_quota']);
-            $table->setCellContents($row, $col++, $item['gestor']);
+            $table->setCellContents($row, $col++, $item['gestor_name'] ?: 'N/A');
             $row++;
         }
 
@@ -193,11 +205,23 @@ function export_to_excel($data, $company_id, $date_from, $date_to) {
     $format_number =& $workbook->addFormat();
     $format_number->setNumFormat('0.00');
 
-    // Encabezados
+    // Encabezados actualizados
     $headers = [
-        'ID', 'Company ID', 'Company Name', 'Created At', 'Session Category',
-        'Quota Total', 'Price Unit', 'Session Mode',
-        'Session ID', 'User Quota', 'Gestor'
+        'ID',
+        'ID Company',
+        'Company Name',
+        'Created At',
+        'Session Category ID',
+        'Session Category Name',
+        'Session ID',
+        'Session Name',
+        'Session Mode ID',
+        'Session Mode',
+        'Quota Total',
+        'Price Unit',
+        'User Quota',
+        'Gestor ID',
+        'Gestor Name'
     ];
 
     $col = 0;
@@ -213,15 +237,19 @@ function export_to_excel($data, $company_id, $date_from, $date_to) {
         $col = 0;
         $worksheet->write($row, $col++, $item['id']);
         $worksheet->write($row, $col++, $item['contrating_company_id']);
-        $worksheet->write($row, $col++, $item['company_name']);
+        $worksheet->write($row, $col++, $item['company_name'] ?: 'N/A');
         $worksheet->write($row, $col++, $item['created_at']);
         $worksheet->write($row, $col++, $item['session_category_id']);
+        $worksheet->write($row, $col++, $item['session_category_name'] ?: 'Sin categoría');
+        $worksheet->write($row, $col++, $item['session_id']);
+        $worksheet->write($row, $col++, $item['session_name'] ?: 'N/A');
+        $worksheet->write($row, $col++, $item['session_mode']);
+        $worksheet->write($row, $col++, $item['session_mode_text']);
         $worksheet->write($row, $col++, $item['quota_total']);
         $worksheet->write($row, $col++, $item['price_unit'], $format_number);
-        $worksheet->write($row, $col++, $item['session_mode']);
-        $worksheet->write($row, $col++, $item['session_id']);
         $worksheet->write($row, $col++, $item['user_quota']);
         $worksheet->write($row, $col++, $item['gestor']);
+        $worksheet->write($row, $col++, $item['gestor_name'] ?: 'N/A');
         $row++;
     }
 

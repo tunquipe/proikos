@@ -206,6 +206,10 @@ $strings['AllCompanies'] = 'Todas las empresas';
 $strings['CompanyName'] = 'Nombre Empresa';
 $strings['SelectFilters'] = 'Por favor seleccione al menos un filtro (empresa o rango de fechas)';
 $strings['AppliedFilters'] = 'Filtros aplicados';
+$strings['SessionCategoryName'] = 'Categoría de Sesión';
+$strings['SessionName'] = 'Nombre de Sesión';
+$strings['SessionModeText'] = 'Modo de Sesión';
+$strings['GestorName'] = 'Nombre del Gestor';
 
 // Table headers
 $strings['Id'] = 'ID';
