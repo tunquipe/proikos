@@ -28,6 +28,10 @@ if (api_is_platform_admin() || api_is_drh()) {
         Display::return_icon('new_class.png', get_lang('Add'), [], ICON_SIZE_MEDIUM),
         api_get_path(WEB_PLUGIN_PATH).'proikos/src/contrating_companies.php?action=create'
     );
+    $actionLinks .= Display::url(
+        Display::return_icon('excel.png', get_lang('Export'), [], ICON_SIZE_MEDIUM),
+        api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/export_quota.php'
+    );
 }
 
 if ($action === 'delete') {

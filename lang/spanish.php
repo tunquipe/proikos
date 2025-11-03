@@ -190,4 +190,32 @@ $strings['CertificateValidity'] = 'Vigencia de certificado';
 $strings['UserBlockedMaxAttemptsReached'] = 'Has alcanzado el máximo de intentos permitidos para este curso. No puedes inscribirte nuevamente.';
 $strings['WarningAttempts'] = 'Atención: Llevas %s intento(s) fallido(s). Al tercer intento fallido quedarás bloqueado.';
 $strings['CourseAccessDenied'] = 'Acceso denegado al curso';
+// Export Quota
+$strings['ExportQuota'] = 'Exportar Cuotas';
+$strings['FilterQuota'] = 'Filtrar Cuotas';
+$strings['Filter'] = 'Filtrar';
+$strings['ExportExcel'] = 'Exportar a Excel';
+$strings['Company'] = 'Empresa';
+$strings['SelectCompany'] = 'Seleccione una empresa';
+$strings['DateFrom'] = 'Fecha desde';
+$strings['DateTo'] = 'Fecha hasta';
+$strings['NoDataFound'] = 'No se encontraron datos con los filtros aplicados';
+$strings['Results'] = 'Resultados';
+$strings['Records'] = 'registros';
+$strings['AllCompanies'] = 'Todas las empresas';
+$strings['CompanyName'] = 'Nombre Empresa';
+$strings['SelectFilters'] = 'Por favor seleccione al menos un filtro (empresa o rango de fechas)';
+$strings['AppliedFilters'] = 'Filtros aplicados';
 
+// Table headers
+$strings['Id'] = 'ID';
+$strings['CompanyId'] = 'ID Empresa';
+$strings['CreatedAt'] = 'Fecha Creación';
+$strings['SessionCategory'] = 'Categoría Sesión';
+$strings['QuotaTotal'] = 'Cuota Total';
+$strings['PriceUnit'] = 'Precio Unitario';
+$strings['SessionMode'] = 'Modo Sesión';
+$strings['SessionId'] = 'ID Sesión';
+$strings['UserQuota'] = 'Cuota Usuario';
+$strings['Gestor'] = 'Gestor';
+$strings['TotalRecords'] = 'Total de registros';
