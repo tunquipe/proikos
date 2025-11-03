@@ -2,6 +2,10 @@
 /* Para /plugin/proikos/export_quota.php */
 
 require_once __DIR__ . '/../config.php';
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 // Verificar permisos
 api_block_anonymous_users();
@@ -30,10 +34,29 @@ $form->addSelect('company_id', $plugin->get_lang('Company'), $company_options);
 // Filtros de fecha
 $form->addDatePicker('date_from', $plugin->get_lang('DateFrom'));
 $form->addDatePicker('date_to', $plugin->get_lang('DateTo'));
-
+// Campo oculto para el export
+$form->addHidden('export', '');
 // Botones
-$form->addButtonSearch($plugin->get_lang('Filter'));
-$form->addButton('export', $plugin->get_lang('ExportExcel'), 'file-excel-o', 'success');
+$form->addButtonSearch($plugin->get_lang('Filter'), 'submit_filter');
+$form->addButton('submit_export', $plugin->get_lang('ExportExcel'), 'file-excel-o', 'success');
+
+$js = "
+<script>
+$(document).ready(function() {
+    // Botón de filtrar
+    $('button[name=\"submit_filter\"]').on('click', function(e) {
+        $('input[name=\"export\"]').val('');
+    });
+
+    // Botón de exportar
+    $('button[name=\"submit_export\"]').on('click', function(e) {
+        e.preventDefault();
+        $('input[name=\"export\"]').val('excel');
+        $('#filter_form').submit();
+    });
+});
+</script>
+";
 
 // Validar que al menos haya un filtro aplicado
 $has_filters = ($company_id > 0 || !empty($date_from) || !empty($date_to));
@@ -166,6 +189,7 @@ if ($has_filters) {
 }
 
 $tpl->assign('form', $form->returnForm());
+$tpl->assign('js_content', $js);
 $content = $tpl->fetch('proikos/view/proikos_export_quota.tpl');
 $tpl->assign('content', $content);
 $tpl->display_one_col_template();
@@ -174,91 +198,97 @@ $tpl->display_one_col_template();
  * Función para exportar a Excel
  */
 function export_to_excel($data, $company_id, $date_from, $date_to) {
-    require_once api_get_path(SYS_CODE_PATH).'inc/lib/pear/Spreadsheet_Excel_Writer/Writer.php';
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+    $sheet->setTitle('Reporte Cuotas');
 
-    // Nombre del archivo según filtros
-    $filename_parts = ['quota_report'];
-    if ($company_id > 0) {
-        $filename_parts[] = 'company_'.$company_id;
-    } else {
-        $filename_parts[] = 'all_companies';
-    }
-    if (!empty($date_from) || !empty($date_to)) {
-        if (!empty($date_from)) {
-            $filename_parts[] = 'from_'.str_replace('-', '', $date_from);
-        }
-        if (!empty($date_to)) {
-            $filename_parts[] = 'to_'.str_replace('-', '', $date_to);
-        }
-    }
-    $filename_parts[] = date('YmdHis');
-    $filename = implode('_', $filename_parts).'.xls';
-
-    $workbook = new Spreadsheet_Excel_Writer();
-    $workbook->send($filename);
-    $worksheet =& $workbook->addWorksheet('Quota Report');
-
-    // Formato para encabezados
-    $format_header =& $workbook->addFormat();
-    $format_header->setBold();
-    $format_header->setColor('white');
-    $format_header->setFgColor('blue');
-
-    // Formato para números
-    $format_number =& $workbook->addFormat();
-    $format_number->setNumFormat('0.00');
-
-    // Encabezados actualizados
+    // Encabezados
     $headers = [
         'ID',
-        'ID Company',
-        'Company Name',
-        'Company Ruc',
-        'Created At',
-        'Session Category ID',
-        'Session Category Name',
-        'Session ID',
-        'Session Name',
-        'Session Mode ID',
-        'Session Mode',
-        'Quota Total',
-        'Price Unit',
-        'User Quota',
-        'Gestor ID',
-        'Gestor Name'
+        'ID Empresa',
+        'Nombre Empresa',
+        'Fecha Creación',
+        'ID Categoría Sesión',
+        'Categoría Sesión',
+        'ID Sesión',
+        'Nombre Sesión',
+        'ID Modo Sesión',
+        'Modo Sesión',
+        'Cuota Total',
+        'Precio Unitario',
+        'Cuota Usuario',
+        'ID Gestor',
+        'Nombre Gestor'
     ];
 
-    $col = 0;
-    foreach ($headers as $header) {
-        $worksheet->write(0, $col, $header, $format_header);
-        $worksheet->setColumn($col, $col, 15); // Ancho de columna
-        $col++;
+    $sheet->fromArray($headers, NULL, 'A1');
+
+    // Estilo para encabezados
+    $headerStyle = [
+        'font' => ['bold' => true],
+        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+        'fill' => [
+            'fillType' => Fill::FILL_SOLID,
+            'startColor' => ['rgb' => 'CCCCCC']
+        ]
+    ];
+
+    $sheet->getStyle('A1:O1')->applyFromArray($headerStyle);
+
+    // Auto ajustar columnas
+    foreach(range('A','O') as $col) {
+        $sheet->getColumnDimension($col)->setAutoSize(true);
     }
 
     // Datos
-    $row = 1;
+    $row = 2;
     foreach ($data as $item) {
-        $col = 0;
-        $worksheet->write($row, $col++, $item['id']);
-        $worksheet->write($row, $col++, $item['contrating_company_id']);
-        $worksheet->write($row, $col++, $item['company_name'] ?: 'N/A');
-        $worksheet->write($row, $col++, $item['ruc'] ?: '-');
-        $worksheet->write($row, $col++, $item['created_at']);
-        $worksheet->write($row, $col++, $item['session_category_id']);
-        $worksheet->write($row, $col++, $item['session_category_name'] ?: 'Sin categoría');
-        $worksheet->write($row, $col++, $item['session_id']);
-        $worksheet->write($row, $col++, $item['session_name'] ?: 'N/A');
-        $worksheet->write($row, $col++, $item['session_mode']);
-        $worksheet->write($row, $col++, $item['session_mode_text']);
-        $worksheet->write($row, $col++, $item['quota_total']);
-        $worksheet->write($row, $col++, $item['price_unit'], $format_number);
-        $worksheet->write($row, $col++, $item['user_quota']);
-        $worksheet->write($row, $col++, $item['gestor']);
-        $worksheet->write($row, $col++, $item['gestor_name'] ?: 'N/A');
+        $dataRow = [
+            $item['id'],
+            $item['contrating_company_id'],
+            $item['company_name'] ?: 'N/A',
+            $item['created_at'],
+            $item['session_category_id'],
+            $item['session_category_name'] ?: 'Sin categoría',
+            $item['session_id'],
+            $item['session_name'] ?: 'N/A',
+            $item['session_mode'],
+            $item['session_mode_text'],
+            $item['quota_total'],
+            'S/ ' . number_format($item['price_unit'], 2),
+            $item['user_quota'],
+            $item['gestor'],
+            $item['gestor_name'] ?: 'N/A'
+        ];
+        $sheet->fromArray($dataRow, NULL, 'A'.$row);
         $row++;
     }
 
-    $workbook->close();
+    // Nombre del archivo según filtros
+    $filename_parts = ['reporte_cuotas'];
+    if ($company_id > 0) {
+        $filename_parts[] = 'empresa_'.$company_id;
+    } else {
+        $filename_parts[] = 'todas_empresas';
+    }
+    if (!empty($date_from) || !empty($date_to)) {
+        if (!empty($date_from)) {
+            $filename_parts[] = 'desde_'.str_replace('-', '', $date_from);
+        }
+        if (!empty($date_to)) {
+            $filename_parts[] = 'hasta_'.str_replace('-', '', $date_to);
+        }
+    }
+    $filename_parts[] = date('Ymd_His');
+    $filename = implode('_', $filename_parts).'.xlsx';
+
+    // Headers para descarga
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment;filename="'.$filename.'"');
+    header('Cache-Control: max-age=0');
+
+    $writer = new Xlsx($spreadsheet);
+    $writer->save('php://output');
 }
 
 /**

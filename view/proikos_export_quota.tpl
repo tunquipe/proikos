@@ -33,3 +33,5 @@
         {% endif %}
     </div>
 </div>
+
+{{ js_content|raw }}
