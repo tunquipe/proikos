@@ -45,6 +45,7 @@ if ($has_filters) {
                 pqc.id,
                 pqc.contrating_company_id,
                 cc.name as company_name,
+                cc.ruc,
                 pqc.created_at,
                 pqcd.session_category_id,
                 sc.name as session_category_name,
@@ -108,6 +109,7 @@ if ($has_filters) {
         $headers = [
             $plugin->get_lang('Id'),
             $plugin->get_lang('CompanyName'),
+            $plugin->get_lang('CompanyRuc'),
             $plugin->get_lang('CreatedAt'),
             $plugin->get_lang('SessionCategoryName'),
             $plugin->get_lang('SessionName'),
@@ -125,6 +127,7 @@ if ($has_filters) {
             $col = 0;
             $table->setCellContents($row, $col++, $item['id']);
             $table->setCellContents($row, $col++, $item['company_name'] ?: 'N/A');
+            $table->setCellContents($row, $col++, $item['ruc'] ?: '-');
             $table->setCellContents($row, $col++, api_convert_and_format_date($item['created_at']));
             $table->setCellContents($row, $col++, $item['session_category_name'] ?: 'Sin categoría');
             $table->setCellContents($row, $col++, $item['session_name'] ?: 'N/A');
@@ -210,6 +213,7 @@ function export_to_excel($data, $company_id, $date_from, $date_to) {
         'ID',
         'ID Company',
         'Company Name',
+        'Company Ruc',
         'Created At',
         'Session Category ID',
         'Session Category Name',
@@ -238,6 +242,7 @@ function export_to_excel($data, $company_id, $date_from, $date_to) {
         $worksheet->write($row, $col++, $item['id']);
         $worksheet->write($row, $col++, $item['contrating_company_id']);
         $worksheet->write($row, $col++, $item['company_name'] ?: 'N/A');
+        $worksheet->write($row, $col++, $item['ruc'] ?: '-');
         $worksheet->write($row, $col++, $item['created_at']);
         $worksheet->write($row, $col++, $item['session_category_id']);
         $worksheet->write($row, $col++, $item['session_category_name'] ?: 'Sin categoría');
