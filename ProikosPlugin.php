@@ -4388,66 +4388,104 @@ EOT;
     public function getDataUsersReportProikos($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false): array
     {
         $table_data = Database::get_main_table(self::TABLE_PROIKOS_DATA_LOG);
+
+        // Validar y sanitizar parámetros
+        $courseId = intval($courseId);
+        $session_id = intval($session_id);
+        $ruc = intval($ruc);
+        $page = max(1, intval($page));
+        $perPage = max(1, min(1000, intval($perPage))); // Máximo 1000 por página
+
         // Calcular el offset para la paginación
         $offset = ($page - 1) * $perPage;
 
         $sql = "SELECT
-                ppd.id,
-                ppd.registration_session_user,
-                ppd.user_id,
-                ppd.username,
-                ppd.email,
-                ppd.DNI,
-                CONCAT(ppd.first_name, ' ', ppd.last_name) as student,
-                ppd.session_category_id,
-                ppd.session_category_name,
-                ppd.session_id,
-                ppd.course_id as c_id,
-                ppd.course_code as code,
-                ppd.session_name,
-                ppd.company_ruc as ruc_company,
-                ppd.company_name as name_company,
-                ppd.area,
-                ppd.entrance_exam,
-                ppd.workshop,
-                ppd.exit_exam,
-                ppd.score,
-                ppd.status,
-                ppd.certificate_status
-                FROM $table_data ppd ";
+            ppd.id,
+            ppd.registration_session_user,
+            ppd.user_id,
+            ppd.username,
+            ppd.email,
+            ppd.dni,
+            CONCAT(ppd.first_name, ' ', ppd.last_name) as student,
+            ppd.session_category_id,
+            ppd.session_category_name,
+            ppd.session_id,
+            ppd.course_id as c_id,
+            ppd.course_code as code,
+            ppd.session_name,
+            ppd.company_ruc as ruc_company,
+            ppd.company_name as name_company,
+            ppd.area,
+            COALESCE(NULLIF(ppd.entrance_exam, 0), 0) as entrance_exam,
+            COALESCE(NULLIF(ppd.workshop, 0), 0) as workshop,
+            COALESCE(NULLIF(ppd.exit_exam, 0), 0) as exit_exam,
+            ppd.score,
+            ppd.status,
+            ppd.certificate_status
+            FROM $table_data ppd ";
 
-        $sql.= " WHERE ppd.status = 0 ";
+        // Construir WHERE con condiciones
+        $conditions = [];
 
-        if(!empty($dni)){
-            $sql.= " AND ppd.username = $dni ";
+        // Filtro por status (ajusta según tu lógica)
+        // Si status almacena texto como "aprobado", "desaprobado", usa:
+        $conditions[] = "ppd.status != 'eliminado'";
+        // O si usas números:
+        // $conditions[] = "ppd.status = 0";
+
+        // Filtro por DNI
+        if (!empty($dni)) {
+            $dni = Database::escape_string($dni);
+            $conditions[] = "ppd.username = '$dni'";
         }
 
-        if($courseId != 0){
-            $sql.= " AND ppd.course_id = $courseId ";
+        // Filtro por curso
+        if ($courseId > 0) {
+            $conditions[] = "ppd.course_id = $courseId";
         }
 
-        if($session_id != 0){
-            $sql.= " AND ppd.session_id = $session_id ";
+        // Filtro por sesión
+        if ($session_id > 0) {
+            $conditions[] = "ppd.session_id = $session_id";
         }
+
+        // Filtro por RUC
         if (api_is_contractor_admin()) {
-            $rucCompany = self::getUserRucCompany();
-            $sql.= " AND ppd.company_ruc = $rucCompany ";
+            $rucCompany = intval(self::getUserRucCompany());
+            $conditions[] = "ppd.company_ruc = $rucCompany";
         } else {
-            if($ruc != 0){
-                $sql.= " AND ppd.company_ruc = $ruc ";
+            if ($ruc > 0) {
+                $conditions[] = "ppd.company_ruc = $ruc";
             }
         }
 
-        if ($isExport) {
-            $sql.= " ORDER BY ppd.id DESC; ";
-        } else {
-            $sql.= " ORDER BY ppd.id DESC LIMIT $offset, $perPage;";
+        // Agregar WHERE si hay condiciones
+        if (!empty($conditions)) {
+            $sql .= " WHERE " . implode(" AND ", $conditions);
+        }
+
+        // Ordenar y paginar
+        $sql .= " ORDER BY ppd.id DESC";
+
+        if (!$isExport) {
+            $sql .= " LIMIT $offset, $perPage";
         }
 
         $result = Database::query($sql);
         $users = [];
+
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_assoc($result)) {
+
+                $entrance = floatval($row['entrance_exam']);
+                $workshop = floatval($row['workshop']);
+                $exit = floatval($row['exit_exam']);
+                $promedioPonderado = ($entrance * 0.10) + ($workshop * 0.60) + ($exit * 0.30);
+
+                $row['score'] = floatval($row['score']);
+                $row['promedio_ponderado'] = round($promedioPonderado, 2);
+
+                // Generar botón de acción para eliminar
                 $action = Display::url(
                     Display::return_icon(
                         'delete.png',
@@ -4455,48 +4493,34 @@ EOT;
                         [],
                         ICON_SIZE_SMALL
                     ),
-                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/logs.php?action=delete&id=' . $row['id'],
+                    api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/logs.php?action=delete&id=' . intval($row['id']),
                     [
-                        'class' => 'btn btn-default',
+                        'class' => 'btn btn-default btn-sm',
                         'onclick' => 'javascript:if(!confirm(' . "'" .
                             addslashes(api_htmlentities(get_lang("ConfirmYourChoice")))
                             . "'" . ')) return false;',
                     ]
                 );
+
                 $row['actions'] = $action;
                 $users[] = $row;
             }
         }
 
-        $sqlTotal = "SELECT COUNT(DISTINCT ppd.id) as total_users FROM $table_data ppd ";
-        $sqlTotal.= " WHERE ppd.status = 0 ";
+        // Consulta para contar total de registros
+        $sqlTotal = "SELECT COUNT(DISTINCT ppd.id) as total_users
+                 FROM $table_data ppd";
 
-        if (!empty($dni)) {
-            $sqlTotal .= " AND ppd.username = '$dni' ";
-        }
-
-        if ($courseId != 0) {
-            $sqlTotal .= " AND ppd.course_id = $courseId ";
-        }
-
-        if ($session_id != 0) {
-            $sqlTotal .= " AND ppd.session_id = $session_id ";
-        }
-
-        if (api_is_contractor_admin()) {
-            $rucCompany = self::getUserRucCompany();
-            $sqlTotal .= " AND ppd.company_ruc = $rucCompany ";
-        } else {
-            if ($ruc != 0) {
-                $sqlTotal .= " ppd ppu.company_ruc = $ruc ";
-            }
+        // Aplicar las mismas condiciones al total
+        if (!empty($conditions)) {
+            $sqlTotal .= " WHERE " . implode(" AND ", $conditions);
         }
 
         // Ejecutar la consulta de total de registros
         $resultTotal = Database::query($sqlTotal);
         $rowTotal = Database::fetch_assoc($resultTotal);
-        $totalUsers = $rowTotal['total_users'];
-        $totalPages = ceil($totalUsers / $perPage);
+        $totalUsers = intval($rowTotal['total_users']);
+        $totalPages = $perPage > 0 ? ceil($totalUsers / $perPage) : 0;
 
         return [
             'users' => $users,
@@ -4504,9 +4528,9 @@ EOT;
                 'currentPage' => $page,
                 'totalPages' => $totalPages,
                 'totalUsers' => $totalUsers,
+                'perPage' => $perPage,
             ]
         ];
-
     }
 
     public function getDataReport($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false): array

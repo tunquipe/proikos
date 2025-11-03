@@ -68,6 +68,7 @@
         <th class="th-header">{{ 'EntranceExam'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Workshop'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'ExitExam'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th class="th-header">{{ 'Average'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Score'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Status'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Actions'|get_plugin_lang('ProikosPlugin') }}</th>
@@ -88,7 +89,7 @@
 
         <td class="text-center {% if user.entrance_exam is not defined or user.entrance_exam == 0 %}default-text{% elseif user.entrance_exam <= 10 %}red-text{% elseif user.entrance_exam >= 10 %}blue-text{% endif %}">
             {% if user.entrance_exam == 0 or user.entrance_exam is empty %}
-            -
+            0
             {% else %}
             {{ user.entrance_exam }}
             {% endif %}
@@ -96,7 +97,7 @@
 
         <td class="text-center {% if user.workshop is not defined or user.workshop == 0 %}default-text{% elseif user.workshop <= 10 %}red-text{% elseif user.workshop >= 10 %}blue-text{% endif %}">
             {% if user.workshop == 0 or user.workshop is empty %}
-            -
+            0
             {% else %}
             {{ user.workshop }}
             {% endif %}
@@ -104,14 +105,16 @@
 
         <td class="text-center {% if user.exit_exam is not defined or user.exit_exam == 0 %}default-text{% elseif user.exit_exam <= 10 %}red-text{% elseif user.exit_exam >= 10 %}blue-text{% endif %}">
             {% if user.exit_exam == 0 or user.exit_exam is empty %}
-            -
+            0
             {% else %}
             {{ user.exit_exam }}
             {% endif %}
         </td>
 
-
-        <td>{{ user.score }}</td>
+        <td class="text-center {% if user.promedio_ponderado is not defined or user.promedio_ponderado == 0 %}default-text{% elseif user.promedio_ponderado <= 10 %}red-text{% elseif user.promedio_ponderado >= 10 %}blue-text{% endif %}">
+            <strong>{{ user.promedio_ponderado }}</strong>
+        </td>
+        <td class="text-center">{{ user.score }}% </td>
         <td style="text-align: center">
             {{ user.status }}
         </td>
