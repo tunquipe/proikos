@@ -5236,7 +5236,8 @@ EOT;
      * @param int $sessionId
      * @return array
      */
-    public function canUserEnrollInCourse($userId, $sessionId) {
+    public function canUserEnrollInCourse($userId, $sessionId): array
+    {
         $failedAttempts = self::countConsecutiveFailedAttempts($userId, $sessionId);
 
         if ($failedAttempts >= 3) {
