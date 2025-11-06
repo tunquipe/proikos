@@ -4665,8 +4665,8 @@ EOT;
                 $ponderacion_taller = 0.60;   // 60%
 
                 $entrance = floatval($examen_de_entrada);
-                $workshop = floatval($examen_de_salida);
-                $exit = floatval($taller);
+                $workshop = floatval($taller);
+                $exit = floatval($examen_de_salida);
                 $promedioPonderado = ($entrance * $ponderacion_entrada) + ($workshop * $ponderacion_taller) + ($exit * $ponderacion_salida);
 
 
