@@ -4664,6 +4664,12 @@ EOT;
                 $ponderacion_salida = 0.30;   // 30%
                 $ponderacion_taller = 0.60;   // 60%
 
+                $entrance = floatval($examen_de_entrada);
+                $workshop = floatval($examen_de_salida);
+                $exit = floatval($taller);
+                $promedioPonderado = ($entrance * $ponderacion_entrada) + ($workshop * $ponderacion_taller) + ($exit * $ponderacion_salida);
+
+
                 // Calcular el puntaje total ponderado
                 $puntaje_total = (($examen_de_entrada * $ponderacion_entrada) +
                         ($examen_de_salida * $ponderacion_salida) +
@@ -4687,6 +4693,7 @@ EOT;
                 $row['registration_session_user'] = $registerCodeSession;
                 $row['status'] = $status;
                 $row['status_id'] = $status_id;
+                $row['promedio_ponderado'] = $promedioPonderado;
                 $row['score'] = $puntaje_total;
                 $row['user_id'] = $row['id'];
                 $row['links'] = empty($userLinks);

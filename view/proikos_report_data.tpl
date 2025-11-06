@@ -71,6 +71,7 @@
         <th class="th-header">{{ 'EntranceExam'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Workshop'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'ExitExam'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th class="th-header">{{ 'Average'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Score'|get_plugin_lang('ProikosPlugin') }}</th>
         <th style="width: 120px" class="th-header">{{ 'Status'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'DownloadCertificate'|get_plugin_lang('ProikosPlugin') }}</th>
@@ -97,7 +98,7 @@
 
         <td class="text-center {% if user.exams.examen_de_entrada is not defined or user.exams.examen_de_entrada == 0 %}default-text{% elseif user.exams.examen_de_entrada <= 10 %}red-text{% elseif user.exams.examen_de_entrada >= 10 %}blue-text{% endif %}">
             {% if user.exams.examen_de_entrada == 0 or user.exams.examen_de_entrada is empty %}
-            -
+            0
             {% else %}
             {{ user.exams.examen_de_entrada }}
             {% endif %}
@@ -105,7 +106,7 @@
 
         <td class="text-center {% if user.exams.taller is not defined or user.exams.taller == 0 %}default-text{% elseif user.exams.taller <= 10 %}red-text{% elseif user.exams.taller >= 10 %}blue-text{% endif %}">
             {% if user.exams.taller == 0 or user.exams.taller is empty %}
-            -
+            0
             {% else %}
             {{ user.exams.taller }}
             {% endif %}
@@ -113,14 +114,16 @@
 
         <td class="text-center {% if user.exams.examen_de_salida is not defined or user.exams.examen_de_salida == 0 %}default-text{% elseif user.exams.examen_de_salida <= 10 %}red-text{% elseif user.exams.examen_de_salida >= 10 %}blue-text{% endif %}">
             {% if user.exams.examen_de_salida == 0 or user.exams.examen_de_salida is empty %}
-            -
+            0
             {% else %}
             {{ user.exams.examen_de_salida }}
             {% endif %}
         </td>
 
-
-        <td>{{ user.score }}</td>
+        <td class="text-center {% if user.promedio_ponderado is not defined or user.promedio_ponderado == 0 %}default-text{% elseif user.promedio_ponderado <= 10 %}red-text{% elseif user.promedio_ponderado >= 10 %}blue-text{% endif %}">
+            <strong>{{ user.promedio_ponderado }}</strong>
+        </td>
+        <td class="text-center">{{ user.score }}</td>
         <td style="text-align: center">
             {{ user.status }}
             <br>
