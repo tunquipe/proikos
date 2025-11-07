@@ -5267,15 +5267,15 @@ EOT;
      * @param int $sessionId
      * @return int Número de intentos fallidos consecutivos
      */
-    public function countConsecutiveFailedAttempts($userId, $sessionId) {
-        $table = Database::get_main_table('plugin_proikos_data_log');
-
+    public function countConsecutiveFailedAttempts($userId, $sessionId, $sessionCategoryID) {
+        $tableLog = Database::get_main_table('plugin_proikos_data_log');
         // Buscar la fecha del último intento aprobado
         $sql = "SELECT MAX(created_at) as last_approved
-            FROM $table
+            FROM $tableLog
             WHERE user_id = " . intval($userId) . "
             AND session_id = " . intval($sessionId) . "
-            AND status = 'aprobado'";
+            AND session_category_id = " . intval($sessionCategoryID) . "
+            AND status = 'Aprobado'";
 
         $result = Database::query($sql);
         $row = Database::fetch_assoc($result);
@@ -5284,17 +5284,19 @@ EOT;
         // Contar desaprobados después del último aprobado (o todos si nunca aprobó)
         if ($lastApproved) {
             $sql = "SELECT COUNT(*) as failed_count
-                FROM $table
+                FROM $tableLog
                 WHERE user_id = " . intval($userId) . "
                 AND session_id = " . intval($sessionId) . "
-                AND status = 'desaprobado'
+                AND session_category_id = " . intval($sessionCategoryID) . "
+                AND status = 'Desaprobado'
                 AND created_at > '" . Database::escape_string($lastApproved) . "'";
         } else {
             $sql = "SELECT COUNT(*) as failed_count
-                FROM $table
+                FROM $tableLog
                 WHERE user_id = " . intval($userId) . "
                 AND session_id = " . intval($sessionId) . "
-                AND status = 'desaprobado'";
+                AND session_category_id = " . intval($sessionCategoryID) . "
+                AND status = 'Desaprobado'";
         }
 
         $result = Database::query($sql);
@@ -5310,9 +5312,9 @@ EOT;
      * @param int $sessionId
      * @return array
      */
-    public function canUserEnrollInCourse($userId, $sessionId): array
+    public function canUserEnrollInCourse($userId, $sessionId, $sessionCategoryID): array
     {
-        $failedAttempts = self::countConsecutiveFailedAttempts($userId, $sessionId);
+        $failedAttempts = self::countConsecutiveFailedAttempts($userId, $sessionId, $sessionCategoryID);
 
         if ($failedAttempts >= 3) {
             return [
