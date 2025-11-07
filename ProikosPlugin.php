@@ -3541,7 +3541,46 @@ EOT
 
         return $result;
     }
+    public function renderModalAttempts()
+    {
+        if (!empty($_SESSION['proikos_modal_message_attempts'])) {
+            $message = addslashes($_SESSION['proikos_modal_message_attempts']);
+            $img = api_get_path(WEB_PLUGIN_PATH).'proikos/images/attempts_in_progress.png';
+            echo <<<HTML
+                <style>
+                    .modal-backdrop-custom {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, 0.6);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 1000;
+                    }
 
+                    #imageModal img {
+                        width: 500px;
+                        max-width: 100%;
+                        max-height: 100%;
+                        display: block;
+                    }
+                </style>
+                <div id="imageModal" class="modal-backdrop-custom">
+                    <img src="$img" alt="Imagen" />
+                </div>
+                <script>
+                    document.getElementById('imageModal').addEventListener('click', function () {
+                        this.style.display = 'none';
+                    });
+                </script>
+HTML;
+
+            unset($_SESSION['proikos_modal_message_attempts']);
+        }
+    }
 
     public function renderModal()
     {
@@ -3587,6 +3626,10 @@ HTML;
     public function setModalMessage($message)
     {
         $_SESSION['proikos_modal_message'] = $message;
+    }
+    public function setModalMessageAttempts($message)
+    {
+        $_SESSION['proikos_modal_message_attempts'] = $message;
     }
 
     public function updateUserMetadata($userId, $metadata)
