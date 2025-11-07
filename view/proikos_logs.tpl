@@ -83,7 +83,7 @@
         <td>{{ user.registration_session_user }}</td>
         <td>{{ user.user_id }}</td>
         <td>{{ user.student }}</td>
-        <td>{{ user.DNI }}</td>
+        <td>{{ user.dni }}</td>
         <td>{{ user.ruc_company }}</td>
         <td>{{ user.name_company }}</td>
 
