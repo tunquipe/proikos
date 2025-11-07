@@ -5316,7 +5316,7 @@ EOT;
     {
         $failedAttempts = self::countConsecutiveFailedAttempts($userId, $sessionId, $sessionCategoryID);
 
-        if ($failedAttempts >= 3) {
+        if ($failedAttempts == 3) {
             return [
                 'can_enroll' => false,
                 'blocked' => true,
