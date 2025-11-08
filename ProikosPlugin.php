@@ -5264,16 +5264,15 @@ EOT;
      * Cuenta los intentos fallidos desde el último intento aprobado
      *
      * @param int $userId
-     * @param int $sessionId
+     * @param int $sessionCategoryID
      * @return int Número de intentos fallidos consecutivos
      */
-    public function countConsecutiveFailedAttempts($userId, $sessionId, $sessionCategoryID) {
+    public function countConsecutiveFailedAttempts($userId, $sessionCategoryID) {
         $tableLog = Database::get_main_table('plugin_proikos_data_log');
         // Buscar la fecha del último intento aprobado
         $sql = "SELECT MAX(created_at) as last_approved
             FROM $tableLog
             WHERE user_id = " . intval($userId) . "
-            AND session_id = " . intval($sessionId) . "
             AND session_category_id = " . intval($sessionCategoryID) . "
             AND status = 'Aprobado'";
 
@@ -5281,12 +5280,12 @@ EOT;
         $row = Database::fetch_assoc($result);
         $lastApproved = $row['last_approved'];
 
+
         // Contar desaprobados después del último aprobado (o todos si nunca aprobó)
         if ($lastApproved) {
             $sql = "SELECT COUNT(*) as failed_count
                 FROM $tableLog
                 WHERE user_id = " . intval($userId) . "
-                AND session_id = " . intval($sessionId) . "
                 AND session_category_id = " . intval($sessionCategoryID) . "
                 AND status = 'Desaprobado'
                 AND created_at > '" . Database::escape_string($lastApproved) . "'";
@@ -5294,13 +5293,15 @@ EOT;
             $sql = "SELECT COUNT(*) as failed_count
                 FROM $tableLog
                 WHERE user_id = " . intval($userId) . "
-                AND session_id = " . intval($sessionId) . "
                 AND session_category_id = " . intval($sessionCategoryID) . "
                 AND status = 'Desaprobado'";
         }
 
         $result = Database::query($sql);
         $row = Database::fetch_assoc($result);
+        print_r($sql);
+        var_dump($row);
+        exit;
 
         return intval($row['failed_count']);
     }
@@ -5309,12 +5310,12 @@ EOT;
      * Verifica si el usuario puede inscribirse en el curso
      *
      * @param int $userId
-     * @param int $sessionId
+     * @param int $sessionCategoryID
      * @return array
      */
-    public function canUserEnrollInCourse($userId, $sessionId, $sessionCategoryID): array
+    public function canUserEnrollInCourse($userId, $sessionCategoryID): array
     {
-        $failedAttempts = self::countConsecutiveFailedAttempts($userId, $sessionId, $sessionCategoryID);
+        $failedAttempts = self::countConsecutiveFailedAttempts($userId, $sessionCategoryID);
 
         if ($failedAttempts == 3) {
             return [
@@ -5332,38 +5333,7 @@ EOT;
             'message' => $failedAttempts > 0 ? "Llevas $failedAttempts intento(s) fallido(s). Ten en cuenta que al tercer intento fallido quedarás bloqueado." : ''
         ];
     }
-    /**
-     * Hook antes de la inscripción a una sesión
-     */
-    public function hookBeforeSessionSubscription($userId, $sessionId) {
-        $restriction = self::canUserEnrollInCourse($userId, $sessionId);
 
-        if ($restriction['blocked']) {
-            // Mostrar mensaje de error
-            Display::addFlash(
-                Display::return_message(
-                    $restriction['message'],
-                    'error',
-                    false
-                )
-            );
-
-            // Redirigir o detener la inscripción
-            header('Location: ' . api_get_path(WEB_CODE_PATH) . 'session/course_catalog.php');
-            exit;
-        }
-
-        // Mostrar advertencia si ya tiene intentos fallidos
-        if ($restriction['attempts'] > 0) {
-            Display::addFlash(
-                Display::return_message(
-                    $restriction['message'],
-                    'warning',
-                    false
-                )
-            );
-        }
-    }
     public function deleteProikosLogRecord($id) {
         $table = Database::get_main_table('plugin_proikos_data_log');
         $id = intval($id);
