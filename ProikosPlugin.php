@@ -5299,9 +5299,6 @@ EOT;
 
         $result = Database::query($sql);
         $row = Database::fetch_assoc($result);
-        print_r($sql);
-        var_dump($row);
-        exit;
 
         return intval($row['failed_count']);
     }
