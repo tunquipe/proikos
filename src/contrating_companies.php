@@ -49,7 +49,9 @@ if ($action === 'delete') {
 }
 
 $contratingCompanies = $plugin->contratingCompaniesModel()->getData();
+$totalCompanies = count($contratingCompanies);
 $tpl->assign('contrating_companies', $contratingCompanies);
+$tpl->assign('total_companies', $totalCompanies);
 
 switch ($action) {
     case 'create':

@@ -25,9 +25,10 @@ $form->addHeader($plugin->get_lang('FilterQuota'));
 
 // Select de empresas
 $companies = get_contracting_companies();
-$company_options = [0 => $plugin->get_lang('AllCompanies')];
+$totalCompanies = count($companies);
+$company_options = [0 => $plugin->get_lang('AllCompanies').' - '.$totalCompanies];
 foreach ($companies as $company) {
-    $company_options[$company['id']] = $company['name'];
+    $company_options[$company['id']] = $company['name'] . ' - ' .$company['ruc'];
 }
 $form->addSelect('company_id', $plugin->get_lang('Company'), $company_options);
 
@@ -295,7 +296,7 @@ function export_to_excel($data, $company_id, $date_from, $date_to) {
  * Función auxiliar para obtener empresas
  */
 function get_contracting_companies() {
-    $sql = "SELECT id, name FROM plugin_proikos_contrating_companies ORDER BY name";
+    $sql = "SELECT id, name, ruc FROM plugin_proikos_contrating_companies ORDER BY name";
     $result = Database::query($sql);
     return Database::store_result($result, 'ASSOC');
 }

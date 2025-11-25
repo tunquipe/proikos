@@ -1,4 +1,4 @@
-
+<p>{{ 'ATotalOf'|get_plugin_lang('ProikosPlugin') }} <strong>{{ total_companies }}</strong> Empresas</p>
 {{ form }}
 <table class="table table-bordered js-paginated-table">
     <thead>

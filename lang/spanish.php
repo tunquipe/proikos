@@ -223,3 +223,4 @@ $strings['SessionId'] = 'ID Sesión';
 $strings['UserQuota'] = 'Cuota Usuario';
 $strings['Gestor'] = 'Gestor';
 $strings['TotalRecords'] = 'Total de registros';
+$strings['ATotalOf'] = 'Se han registrado en total ';
