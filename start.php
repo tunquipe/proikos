@@ -12,6 +12,7 @@ if ($enable) {
     if (api_is_platform_admin() || api_is_drh() || api_is_contractor_admin()) {
         $tpl = new Template($nameTools, true, true, false, false, true, false);
         $tpl->assign('src_plugin', api_get_path(WEB_PLUGIN_PATH) . 'proikos/');
+        $tpl->assign('is_contractor', api_is_contractor_admin());
         $tpl->assign('is_platform_admin', api_is_platform_admin());
         $tpl->assign('is_drh', api_is_drh());
         $tpl->assign('is_contractor_admin', api_is_contractor_admin());

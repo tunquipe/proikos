@@ -28,6 +28,7 @@
             </a>
         </div>
     </div>
+
     {% endif %}
 
     <div class="col-md-3">
@@ -54,6 +55,16 @@
             </a>
         </div>
     </div>
+    {% if is_contractor %}
+    <div class="col-md-3">
+        <div class="tool-box">
+            <a href="{{ src_plugin }}src/company_logs.php" class="tool">
+                <img src="{{ src_plugin }}/images/attempts.png" alt="">
+                <div class="tool-title">Intentos</div>
+            </a>
+        </div>
+    </div>
+    {% endif %}
     {% if is_platform_admin %}
     <div class="col-md-3">
         <div class="tool-box">
@@ -73,13 +84,5 @@
             </a>
         </div>
     </div>
-    <!--<div class="col-md-3">
-        <div class="tool-box">
-            <a href="{{ src_plugin }}src/smowltech.php?action=list" class="tool">
-                <img src="{{ src_plugin }}/images/smowl.png" alt="">
-                <div class="tool-title">Resultados Smowtech</div>
-            </a>
-        </div>
-    </div>-->
     {% endif %}
 </div>

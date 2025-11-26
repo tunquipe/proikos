@@ -71,7 +71,9 @@
         <th class="th-header">{{ 'Average'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Score'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Status'|get_plugin_lang('ProikosPlugin') }}</th>
-        <th class="th-header">{{ 'Actions'|get_plugin_lang('ProikosPlugin') }}</th>
+        {% if is_platform_admin %}
+            <th class="th-header">{{ 'Actions'|get_plugin_lang('ProikosPlugin') }}</th>
+        {% endif %}
 
     </tr>
     {% if data.users %}
@@ -118,9 +120,11 @@
         <td style="text-align: center">
             {{ user.status }}
         </td>
+        {% if is_platform_admin %}
         <td style="text-align: center">
             {{ user.actions }}
         </td>
+        {% endif %}
 
     </tr>
     {% endfor %}
