@@ -206,19 +206,14 @@ function export_to_excel($data, $company_id, $date_from, $date_to) {
     // Encabezados
     $headers = [
         'ID',
-        'ID Empresa',
         'Nombre Empresa',
         'Fecha Creación',
-        'ID Categoría Sesión',
         'Categoría Sesión',
         'ID Sesión',
         'Nombre Sesión',
-        'ID Modo Sesión',
         'Modo Sesión',
-        'Cuota Total',
+        'Cupos Comprados',
         'Precio Unitario',
-        'Cuota Usuario',
-        'ID Gestor',
         'Nombre Gestor'
     ];
 
@@ -246,19 +241,14 @@ function export_to_excel($data, $company_id, $date_from, $date_to) {
     foreach ($data as $item) {
         $dataRow = [
             $item['id'],
-            $item['contrating_company_id'],
             $item['company_name'] ?: 'N/A',
             $item['created_at'],
-            $item['session_category_id'],
             $item['session_category_name'] ?: 'Sin categoría',
             $item['session_id'],
             $item['session_name'] ?: 'N/A',
-            $item['session_mode'],
             $item['session_mode_text'],
             $item['quota_total'],
             'S/ ' . number_format($item['price_unit'], 2),
-            $item['user_quota'],
-            $item['gestor'],
             $item['gestor_name'] ?: 'N/A'
         ];
         $sheet->fromArray($dataRow, NULL, 'A'.$row);
