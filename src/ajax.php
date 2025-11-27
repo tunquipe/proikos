@@ -896,5 +896,99 @@ if ($action) {
                 ]);
             }
             break;
+        case 'update_scores_logs':
+            header('Content-Type: application/json');
+            // Verificar que sea una petición POST
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+                exit;
+            }
+
+            // Verificar que el usuario esté logueado
+            if (!api_is_platform_admin() && !api_is_session_admin() && !api_is_contractor_admin()) {
+                echo json_encode(['success' => false, 'message' => 'No tiene permisos para realizar esta acción']);
+                exit;
+            }
+
+            // Obtener y validar parámetros
+            $recordId = isset($_POST['record_id']) ? intval($_POST['record_id']) : 0;
+            $entranceExam = isset($_POST['entrance_exam']) ? floatval($_POST['entrance_exam']) : 0;
+            $workshop = isset($_POST['workshop']) ? floatval($_POST['workshop']) : 0;
+            $exitExam = isset($_POST['exit_exam']) ? floatval($_POST['exit_exam']) : 0;
+
+            // Validaciones
+            if ($recordId <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID de registro inválido']);
+                exit;
+            }
+
+            // Validar que las notas estén en rango válido (0-20)
+            if ($entranceExam < 0 || $entranceExam > 20 ||
+                $workshop < 0 || $workshop > 20 ||
+                $exitExam < 0 || $exitExam > 20) {
+                echo json_encode(['success' => false, 'message' => 'Las notas deben estar entre 0 y 20']);
+                exit;
+            }
+
+            // Recalcular el promedio para seguridad
+            $calculatedScore = ($entranceExam * 0.10) + ($workshop * 0.60) + ($exitExam * 0.30);
+            $calculatedScore = round($calculatedScore, 2);
+
+            // Determinar status y status_id basado en el promedio
+            // Aprobado = 2 (>= 13), Desaprobado = 0 (< 13), Inscrito = 1
+            if ($calculatedScore >= 13) {
+                $status = 'Aprobado';
+                $statusId = 2;
+            } else {
+                $status = 'Desaprobado';
+                $statusId = 0;
+            }
+
+            // Tabla
+            $table = Database::get_main_table('plugin_proikos_data_log');
+
+            // Si es contractor_admin, verificar que el registro pertenezca a su empresa
+            if (api_is_contractor_admin()) {
+                $rucCompany = intval(ProikosPlugin::getUserRucCompany());
+                $checkSql = "SELECT id FROM $table WHERE id = $recordId AND company_ruc = $rucCompany";
+                $checkResult = Database::query($checkSql);
+
+                if (Database::num_rows($checkResult) == 0) {
+                    echo json_encode(['success' => false, 'message' => 'No tiene permisos para editar este registro']);
+                    exit;
+                }
+            }
+
+            // Actualizar el registro
+                $sql = "UPDATE $table SET
+            entrance_exam = $entranceExam,
+            workshop = $workshop,
+            exit_exam = $exitExam,
+            score = $calculatedScore,
+            status = '$status',
+            status_id = $statusId,
+            updated_at = NOW()
+            WHERE id = $recordId";
+
+            $result = Database::query($sql);
+
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Notas actualizadas correctamente',
+                    'data' => [
+                        'entrance_exam' => $entranceExam,
+                        'workshop' => $workshop,
+                        'exit_exam' => $exitExam,
+                        'score' => $calculatedScore,
+                        'status' => $status,
+                        'status_id' => $statusId
+                    ]
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Error al actualizar el registro']);
+            }
+
+            break;
     }
 }

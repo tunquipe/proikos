@@ -136,3 +136,34 @@
 .row-warning{
     background-color: #FFF;
 }
+
+/* CSS Modal */
+
+#editScoresModal .score-input {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#editScoresModal .form-group label {
+    font-weight: 600;
+    color: #333;
+}
+
+#calculated_promedio {
+    text-align: center;
+    font-size: 18px;
+}
+
+#calculated_status {
+    text-align: center;
+    font-size: 16px;
+}
+
+.text-success {
+    color: #27ae60 !important;
+}
+
+.text-danger {
+    color: #e74c3c !important;
+}

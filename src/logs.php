@@ -8,7 +8,7 @@ api_block_anonymous_users();
 if (!api_is_platform_admin() && !api_is_drh() && !api_is_contractor_admin()) {
     api_not_allowed(true);
 }
-
+$htmlHeadXtra[] = api_get_css(api_get_path(WEB_PLUGIN_PATH) . 'proikos/css/style.css');
 $plugin = ProikosPlugin::create();
 $tool_name = 'Data';
 $actionLinks = null;
@@ -64,9 +64,12 @@ $actionLinks .= Display::url(
 );
 
 $data = $plugin->getDataUsersReportProikos($dni, $courseId, $sessionId, $ruc, $page, $perPage);
+$urlAjax = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/ajax.php';
 
 $tpl->assign('actions', Display::toolbarAction('toolbar', [$actionLinks]));
 $tpl->assign('message', $message);
+$tpl->assign('url_ajax', $urlAjax);
+$tpl->assign('is_platform_admin', $isAdmin);
 $tpl->assign('data', $data);
 $tpl->assign('perPage', $perPage);
 $content = $tpl->fetch('proikos/view/proikos_logs.tpl');

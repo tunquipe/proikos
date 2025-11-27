@@ -4528,8 +4528,29 @@ EOT;
                 $row['score'] = floatval($row['score']);
                 $row['promedio_ponderado'] = round($promedioPonderado, 2);
 
+                // Generar botón de acción para editar
+                $editButton = Display::url(
+                    Display::return_icon(
+                        'edit.png',
+                        get_lang('Edit'),
+                        [],
+                        ICON_SIZE_SMALL
+                    ),
+                    '#',
+                    [
+                        'class' => 'btn btn-default btn-sm btn-edit-scores',
+                        'data-id' => intval($row['id']),
+                        'data-entrance' => $entrance,
+                        'data-workshop' => $workshop,
+                        'data-exit' => $exit,
+                        'data-student' => htmlspecialchars($row['student']),
+                        'data-toggle' => 'modal',
+                        'data-target' => '#editScoresModal',
+                    ]
+                );
+
                 // Generar botón de acción para eliminar
-                $action = Display::url(
+                $deleteButton = Display::url(
                     Display::return_icon(
                         'delete.png',
                         get_lang('Delete'),
@@ -4545,7 +4566,8 @@ EOT;
                     ]
                 );
 
-                $row['actions'] = $action;
+                $row['actions'] = $editButton . ' ' . $deleteButton;
+
                 $users[] = $row;
             }
         }

@@ -72,7 +72,7 @@
         <th class="th-header">{{ 'Score'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Status'|get_plugin_lang('ProikosPlugin') }}</th>
         {% if is_platform_admin %}
-            <th class="th-header">{{ 'Actions'|get_plugin_lang('ProikosPlugin') }}</th>
+            <th class="th-header" width="120px">{{ 'Actions'|get_plugin_lang('ProikosPlugin') }}</th>
         {% endif %}
 
     </tr>
@@ -122,7 +122,9 @@
         </td>
         {% if is_platform_admin %}
         <td style="text-align: center">
-            {{ user.actions }}
+            <div class="btn-group" role="group" aria-label="...">
+                {{ user.actions }}
+            </div>
         </td>
         {% endif %}
 
@@ -155,3 +157,241 @@
         <li>(*) Datos externos</li>
     </ul>
 </div>
+
+<!-- Modal para editar notas -->
+<div class="modal fade" id="editScoresModal" tabindex="-1" role="dialog" aria-labelledby="editScoresModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="editScoresModalLabel">
+                    <i class="fa fa-edit"></i> Editar Notas
+                </h4>
+            </div>
+            <form id="formEditScores">
+                <div class="modal-body">
+                    <!-- Mensaje de alerta -->
+                    <div id="editScoresMessage" class="alert" style="display: none;"></div>
+
+                    <input type="hidden" id="edit_record_id" name="record_id">
+
+                    <div class="alert alert-info">
+                        <strong>Estudiante:</strong> <span id="studentName"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="edit_entrance_exam">
+                                    Examen de Entrada (10%)
+                                </label>
+                                <input type="number"
+                                       class="form-control score-input"
+                                       id="edit_entrance_exam"
+                                       name="entrance_exam"
+                                       min="0"
+                                       max="20"
+                                       step="0.01"
+                                       required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="edit_workshop">
+                                    Taller (60%)
+                                </label>
+                                <input type="number"
+                                       class="form-control score-input"
+                                       id="edit_workshop"
+                                       name="workshop"
+                                       min="0"
+                                       max="20"
+                                       step="0.01"
+                                       required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="edit_exit_exam">
+                                    Examen de Salida (30%)
+                                </label>
+                                <input type="number"
+                                       class="form-control score-input"
+                                       id="edit_exit_exam"
+                                       name="exit_exam"
+                                       min="0"
+                                       max="20"
+                                       step="0.01"
+                                       required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Promedio Ponderado (Calculado)</label>
+                                <div class="input-group">
+                                    <input type="text"
+                                           class="form-control"
+                                           id="calculated_promedio"
+                                           readonly
+                                           style="background-color: #f5f5f5; font-weight: bold;">
+                                    <span class="input-group-addon">
+                                        <i class="fa fa-calculator"></i>
+                                    </span>
+                                </div>
+                                <small class="text-muted">
+                                    Fórmula: (Entrada × 0.10) + (Taller × 0.60) + (Salida × 0.30)
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Estado</label>
+                                <div id="calculated_status" class="form-control"
+                                     style="background-color: #f5f5f5; font-weight: bold;">
+                                    -
+                                </div>
+                                <small class="text-muted">
+                                    Aprobado: >= 13 | Desaprobado: < 13
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        <i class="fa fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveScores">
+                        <i class="fa fa-save"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+
+        // Abrir modal con datos del registro
+        $(document).on('click', '.btn-edit-scores', function(e) {
+            e.preventDefault();
+
+            var id = $(this).data('id');
+            var entrance = $(this).data('entrance');
+            var workshop = $(this).data('workshop');
+            var exit = $(this).data('exit');
+            var student = $(this).data('student');
+
+            // Llenar el formulario
+            $('#edit_record_id').val(id);
+            $('#edit_entrance_exam').val(entrance);
+            $('#edit_workshop').val(workshop);
+            $('#edit_exit_exam').val(exit);
+            $('#studentName').text(student);
+
+            // Limpiar mensajes previos
+            $('#editScoresMessage').hide().removeClass('alert-success alert-danger');
+
+            // Calcular promedio inicial
+            calculatePromedio();
+
+            // Abrir modal
+            $('#editScoresModal').modal('show');
+        });
+
+        // Calcular promedio cuando cambian las notas
+        $(document).on('input', '.score-input', function() {
+            calculatePromedio();
+        });
+
+        // Función para calcular el promedio ponderado
+        function calculatePromedio() {
+            var entrance = parseFloat($('#edit_entrance_exam').val()) || 0;
+            var workshop = parseFloat($('#edit_workshop').val()) || 0;
+            var exit = parseFloat($('#edit_exit_exam').val()) || 0;
+
+            // Validar que estén en rango 0-20
+            entrance = Math.min(20, Math.max(0, entrance));
+            workshop = Math.min(20, Math.max(0, workshop));
+            exit = Math.min(20, Math.max(0, exit));
+
+            // Calcular promedio ponderado
+            var promedio = (entrance * 0.10) + (workshop * 0.60) + (exit * 0.30);
+            promedio = Math.round(promedio * 100) / 100; // Redondear a 2 decimales
+
+            $('#calculated_promedio').val(promedio.toFixed(2));
+
+            // Determinar estado
+            var status = promedio >= 13 ? 'Aprobado' : 'Desaprobado';
+            var statusClass = promedio >= 13 ? 'text-success' : 'text-danger';
+
+            $('#calculated_status')
+                .text(status)
+                .removeClass('text-success text-danger')
+                .addClass(statusClass);
+
+            return promedio;
+        }
+
+        // Función para mostrar mensajes
+        function showMessage(type, message) {
+            var alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            $('#editScoresMessage')
+                .removeClass('alert-success alert-danger')
+                .addClass(alertClass)
+                .html(message)
+                .show();
+        }
+
+        // Enviar formulario
+        $('#formEditScores').on('submit', function(e) {
+            e.preventDefault();
+
+            var $btn = $('#btnSaveScores');
+            var originalText = $btn.html();
+
+            $btn.html('<i class="fa fa-spinner fa-spin"></i> Guardando...').prop('disabled', true);
+            var url_ajax = '{{ url_ajax }}';
+
+            $.ajax({
+                url: url_ajax + '?action=update_scores_logs',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    record_id: $('#edit_record_id').val(),
+                    entrance_exam: $('#edit_entrance_exam').val(),
+                    workshop: $('#edit_workshop').val(),
+                    exit_exam: $('#edit_exit_exam').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showMessage('success', '<i class="fa fa-check"></i> ' + response.message);
+
+                        // Recargar después de 1.5 segundos
+                        setTimeout(function() {
+                            $('#editScoresModal').modal('hide');
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showMessage('error', '<i class="fa fa-exclamation-triangle"></i> ' + (response.message || 'Error al actualizar las notas.'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log('Error:', xhr, status, error);
+                    showMessage('error', '<i class="fa fa-exclamation-triangle"></i> Error de conexión. Intente nuevamente.');
+                },
+                complete: function() {
+                    $btn.html(originalText).prop('disabled', false);
+                }
+            });
+        });
+    });
+</script>
