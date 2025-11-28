@@ -60,7 +60,7 @@
         <div class="tool-box">
             <a href="{{ src_plugin }}src/company_logs.php" class="tool">
                 <img src="{{ src_plugin }}/images/attempts.png" alt="">
-                <div class="tool-title">Intentos</div>
+                <div class="tool-title">Intentos Matriz y Permisos</div>
             </a>
         </div>
     </div>
