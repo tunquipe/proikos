@@ -9,56 +9,93 @@ if (!api_is_platform_admin() && !api_is_drh() && !api_is_contractor_admin()) {
     api_not_allowed(true);
 }
 
+// Agregar Vue.js
+$htmlHeadXtra[] = '<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.min.js"></script>';
+
 $plugin = ProikosPlugin::create();
 $tool_name = 'Data';
 $actionLinks = null;
 $message = null;
-$htmlHeadXtra[] = api_get_css_asset('cropper/dist/cropper.min.css');
-$htmlHeadXtra[] = api_get_asset('cropper/dist/cropper.min.js');
 
-$action = $_GET['export'] ?? null;
-$keyword = $_GET['keyword'] ?? null;
+$action = $_GET['action'] ?? null;
+$dni = $_GET['keyword'] ?? null;
 $courseId = $_GET['course_id'] ?? '%';
 $sessionId = $_GET['session_id'] ?? '%';
+$ruc = $_GET['ruc'] ?? '0';
+
+$page = isset($_GET['page']) ? $_GET['page'] : 1;
+$perPage = isset($_GET['perPage']) ? $_GET['perPage'] : 25;
 
 if (isset($action)) {
     switch ($action) {
+        case 'cron':
+            $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc,1,10, true, 'ASC');
+            $count = 0;
+
+            foreach ($rawData['users'] as $row) {
+                if ($row['status_id'] != 1) {
+                    $count++;
+                    $plugin->registerData($row);
+                }
+            }
+
+            echo 'se registraron ' . $count . ' registros';
+            break;
         case 'xls':
             $fileName = 'report_' . api_get_local_time();
-            $rawData = $plugin->getData(null, null, null, null, $courseId, $sessionId, $keyword);
-
+            $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc,1,10, true);
             $headers = [
                 'Nº',
+                'Codigo',
                 'Fecha',
                 'Nº Horas',
-                'Nombre del curso',
+                'Curso',
                 'Sesión',
-                'Nombres y Apellidos',
-                'Nº DNI / C.E',
+                'Apellidos y Nombres',
+                'DNI / C.E',
                 'RUC',
-                'Empresa',
+                'Nombre de Empresa',
                 'Sede',
+                'Examen de entrada - 10%',
+                'Taller - 60%',
+                'Examen de salida - 30%',
+                'Puntaje',
+                'Estado',
+                'Observaciones certificado',
+                'F. Emision Certificado',
+                'F. Vencimiento Certificado',
+                'Adjuntos por el estudiante',
+                'Incidencias'
             ];
-
-            foreach ($plugin->getDATAcolumns($courseId, $sessionId) as $column) {
-                $headers[] = $column;
-            }
-
-            if (count($headers) > 10) {
-                $headers[] = 'Estado';
-                $headers[] = 'Observaciones';
-            }
-
             $cleanData = [];
-            foreach ($rawData as $row) {
-                $cleanRow = array_map(function ($value) {
-                    return strip_tags($value);
-                }, array_values($row));
-                $cleanData[] = $cleanRow;
+
+            foreach ($rawData['users'] as $row) {
+                $sustenance = $plugin->getSustenanceByUserAndSession($row['id'], $row['session_id']);
+                $cleanData[] = [
+                    'id' => $row['id'],
+                    'code_user' => 'PROK'.$row['id'],
+                    'registration_date' => $row['registration_date_normal'],
+                    'time_course' => $row['time_course'],
+                    'session_category_name' => $row['session_category_name'],
+                    'session_name' => $row['session_name'],
+                    'student' => $row['student'],
+                    'DNI' => $row['DNI'],
+                    'ruc_company' => $row['ruc_company'],
+                    'name_company' => $row['name_company'],
+                    'area' => $row['area'],
+                    'examen_de_entrada' => isset($row['exams']['examen_de_entrada']) ? $row['exams']['examen_de_entrada'] : 0,
+                    'taller' => isset($row['exams']['taller']) ? $row['exams']['taller'] : 0,
+                    'examen_de_salida' => isset($row['exams']['examen_de_salida']) ? $row['exams']['examen_de_salida'] : 0,
+                    'score' => $row['score'],
+                    'status' => strip_tags($row['status']),
+                    'certificate_status' => $row['certificate_status'],
+                    'created_at' => $row['certificate_date']['created_at'],
+                    'expiration_date' => $row['certificate_date']['expiration_date'],
+                    'metadata_exists' => $row['metadata_exists'],
+                    'sustenance' => $sustenance,
+                ];
             }
-
             array_unshift($cleanData, $headers);
-
             Export::arrayToXls($cleanData, $fileName);
             break;
         default:
@@ -75,54 +112,6 @@ $actionLinks .= Display::url(
     Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
     api_get_path(WEB_PLUGIN_PATH) . 'proikos/start.php'
 );
-
-function get_number_of_users()
-{
-    global $plugin, $keyword, $courseId, $sessionId;
-    return $plugin->getData(null, null, null, null, $courseId, $sessionId, $keyword, true);
-}
-
-function get_user_data($from, $number_of_items, $column, $direction)
-{
-    global $plugin, $keyword, $courseId, $sessionId;
-    return $plugin->getData($from, $number_of_items, $column, $direction, $courseId, $sessionId, $keyword);
-}
-
-$table = new SortableTable('users', 'get_number_of_users', 'get_user_data', 2);
-
-if (isset($keyword)) {
-    $table->set_additional_parameters(['keyword' => $keyword]);
-}
-
-if (isset($courseId) && isset($sessionId)) {
-    $table->set_additional_parameters([
-        'course_id' => $courseId,
-        'session_id' => $sessionId
-    ]);
-}
-
-$table->set_header(0, 'Nº', false);
-$table->set_header(1, 'Fecha', false);
-$table->set_header(2, 'Nº Horas', false);
-$table->set_header(3, 'Nombre del curso', false);
-$table->set_header(4, 'Sesión', false);
-$table->set_header(5, 'Nombres y Apellidos', true);
-$table->set_header(6, 'Nº DNI / C.E', false);
-$table->set_header(7, 'RUC', false);
-$table->set_header(8, 'Empresa', false);
-$table->set_header(9, 'Sede', false);
-
-$initialIndex = 10;
-foreach ($plugin->getDATAcolumns($courseId, $sessionId) as $column) {
-    $table->set_header($initialIndex, $column, false);
-    $initialIndex++;
-}
-
-$table->set_header($initialIndex++, $plugin->get_lang('Status'), false);
-$table->set_header($initialIndex++, $plugin->get_lang('Observations'), false);
-$table->set_header($initialIndex, $plugin->get_lang('CertificatesAttached'), false);
-
-$contentTable = $table->return_table();
 
 $courses = [];
 $courses['%'] = $plugin->get_lang('SelectCourse');
@@ -198,7 +187,6 @@ $form->addHtml(
             \$select.empty();
 
             const courseId = '{$courseId}';
-            console.log(courseId)
 
             courses.forEach(course => {
                const isSelected = course.id == courseId ? true : false;
@@ -249,13 +237,17 @@ $form->addText('keyword', $plugin->get_lang('SearchUserByDNI'), false, [
     'placeholder' => 'Buscar usuario por DNI',
     'style' => 'display: block'
 ]);
+$form->addText('ruc', $plugin->get_lang('SearchUserByRUC'), false, [
+    'placeholder' => 'Buscar por RUC de empresa',
+    'style' => 'display: block'
+]);
 $form->addButtonSearch(get_lang('Search'));
 $actionsLeft = $form->returnForm();
 
 $actionsRight = Display::url(
     Display::return_icon('export_excel.png', get_lang('ExportAsXLS'), [], ICON_SIZE_MEDIUM),
     api_get_self() . '?' . http_build_query([
-        'export' => 'xls',
+        'action' => 'xls',
         'course_id' => $courseId,
         'session_id' => $sessionId,
     ])
@@ -263,9 +255,28 @@ $actionsRight = Display::url(
 
 $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $actionsRight], [9, 1, 2]);
 
+// NO cargamos los datos aquí, Vue lo hará
+// $data = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, $page, $perPage);
+
+$urlAjaxPlugin = api_get_path(WEB_PLUGIN_PATH)."proikos/src/ajax.php";
+
+// Pasar parámetros a Vue
+$vueParams = json_encode([
+    'keyword' => $dni,
+    'course_id' => $courseId,
+    'session_id' => $sessionId,
+    'ruc' => $ruc,
+    'page' => $page,
+    'perPage' => $perPage,
+    'ajaxUrl' => $urlAjaxPlugin
+]);
+
 $tpl->assign('actions', Display::toolbarAction('toolbar', [$actionLinks]));
 $tpl->assign('message', $message);
-$tpl->assign('users_table', $contentTable);
-$content = $tpl->fetch('proikos/view/proikos_data.tpl');
+$tpl->assign('url_ajax', $urlAjaxPlugin);
+$tpl->assign('vue_params', $vueParams);
+$tpl->assign('perPage', $perPage);
+
+$content = $tpl->fetch('proikos/view/proikos_report_data_vue.tpl');
 $tpl->assign('content', $toolbarActions . $content);
 $tpl->display_one_col_template();

@@ -990,5 +990,33 @@ if ($action) {
             }
 
             break;
+
+        case 'get_data_report':
+            // Importante: establecer el header JSON
+            header('Content-Type: application/json; charset=utf-8');
+
+            try {
+                $dni = isset($_GET['keyword']) && $_GET['keyword'] !== '' ? $_GET['keyword'] : null;
+                $courseId = isset($_GET['course_id']) ? $_GET['course_id'] : '%';
+                $sessionId = isset($_GET['session_id']) ? $_GET['session_id'] : '%';
+                $ruc = isset($_GET['ruc']) ? $_GET['ruc'] : '0';
+                $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+                $perPage = isset($_GET['perPage']) ? intval($_GET['perPage']) : 25;
+
+                $data = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, $page, $perPage);
+
+                echo json_encode([
+                    'success' => true,
+                    'data' => $data
+                ], JSON_UNESCAPED_UNICODE);
+
+            } catch (Exception $e) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Error: ' . $e->getMessage()
+                ]);
+            }
+            exit;
+            break;
     }
 }
