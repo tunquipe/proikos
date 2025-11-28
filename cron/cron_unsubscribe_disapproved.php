@@ -8,6 +8,9 @@
  * Ubicación sugerida: /plugin/proikos/cron/cron_unsubscribe_disapproved.php
  */
 
+// Suprimir warnings de Chamilo que no afectan el cron
+error_reporting(E_ERROR | E_PARSE);
+
 // Configuración para ejecución CLI
 if (php_sapi_name() !== 'cli') {
     die('Este script solo puede ejecutarse desde la línea de comandos.');
@@ -78,7 +81,7 @@ writeLog("=== INICIO DEL CRON: Desuscripción de usuarios desaprobados ===", $lo
 try {
     // Calcular rango de fechas (últimos 7 días)
     $endDate = date('Y-m-d'); // Hoy
-    $startDate = date('Y-m-d', strtotime('-7 days')); // Hace 7 días
+    $startDate = date('Y-m-d', strtotime('-30 days')); // Hace 7 días
 
     writeLog("Buscando desaprobados desde: $startDate hasta: $endDate", $logFile);
 
