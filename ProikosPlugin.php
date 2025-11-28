@@ -4428,7 +4428,7 @@ EOT;
         return $lps;
     }
 
-    public function getDataUsersReportProikos($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false): array
+    public function getDataUsersReportProikos($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false, $sessionCategoryIds = []): array
     {
         $table_data = Database::get_main_table(self::TABLE_PROIKOS_DATA_LOG);
 
@@ -4443,39 +4443,36 @@ EOT;
         $offset = ($page - 1) * $perPage;
 
         $sql = "SELECT
-            ppd.id,
-            ppd.registration_session_user,
-            ppd.user_id,
-            ppd.username,
-            ppd.email,
-            ppd.dni,
-            CONCAT(ppd.first_name, ' ', ppd.last_name) as student,
-            ppd.session_category_id,
-            ppd.session_category_name,
-            ppd.session_id,
-            ppd.course_id as c_id,
-            ppd.course_code as code,
-            ppd.session_name,
-            ppd.company_ruc as ruc_company,
-            ppd.company_name as name_company,
-            ppd.area,
-            COALESCE(NULLIF(ppd.entrance_exam, 0), 0) as entrance_exam,
-            COALESCE(NULLIF(ppd.workshop, 0), 0) as workshop,
-            COALESCE(NULLIF(ppd.exit_exam, 0), 0) as exit_exam,
-            ppd.score,
-            ppd.status,
-            ppd.certificate_status,
-            ppd.created_at
-            FROM $table_data ppd ";
+        ppd.id,
+        ppd.registration_session_user,
+        ppd.user_id,
+        ppd.username,
+        ppd.email,
+        ppd.dni,
+        CONCAT(ppd.first_name, ' ', ppd.last_name) as student,
+        ppd.session_category_id,
+        ppd.session_category_name,
+        ppd.session_id,
+        ppd.course_id as c_id,
+        ppd.course_code as code,
+        ppd.session_name,
+        ppd.company_ruc as ruc_company,
+        ppd.company_name as name_company,
+        ppd.area,
+        COALESCE(NULLIF(ppd.entrance_exam, 0), 0) as entrance_exam,
+        COALESCE(NULLIF(ppd.workshop, 0), 0) as workshop,
+        COALESCE(NULLIF(ppd.exit_exam, 0), 0) as exit_exam,
+        ppd.score,
+        ppd.status,
+        ppd.certificate_status,
+        ppd.created_at
+        FROM $table_data ppd ";
 
         // Construir WHERE con condiciones
         $conditions = [];
 
-        // Filtro por status (ajusta según tu lógica)
-        // Si status almacena texto como "aprobado", "desaprobado", usa:
+        // Filtro por status
         $conditions[] = "ppd.status != 'eliminado'";
-        // O si usas números:
-        // $conditions[] = "ppd.status = 0";
 
         // Filtro por DNI
         if (!empty($dni)) {
@@ -4491,6 +4488,21 @@ EOT;
         // Filtro por sesión
         if ($session_id > 0) {
             $conditions[] = "ppd.session_id = $session_id";
+        }
+
+        // Filtro por categorías de sesión (NUEVO)
+        if (!empty($sessionCategoryIds) && is_array($sessionCategoryIds)) {
+            // Sanitizar cada ID del array
+            $sanitizedCategoryIds = array_map('intval', $sessionCategoryIds);
+            // Filtrar valores válidos (mayores a 0)
+            $sanitizedCategoryIds = array_filter($sanitizedCategoryIds, function($id) {
+                return $id > 0;
+            });
+
+            if (!empty($sanitizedCategoryIds)) {
+                $categoryIdsString = implode(',', $sanitizedCategoryIds);
+                $conditions[] = "ppd.session_category_id IN ($categoryIdsString)";
+            }
         }
 
         // Filtro por RUC
@@ -4575,7 +4587,7 @@ EOT;
 
         // Consulta para contar total de registros
         $sqlTotal = "SELECT COUNT(DISTINCT ppd.id) as total_users
-                 FROM $table_data ppd";
+             FROM $table_data ppd";
 
         // Aplicar las mismas condiciones al total
         if (!empty($conditions)) {

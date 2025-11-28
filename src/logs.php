@@ -138,7 +138,7 @@ $form->addButtonSearch(get_lang('Search'));
 $actionsLeft = $form->returnForm();
 $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft], [9, 1, 2]);
 
-$data = $plugin->getDataUsersReportProikos($dni, $courseId, $sessionId, $ruc, $page, $perPage);
+$data = $plugin->getDataUsersReportProikos($dni, $courseId, $sessionId, $ruc, $page, $perPage,false,[2,3]);
 $urlAjax = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/ajax.php';
 
 $tpl->assign('actions', Display::toolbarAction('toolbar', [$actionLinks]));
