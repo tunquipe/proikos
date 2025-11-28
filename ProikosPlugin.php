@@ -5379,4 +5379,90 @@ EOT;
 
         return $result !== false;
     }
+
+    /**
+     * Obtiene los usuarios desaprobados en un rango de fechas
+     *
+     * @param string $startDate Fecha de inicio (formato: 'Y-m-d' o 'Y-m-d H:i:s')
+     * @param string $endDate Fecha de fin (formato: 'Y-m-d' o 'Y-m-d H:i:s')
+     * @param array $sessionCategoryIds Array de IDs de categorías de sesión (opcional)
+     * @return array
+     */
+    public function getDisapprovedUsersByDateRange($startDate, $endDate, $sessionCategoryIds = []): array
+    {
+        $table_data = Database::get_main_table(self::TABLE_PROIKOS_DATA_LOG);
+
+        $sql = "SELECT
+        ppd.user_id,
+        ppd.username,
+        CONCAT(ppd.first_name, ' ', ppd.last_name) AS student,
+        ppd.session_id,
+        ppd.session_name,
+        ppd.status
+        FROM $table_data ppd ";
+
+        // Construir WHERE con condiciones
+        $conditions = [];
+
+        // Filtro por status eliminado
+        $conditions[] = "ppd.status != 'eliminado'";
+
+        // Filtro por desaprobados
+        $conditions[] = "ppd.status = 'desaprobado'";
+
+        // Filtro por rango de fechas
+        if (!empty($startDate)) {
+            $startDate = Database::escape_string($startDate);
+            $conditions[] = "ppd.created_at >= '$startDate'";
+        }
+
+        if (!empty($endDate)) {
+            $endDate = Database::escape_string($endDate);
+            // Si solo viene fecha sin hora, agregar el final del día
+            if (strlen($endDate) === 10) {
+                $endDate .= ' 23:59:59';
+            }
+            $conditions[] = "ppd.created_at <= '$endDate'";
+        }
+
+        // Filtro por categorías de sesión
+        if (!empty($sessionCategoryIds) && is_array($sessionCategoryIds)) {
+            $sanitizedCategoryIds = array_map('intval', $sessionCategoryIds);
+            $sanitizedCategoryIds = array_filter($sanitizedCategoryIds, function($id) {
+                return $id > 0;
+            });
+
+            if (!empty($sanitizedCategoryIds)) {
+                $categoryIdsString = implode(',', $sanitizedCategoryIds);
+                $conditions[] = "ppd.session_category_id IN ($categoryIdsString)";
+            }
+        }
+
+        // Agregar WHERE
+        if (!empty($conditions)) {
+            $sql .= " WHERE " . implode(" AND ", $conditions);
+        }
+
+        // Ordenar
+        $sql .= " ORDER BY ppd.id DESC";
+
+        $result = Database::query($sql);
+        $users = [];
+
+        if (Database::num_rows($result) > 0) {
+            while ($row = Database::fetch_assoc($result)) {
+                $users[] = [
+                    'user_id' => intval($row['user_id']),
+                    'username' => $row['username'],
+                    'student' => $row['student'],
+                    'session_id' => intval($row['session_id']),
+                    'session_name' => $row['session_name'],
+                    'status' => $row['status'],
+                ];
+            }
+        }
+
+        return $users;
+    }
+
 }
