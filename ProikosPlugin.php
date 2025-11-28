@@ -4464,7 +4464,8 @@ EOT;
             COALESCE(NULLIF(ppd.exit_exam, 0), 0) as exit_exam,
             ppd.score,
             ppd.status,
-            ppd.certificate_status
+            ppd.certificate_status,
+            ppd.created_at
             FROM $table_data ppd ";
 
         // Construir WHERE con condiciones

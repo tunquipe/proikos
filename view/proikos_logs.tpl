@@ -58,7 +58,7 @@
 <table class="table table-hover table-striped table-bordered data_table" id="user_tables">
     <tr class="row_odd">
         <th class="th-header">Nº de log</th>
-        <th class="th-header" style="width: 300px;">{{ 'Session'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th class="th-header" style="width: 270px;">{{ 'Session'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">Codigo de Registro - Session</th>
         <th class="th-header">ID de usuario</th>
         <th class="th-header">{{ 'LastNamesAndFirstNames'|get_plugin_lang('ProikosPlugin') }}</th>
@@ -71,6 +71,7 @@
         <th class="th-header">{{ 'Average'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Score'|get_plugin_lang('ProikosPlugin') }}</th>
         <th class="th-header">{{ 'Status'|get_plugin_lang('ProikosPlugin') }}</th>
+        <th class="th-header" width="150px">{{ 'RegistrationDateLogo'|get_plugin_lang('ProikosPlugin') }}</th>
         {% if is_platform_admin %}
             <th class="th-header" width="120px">{{ 'Actions'|get_plugin_lang('ProikosPlugin') }}</th>
         {% endif %}
@@ -120,7 +121,11 @@
         <td style="text-align: center">
             {{ user.status }}
         </td>
+        <td style="text-align: center">
+            {{ user.created_at }}
+        </td>
         {% if is_platform_admin %}
+
         <td style="text-align: center">
             <div class="btn-group" role="group" aria-label="...">
                 {{ user.actions }}

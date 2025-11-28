@@ -49,19 +49,94 @@ if (isset($action)) {
 $tpl = new Template($tool_name);
 $isAdmin = api_is_platform_admin();
 
-$form = new FormValidator('search_simple', 'get', null, null, null, 'inline');
-$form->addText('keyword', $plugin->get_lang('SearchUserByDNI'), false, [
-    'placeholder' => 'Buscar usuario por DNI',
-    'style' => 'display: block'
-]);
-$form->addButtonSearch(get_lang('Search'));
-$actionsLeft = $form->returnForm();
-$toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft], [9, 1, 2]);
-
 $actionLinks .= Display::url(
     Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
     api_get_path(WEB_PLUGIN_PATH) . 'proikos/start.php'
 );
+$url = api_get_self();
+
+$courses = [];
+$courses['%'] = $plugin->get_lang('SelectCourse');
+$coursesList = CourseManager::get_courses_list(
+    0,
+    0,
+    'title',
+    'asc',
+    -1,
+    null,
+    api_get_current_access_url_id(),
+    false,
+    [],
+    []
+);
+
+$coursesJsFormat = [];
+$coursesJsFormat[] = [
+    'id' => '%',
+    'name' => $plugin->get_lang('SelectCourse'),
+    'badge' => ''
+];
+foreach ($coursesList as $course) {
+    $courses[$course['id']] = $course['title'] . (!empty($course['visual_code']) ? " (" . $course['visual_code'] . ")" : "");
+    $coursesJsFormat[] = [
+        'id' => $course['id'],
+        'name' => $course['title'],
+        'badge' => (!empty($course['visual_code']) ? "<span class='label label-info'>" . $course['visual_code'] . "</span>" : "")
+    ];
+}
+
+$form = new FormValidator('search_simple', 'get', null, null, null, 'inline');
+
+$form->addSelect(
+    'course_id',
+    get_lang('Course'),
+    $courses
+);
+$coursesJsFormat = json_encode($coursesJsFormat, JSON_UNESCAPED_UNICODE);
+$form->addHtml(
+    <<<EOT
+    <script>
+        $(document).ready(function() {
+            $('select[name="course_id"]').change(function() {
+                var courseId = $(this).val();
+                if (courseId) {
+                    window.location.href = '{$url}?course_id=' + courseId;
+                }
+            });
+
+            const courses = JSON.parse(`{$coursesJsFormat}`);
+            const \$select = $('select[name="course_id"]');
+            \$select.empty();
+
+            const courseId = '{$courseId}';
+            console.log(courseId)
+
+            courses.forEach(course => {
+               const isSelected = course.id == courseId ? true : false;
+              \$select.append(
+                $('<option>', {
+                  value: course.id,
+                  'data-content': course.name + ' ' + (course.badge ?? ''),
+                  text: course.name,
+                  selected: isSelected
+                })
+              );
+            });
+        });
+
+    </script>
+EOT
+);
+
+
+$form->addText('keyword', $plugin->get_lang('SearchUserByDNI'), false, [
+    'placeholder' => 'Buscar usuario por DNI',
+    'style' => 'display: block'
+]);
+
+$form->addButtonSearch(get_lang('Search'));
+$actionsLeft = $form->returnForm();
+$toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft], [9, 1, 2]);
 
 $data = $plugin->getDataUsersReportProikos($dni, $courseId, $sessionId, $ruc, $page, $perPage);
 $urlAjax = api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/ajax.php';

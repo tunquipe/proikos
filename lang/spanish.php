@@ -224,3 +224,4 @@ $strings['UserQuota'] = 'Cupos usados';
 $strings['Gestor'] = 'Gestor';
 $strings['TotalRecords'] = 'Total de registros';
 $strings['ATotalOf'] = 'Se han registrado en total ';
+$strings['RegistrationDateLogo'] = 'Fecha registro log';
