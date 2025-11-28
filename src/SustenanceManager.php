@@ -42,7 +42,7 @@ class SustenanceManager
     /**
      * Nota mínima requerida (porcentaje)
      */
-    protected $nota_minima = 70.5;
+    protected $nota_minima = 69.9;
 
     /**
      * Constructor
