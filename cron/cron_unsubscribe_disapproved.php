@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Cron Job: Desuscribir usuarios desaprobados de sus sesiones
  *
@@ -14,7 +13,11 @@ if (php_sapi_name() !== 'cli') {
     die('Este script solo puede ejecutarse desde la línea de comandos.');
 }
 
-require_once __DIR__ . '/../config.php';
+// Cargar el entorno de Chamilo
+$cidReset = true;
+require_once __DIR__ . '/../../../main/inc/global.inc.php';
+
+// Cargar el plugin
 $plugin = ProikosPlugin::create();
 
 // Configurar log
@@ -34,6 +37,39 @@ function writeLog($message, $logFile) {
     $logMessage = "[$timestamp] $message" . PHP_EOL;
     file_put_contents($logFile, $logMessage, FILE_APPEND);
     echo $logMessage; // También mostrar en consola
+}
+
+/**
+ * Verifica si un usuario está inscrito en una sesión
+ *
+ * @param int $userId ID del usuario
+ * @param int $sessionId ID de la sesión
+ * @return bool
+ */
+function isUserSubscribedToSession($userId, $sessionId): bool
+{
+    $userId = intval($userId);
+    $sessionId = intval($sessionId);
+
+    // Método 1: Usando SessionManager (recomendado)
+    $isSubscribed = SessionManager::isUserSubscribedAsStudent($sessionId, $userId);
+
+    if ($isSubscribed) {
+        return true;
+    }
+
+    // Método 2: Consulta directa como respaldo
+    $tableSessionUser = Database::get_main_table(TABLE_MAIN_SESSION_USER);
+    $sql = "SELECT COUNT(*) as count
+            FROM $tableSessionUser
+            WHERE session_id = $sessionId
+            AND user_id = $userId
+            AND relation_type = 0"; // 0 = estudiante
+
+    $result = Database::query($sql);
+    $row = Database::fetch_assoc($result);
+
+    return intval($row['count']) > 0;
 }
 
 // Inicio del proceso
@@ -65,6 +101,7 @@ try {
     }
 
     $processedCount = 0;
+    $skippedCount = 0;
     $errorCount = 0;
 
     // Procesar cada usuario desaprobado
@@ -74,7 +111,16 @@ try {
         $studentName = $user['student'];
         $username = $user['username'];
 
-        writeLog("Procesando usuario: $studentName (ID: $userId, DNI: $username) - Sesión: $sessionId", $logFile);
+        writeLog("Verificando usuario: $studentName (ID: $userId, DNI: $username) - Sesión: $sessionId", $logFile);
+
+        // Verificar si el usuario está inscrito en la sesión
+        if (!isUserSubscribedToSession($userId, $sessionId)) {
+            writeLog("  ⊘ Usuario NO está inscrito en la sesión. Saltando...", $logFile);
+            $skippedCount++;
+            continue;
+        }
+
+        writeLog("  → Usuario inscrito. Procediendo a procesar...", $logFile);
 
         try {
             // 1. Obtener ejercicios y LPs de la sesión
@@ -118,8 +164,10 @@ try {
 
     // Resumen final
     writeLog("=== RESUMEN ===", $logFile);
-    writeLog("Total procesados correctamente: $processedCount", $logFile);
-    writeLog("Total con errores: $errorCount", $logFile);
+    writeLog("Total encontrados: $totalUsers", $logFile);
+    writeLog("Procesados correctamente: $processedCount", $logFile);
+    writeLog("Saltados (no inscritos): $skippedCount", $logFile);
+    writeLog("Con errores: $errorCount", $logFile);
     writeLog("=== FIN DEL CRON ===", $logFile);
 
 } catch (Exception $e) {
