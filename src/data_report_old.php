@@ -9,8 +9,57 @@ if (!api_is_platform_admin() && !api_is_drh() && !api_is_contractor_admin()) {
     api_not_allowed(true);
 }
 
-// Agregar Vue.js
-$htmlHeadXtra[] = '<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.min.js"></script>';
+// Agregar CSS del preloader en el head
+$htmlHeadXtra[] = '
+<style>
+#page-preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.97);
+    z-index: 99999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.preloader-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #e0e0e0;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.preloader-text {
+    margin-top: 20px;
+    font-size: 16px;
+    color: #333;
+    font-weight: 500;
+}
+
+.preloader-subtext {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #666;
+}
+
+#page-preloader.fade-out {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+</style>
+';
 
 $plugin = ProikosPlugin::create();
 $tool_name = 'Data';
@@ -64,7 +113,7 @@ if (isset($action)) {
                 'Observaciones certificado',
                 'F. Emision Certificado',
                 'F. Vencimiento Certificado',
-                'Adjuntos por el estudiante',
+                'Adjuntos por el estudiante	',
                 'Incidencias'
             ];
             $cleanData = [];
@@ -187,6 +236,7 @@ $form->addHtml(
             \$select.empty();
 
             const courseId = '{$courseId}';
+            console.log(courseId)
 
             courses.forEach(course => {
                const isSelected = course.id == courseId ? true : false;
@@ -255,28 +305,51 @@ $actionsRight = Display::url(
 
 $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $actionsRight], [9, 1, 2]);
 
-// NO cargamos los datos aquí, Vue lo hará
-// $data = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, $page, $perPage);
+$data = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, $page, $perPage);
 
 $urlAjaxPlugin = api_get_path(WEB_PLUGIN_PATH)."proikos/src/ajax.php";
 
-// Pasar parámetros a Vue
-$vueParams = json_encode([
-    'keyword' => $dni,
-    'course_id' => $courseId,
-    'session_id' => $sessionId,
-    'ruc' => $ruc,
-    'page' => $page,
-    'perPage' => $perPage,
-    'ajaxUrl' => $urlAjaxPlugin
-]);
+// HTML del Preloader
+$preloaderHtml = '
+<div id="page-preloader">
+    <div class="preloader-spinner"></div>
+    <p class="preloader-text">Cargando datos...</p>
+    <p class="preloader-subtext">Por favor espere un momento</p>
+</div>
+';
+
+// Script para ocultar el preloader
+$preloaderScript = '
+<script>
+$(document).ready(function() {
+    // Ocultar preloader cuando todo esté listo
+    setTimeout(function() {
+        $("#page-preloader").addClass("fade-out");
+        setTimeout(function() {
+            $("#page-preloader").remove();
+        }, 400);
+    }, 300);
+});
+
+// Timeout de seguridad: máximo 30 segundos
+setTimeout(function() {
+    if ($("#page-preloader").length) {
+        $("#page-preloader").addClass("fade-out");
+        setTimeout(function() {
+            $("#page-preloader").remove();
+        }, 400);
+    }
+}, 30000);
+</script>
+';
 
 $tpl->assign('actions', Display::toolbarAction('toolbar', [$actionLinks]));
 $tpl->assign('message', $message);
 $tpl->assign('url_ajax', $urlAjaxPlugin);
-$tpl->assign('vue_params', $vueParams);
+$tpl->assign('data', $data);
 $tpl->assign('perPage', $perPage);
+$content = $tpl->fetch('proikos/view/proikos_report_data.tpl');
 
-$content = $tpl->fetch('proikos/view/proikos_report_data_vue.tpl');
-$tpl->assign('content', $toolbarActions . $content);
+// Agregar preloader al inicio del contenido
+$tpl->assign('content', $preloaderHtml . $toolbarActions . $content . $preloaderScript);
 $tpl->display_one_col_template();
