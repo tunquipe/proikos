@@ -43,7 +43,7 @@ $actionLinks .= Display::url(
 );
 
 $contractor = api_is_contractor_admin();
-$data = $plugin->getDataUsersReportProikos($dni, $courseId, $sessionId, $ruc, $page, $perPage);
+$data = $plugin->getDataUsersReportProikos($dni, $courseId, $sessionId, $ruc, $page, $perPage,false,[2,3]);
 
 $tpl->assign('actions', Display::toolbarAction('toolbar', [$actionLinks]));
 $tpl->assign('message', $message);
