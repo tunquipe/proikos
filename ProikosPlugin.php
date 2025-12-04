@@ -1153,15 +1153,25 @@ class ProikosPlugin extends Plugin
         if (empty($idUser)) {
             return false;
         }
+        $instructions = [
+            '0' => 'Seleccione una opción',
+            '1' => 'Primaria',
+            '2' => 'Secundaria',
+            '3' => 'Técnica superior',
+            '4' => 'Universitaria Bachiller',
+            '5' => 'Universitaria Titulada',
+        ];
         $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
-        $sql = "SELECT pu.name_company, pu.area  FROM $table pu WHERE pu.user_id = '$idUser'";
+        $sql = "SELECT pu.name_company, pu.area, pu.age, pu.instruction  FROM $table pu WHERE pu.user_id = '$idUser'";
         $result = Database::query($sql);
         $item = null;
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_array($result)) {
                 $item = [
                     '0' => $row['name_company'],
-                    '1' => $row['area']
+                    '1' => $row['area'],
+                    '2' => $row['age'],
+                    '3' => $instructions[$row['instruction']]
                 ];
             }
         }
