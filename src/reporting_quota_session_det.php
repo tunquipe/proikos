@@ -89,7 +89,6 @@ $url_self = api_get_self();
 $queryParams = [];
 if (!empty($searchBy)) $queryParams[] = 'search_by=' . urlencode($searchBy);
 if (!empty($searchTerm)) $queryParams[] = 'search_term=' . urlencode($searchTerm);
-$queryString = !empty($queryParams) ? '?' . implode('&', $queryParams) : '';
 
 $tpl = new Template($tool_name);
 $tpl->assign(
@@ -98,7 +97,9 @@ $tpl->assign(
 );
 $isAdmin = api_is_platform_admin();
 $tpl->assign('items', $items);
-$tpl->assign('url_self', $url_self . $queryString);
+$tpl->assign('url_self', $url_self); // URL base sin parámetros
+$tpl->assign('search_by', $searchBy);
+$tpl->assign('search_term', $searchTerm);
 $tpl->assign('current_page', $page);
 $tpl->assign('total_pages', $totalPages);
 $tpl->assign('total_records', $total);

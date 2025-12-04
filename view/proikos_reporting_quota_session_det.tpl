@@ -56,13 +56,15 @@
         </tbody>
     </table>
     <input type="hidden" name="action" value="">
+
+
     {# Paginación #}
     {% if total_pages > 1 %}
     <div class="left-center">
         <ul class="pagination">
             {# Botón Anterior #}
             <li class="{% if current_page == 1 %}disabled{% endif %}">
-                <a href="{% if current_page > 1 %}{{ url_self }}?page={{ current_page - 1 }}{% else %}#{% endif %}">
+                <a href="{% if current_page > 1 %}{{ url_self }}?page={{ current_page - 1 }}{% if search_by %}&search_by={{ search_by }}{% endif %}{% if search_term %}&search_term={{ search_term|url_encode }}{% endif %}{% else %}#{% endif %}">
                     &laquo; Anterior
                 </a>
             </li>
@@ -72,7 +74,7 @@
             {% if i == current_page %}
             <li class="active"><a href="#">{{ i }}</a></li>
             {% elseif i == 1 or i == total_pages or (i >= current_page - 2 and i <= current_page + 2) %}
-            <li><a href="{{ url_self }}?page={{ i }}">{{ i }}</a></li>
+            <li><a href="{{ url_self }}?page={{ i }}{% if search_by %}&search_by={{ search_by }}{% endif %}{% if search_term %}&search_term={{ search_term|url_encode }}{% endif %}">{{ i }}</a></li>
             {% elseif i == current_page - 3 or i == current_page + 3 %}
             <li class="disabled"><a href="#">...</a></li>
             {% endif %}
@@ -80,7 +82,7 @@
 
             {# Botón Siguiente #}
             <li class="{% if current_page == total_pages %}disabled{% endif %}">
-                <a href="{% if current_page < total_pages %}{{ url_self }}?page={{ current_page + 1 }}{% else %}#{% endif %}">
+                <a href="{% if current_page < total_pages %}{{ url_self }}?page={{ current_page + 1 }}{% if search_by %}&search_by={{ search_by }}{% endif %}{% if search_term %}&search_term={{ search_term|url_encode }}{% endif %}{% else %}#{% endif %}">
                     Siguiente &raquo;
                 </a>
             </li>
@@ -94,6 +96,8 @@
         </p>
     </div>
     {% endif %}
+
+
 {% if is_admin %}
 <div class="btn-toolbar">
     <div class="btn-group">
