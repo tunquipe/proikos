@@ -84,7 +84,7 @@ if($action == 'second'){
         '4' => 'Universitaria Bachiller',
         '5' => 'Universitaria Titulada',
     ];
-    $gradeInput = $form->addSelect('instruction', $plugin->get_lang('GradeInstructions'), $instructions);
+    $gradeInput = $form->addSelect('instruction', $plugin->get_lang('GradeInstructions'), $instructions,['required']);
     $form->setRequired($gradeInput);
     $form->addHtml('</div></div>');
     $form->addHtml('</div></div>');
@@ -195,6 +195,18 @@ if($action == 'second'){
 
     if ($form->validate()) {
         $values = $form->getSubmitValues(1);
+
+        // Validar instruction
+        if ($values['instruction'] == '0') {
+            $form->setElementError('instruction', 'Debe seleccionar un nivel de instrucción');
+            goto init_form;
+        }
+
+        // Validar area
+        if ($values['area'] == '-1') {
+            $form->setElementError('area', 'Debe seleccionar un área');
+            goto init_form;
+        }
 
         $emailValidation = $plugin->validEmail($values['email']);
         if (true !== $emailValidation) {
