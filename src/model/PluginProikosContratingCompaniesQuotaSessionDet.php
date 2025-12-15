@@ -266,10 +266,20 @@ class PluginProikosContratingCompaniesQuotaSessionDet
         ];
     }
 
-    public function useQuota($id, $userId)
+    public function useQuota($id, $userId): bool
     {
-        $sql = "UPDATE " . $this->table . " SET user_id = $userId WHERE id = $id";
-        Database::query($sql);
+        /*$sql = "UPDATE " . $this->table . " SET user_id = $userId WHERE id = $id";
+        Database::query($sql);*/
+
+        $sql = "
+        UPDATE {$this->table}
+        SET user_id = $userId
+        WHERE id = $id
+          AND user_id IS NULL";
+
+        $result = Database::query($sql);
+
+        return Database::affected_rows($result) === 1;
     }
 
     public function companySessionsWithQuota($userId)
