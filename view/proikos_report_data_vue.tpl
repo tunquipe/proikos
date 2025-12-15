@@ -396,10 +396,12 @@
                 <td class="text-center" :class="getScoreClass(user.exams ? user.exams.examen_de_salida : 0)">
                     [[ user.exams && user.exams.examen_de_salida ? user.exams.examen_de_salida : 0 ]]
                 </td>
-                <td class="text-center" :class="getScoreClass(user.promedio_ponderado)">
-                    <strong>[[ formatNumber(user.promedio_ponderado) ]]</strong>
+                <td class="text-center" :class="getScoreClass(user.promedio_ponderado !== '-' ? user.promedio_ponderado : 0)">
+                    <strong>[[ user.promedio_ponderado === '-' || user.promedio_ponderado <= 0 ? '-' : formatNumber(user.promedio_ponderado) ]]</strong>
                 </td>
-                <td class="text-center">[[ formatNumber(user.score) ]]</td>
+                <td class="text-center">
+                    [[ user.score === '-' || user.score <= 0 ? '-' : formatNumber(user.score) ]]
+                </td>
                 <td style="text-align: center">
                     <span v-html="user.status"></span>
                     <br>

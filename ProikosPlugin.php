@@ -4783,6 +4783,16 @@ EOT;
                 $row['status_id'] = $status_id;
                 $row['promedio_ponderado'] = $promedioPonderado;
                 $row['score'] = $puntaje_total;
+                if($status_id == 1){
+                    $row['exams']=[
+                        'examen_de_entrada' => '-',
+                        'examen_de_salida' => '-',
+                        'taller' => '-'
+                    ];
+                    $row['promedio_ponderado'] = '-';
+                    $row['score'] = '-';
+                }
+
                 $row['user_id'] = $row['id'];
                 $row['links'] = empty($userLinks);
                 $downloadCertUploadedLink = $this->generateDownloadLinkAttachCertificates($row['id'], $row['student'], $row['session_id']);

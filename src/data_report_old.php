@@ -306,7 +306,6 @@ $actionsRight = Display::url(
 $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $actionsRight], [9, 1, 2]);
 
 $data = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, $page, $perPage);
-
 $urlAjaxPlugin = api_get_path(WEB_PLUGIN_PATH)."proikos/src/ajax.php";
 
 // HTML del Preloader
