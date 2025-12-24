@@ -12,9 +12,9 @@
 error_reporting(E_ERROR | E_PARSE);
 
 // Configuración para ejecución CLI
-if (php_sapi_name() !== 'cli') {
+/*if (php_sapi_name() !== 'cli') {
     die('Este script solo puede ejecutarse desde la línea de comandos.');
-}
+}*/
 
 // Cargar el entorno de Chamilo
 $cidReset = true;
@@ -22,15 +22,15 @@ require_once __DIR__ . '/../../../main/inc/global.inc.php';
 
 // Cargar el plugin
 $plugin = ProikosPlugin::create();
-
+$logFile = '';
 // Configurar log
-$logFile = __DIR__ . '/../logs/cron_unsubscribe_' . date('Y-m-d') . '.log';
+/*$logFile = __DIR__ . '/../logs/cron_unsubscribe_' . date('Y-m-d') . '.log';
 $logDir = dirname($logFile);
 
 // Crear directorio de logs si no existe
 if (!is_dir($logDir)) {
     mkdir($logDir, 0755, true);
-}
+}*/
 
 /**
  * Función para escribir en el log
@@ -38,8 +38,8 @@ if (!is_dir($logDir)) {
 function writeLog($message, $logFile) {
     $timestamp = date('Y-m-d H:i:s');
     $logMessage = "[$timestamp] $message" . PHP_EOL;
-    file_put_contents($logFile, $logMessage, FILE_APPEND);
-    echo $logMessage; // También mostrar en consola
+    //file_put_contents($logFile, $logMessage, FILE_APPEND);
+    echo $logMessage . '<br><br>'; // También mostrar en consola
 }
 
 /**
@@ -75,27 +75,118 @@ function isUserSubscribedToSession($userId, $sessionId): bool
     return intval($row['count']) > 0;
 }
 
+function getSessionStudents(): array
+{
+    $modeSession = 1;
+    $tableSession = Database::get_main_table(TABLE_MAIN_SESSION);
+    $tableSessionUser = Database::get_main_table(TABLE_MAIN_SESSION_USER);
+    $tableSessionUserCourse = Database::get_main_table(TABLE_MAIN_SESSION_COURSE_USER);
+    $tableUser = Database::get_main_table(TABLE_MAIN_USER);
+
+    $sql = "SELECT DISTINCT s.id as session_id, su.user_id, scu.c_id, u.username,
+            CONCAT(u.firstname, ' ', u.lastname) AS student, su.registered_at
+            FROM $tableSession s
+            INNER JOIN $tableSessionUser su ON su.session_id = s.id
+            INNER JOIN $tableSessionUserCourse scu ON scu.session_id = su.session_id AND scu.user_id = su.user_id
+            INNER JOIN $tableUser u ON u.id = su.user_id
+            WHERE s.session_mode = $modeSession;";
+    $result = Database::query($sql);
+    $list = [];
+    if (Database::num_rows($result) > 0) {
+        while ($row = Database::fetch_assoc($result)) {
+            $list[] = $row;
+        }
+    }
+
+    return $list;
+}
+
+function procesarDiasUsuarios($usuarios, $diasPermitidos = 5, $plugin) {
+    $resultado = [];
+    $fechaActual = new DateTime();
+
+
+    foreach ($usuarios as $index => $usuario) {
+        try {
+            // Obtener la fecha de registro
+            $fechaRegistro = new DateTime($usuario['registered_at']);
+
+            // Calcular la diferencia en días
+            $diferencia = $fechaActual->diff($fechaRegistro);
+            $diasTranscurridos = $diferencia->days;
+
+            // Determinar si excedió el período
+            $excedido = $diasTranscurridos > $diasPermitidos;
+
+            $userScore = $plugin->getResultExerciseStudent($usuario['user_id'], $usuario['c_id'], $usuario['session_id']);
+
+            $ponderacion_entrada = 0.10;  // 10%
+            $ponderacion_salida = 0.30;   // 30%
+            $ponderacion_taller = 0.60;   // 60%
+
+            $entrance = floatval($userScore['examen_de_entrada']);
+            $workshop = floatval($userScore['taller']);
+            $exit = floatval($userScore['examen_de_salida']);
+            $promedioPonderado = ($entrance * $ponderacion_entrada) + ($workshop * $ponderacion_taller) + ($exit * $ponderacion_salida);
+
+            $puntaje_total = (($entrance * $ponderacion_entrada) +
+                    ($exit * $ponderacion_salida) +
+                    ($workshop * $ponderacion_taller)) / 20 * 100;
+
+            $resultado[] = [
+                'index' => $index,
+                'session_id' => $usuario['session_id'],
+                'user_id' => $usuario['user_id'],
+                'registered_at' => $usuario['registered_at'],
+                /*'dias_transcurridos' => $diasTranscurridos,
+                'dias_permitidos' => $diasPermitidos,
+                'dias_restantes' => max(0, $diasPermitidos - $diasTranscurridos),*/
+                'student' => $usuario['student'],
+                'username' => $usuario['username'],
+                'excedido' => $excedido,
+                'estado' => $excedido ? 'EXPIRADO' : 'ACTIVO',
+                'promedio' => $promedioPonderado,
+                'puntaje_total' => $puntaje_total,
+            ];
+
+        } catch (Exception $e) {
+            // Si hay error al procesar una fecha, marcar como error
+            $resultado[] = [
+                'index' => $index,
+                'session_id' => $usuario['session_id'],
+                'user_id' => $usuario['user_id'],
+                'registered_at' => $usuario['registered_at'],
+                'excedido' => false,
+                'estado' => 'ERROR',
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    return $resultado;
+}
+
 // Inicio del proceso
 writeLog("=== INICIO DEL CRON: Desuscripción de usuarios desaprobados ===", $logFile);
 
 try {
-    // Calcular rango de fechas (últimos 7 días)
     $endDate = date('Y-m-d'); // Hoy
     $startDate = date('Y-m-d', strtotime('-30 days')); // Hace 7 días
+    print_r("Buscando desaprobados desde: $startDate hasta: $endDate", $logFile);
 
-    writeLog("Buscando desaprobados desde: $startDate hasta: $endDate", $logFile);
-
-    // Categorías de sesión a procesar (ajusta según tu configuración)
     $sessionCategoryIds = [2, 3];
 
-    // Obtener usuarios desaprobados
+    $usersSessions = getSessionStudents();
+    $allowedUsers = procesarDiasUsuarios($usersSessions,5, $plugin);
+
     $disapprovedUsers = $plugin->getDisapprovedUsersByDateRange(
         $startDate,
         $endDate,
         $sessionCategoryIds
     );
 
-    $totalUsers = count($disapprovedUsers);
+    $totalUsers = count($allowedUsers);
+
     writeLog("Total de usuarios desaprobados encontrados: $totalUsers", $logFile);
 
     if ($totalUsers === 0) {
@@ -107,25 +198,20 @@ try {
     $skippedCount = 0;
     $errorCount = 0;
 
-    // Procesar cada usuario desaprobado
-    foreach ($disapprovedUsers as $user) {
+    foreach ($allowedUsers as $user) {
+
         $userId = $user['user_id'];
         $sessionId = $user['session_id'];
         $studentName = $user['student'];
         $username = $user['username'];
+        $expired = $user['excedido'];
+        $status = $user['estado'];
 
         writeLog("Verificando usuario: $studentName (ID: $userId, DNI: $username) - Sesión: $sessionId", $logFile);
 
-        // Verificar si el usuario está inscrito en la sesión
-        if (!isUserSubscribedToSession($userId, $sessionId)) {
-            writeLog("  ⊘ Usuario NO está inscrito en la sesión. Saltando...", $logFile);
-            $skippedCount++;
-            continue;
-        }
+        writeLog("  → Usuario $status. Procediendo a procesar...", $logFile);
 
-        writeLog("  → Usuario inscrito. Procediendo a procesar...", $logFile);
-
-        try {
+        /*try {
             // 1. Obtener ejercicios y LPs de la sesión
             $exercises = $plugin->getExercisesSessionAndCourse($sessionId);
             $lps = $plugin->getLPSession($sessionId);
@@ -162,7 +248,7 @@ try {
         } catch (Exception $e) {
             $errorCount++;
             writeLog("  ✗ ERROR procesando usuario $userId: " . $e->getMessage(), $logFile);
-        }
+        }*/
     }
 
     // Resumen final
