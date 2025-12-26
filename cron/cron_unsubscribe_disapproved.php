@@ -1,45 +1,48 @@
 <?php
 /**
- * Cron Job: Desuscribir usuarios desaprobados de sus sesiones
+ * Cron Job: Unsubscribe disapproved users from their sessions
  *
- * Este script se ejecuta diariamente a las 00:00 horas
- * Procesa usuarios desaprobados de los últimos 7 días
+ * This script runs daily at 00:00 hours
+ * Processes disapproved users from the last 7 days
  *
- * Ubicación sugerida: /plugin/proikos/cron/cron_unsubscribe_disapproved.php
+ * Suggested location: /plugin/proikos/cron/cron_unsubscribe_disapproved.php
+ *
+ * Usage: php cron_unsubscribe_disapproved.php
  */
 
-// Suprimir warnings de Chamilo que no afectan el cron
+// Suppress Chamilo warnings that don't affect the cron
 error_reporting(E_ERROR | E_PARSE);
 
-// Configuración para ejecución CLI
-/*if (php_sapi_name() !== 'cli') {
-    die('Este script solo puede ejecutarse desde la línea de comandos.');
-}*/
+// Configuration for CLI execution
+if (php_sapi_name() !== 'cli') {
+    die('This script can only be executed from the command line.');
+}
 
-// Cargar el entorno de Chamilo
+// Load Chamilo environment
 $cidReset = true;
 require_once __DIR__ . '/../../../main/inc/global.inc.php';
 
-// Cargar el plugin
+// Load the plugin
 $plugin = ProikosPlugin::create();
 $logFile = '';
-// Configurar log
-/*$logFile = __DIR__ . '/../logs/cron_unsubscribe_' . date('Y-m-d') . '.log';
+
+// Configure log
+$logFile = __DIR__ . '/../logs/cron_unsubscribe_' . date('Y-m-d') . '.log';
 $logDir = dirname($logFile);
 
-// Crear directorio de logs si no existe
+// Create logs directory if it doesn't exist
 if (!is_dir($logDir)) {
     mkdir($logDir, 0755, true);
-}*/
+}
 
 /**
- * Función para escribir en el log
+ * Function to write to the log
  */
 function writeLog($message, $logFile) {
     $timestamp = date('Y-m-d H:i:s');
     $logMessage = "[$timestamp] $message" . PHP_EOL;
-    //file_put_contents($logFile, $logMessage, FILE_APPEND);
-    echo $logMessage . '<br><br>'; // También mostrar en consola
+    file_put_contents($logFile, $logMessage, FILE_APPEND);
+    echo $logMessage; // Also display in console
 }
 
 function getSessionStudents(): array
@@ -67,11 +70,12 @@ function getSessionStudents(): array
 
     return $list;
 }
+
 /**
- * Verifica si un usuario está inscrito en una sesión
+ * Checks if a user is enrolled in a session
  *
- * @param int $userId ID del usuario
- * @param int $sessionId ID de la sesión
+ * @param int $userId User ID
+ * @param int $sessionId Session ID
  * @return bool
  */
 function isUserSubscribedToSession($userId, $sessionId): bool
@@ -79,20 +83,20 @@ function isUserSubscribedToSession($userId, $sessionId): bool
     $userId = intval($userId);
     $sessionId = intval($sessionId);
 
-    // Método 1: Usando SessionManager (recomendado)
+    // Method 1: Using SessionManager (recommended)
     $isSubscribed = SessionManager::isUserSubscribedAsStudent($sessionId, $userId);
 
     if ($isSubscribed) {
         return true;
     }
 
-    // Método 2: Consulta directa como respaldo
+    // Method 2: Direct query as backup
     $tableSessionUser = Database::get_main_table(TABLE_MAIN_SESSION_USER);
     $sql = "SELECT COUNT(*) as count
             FROM $tableSessionUser
             WHERE session_id = $sessionId
             AND user_id = $userId
-            AND relation_type = 0"; // 0 = estudiante
+            AND relation_type = 0"; // 0 = student
 
     $result = Database::query($sql);
     $row = Database::fetch_assoc($result);
@@ -102,31 +106,30 @@ function isUserSubscribedToSession($userId, $sessionId): bool
 
 function StartProcessingDeleteUser($userId, $sessionId, $obj)
 {
-        $exercises = $obj->getExercisesSessionAndCourse($sessionId);
-        $lps = $obj->getLPSession($sessionId);
-        foreach ($lps as $lp) {
-            $course = ['real_id' => $lp['course_id']];
-            Event::delete_student_lp_events(
-                $userId,
-                $lp['lp_id'],
-                $course,
-                $lp['session_id']
-            );
-        }
-        foreach ($exercises as $exercise) {
-            $obj->deleteTrackExercise($exercise, $userId, $sessionId);
-        }
-        SessionManager::unsubscribe_user_from_session($sessionId, $userId);
+    $exercises = $obj->getExercisesSessionAndCourse($sessionId);
+    $lps = $obj->getLPSession($sessionId);
+    foreach ($lps as $lp) {
+        $course = ['real_id' => $lp['course_id']];
+        Event::delete_student_lp_events(
+            $userId,
+            $lp['lp_id'],
+            $course,
+            $lp['session_id']
+        );
+    }
+    foreach ($exercises as $exercise) {
+        $obj->deleteTrackExercise($exercise, $userId, $sessionId);
+    }
+    SessionManager::unsubscribe_user_from_session($sessionId, $userId);
 }
 
 function procesarDiasUsuarios($usuarios, $diasPermitidos = 5, $plugin) {
     $resultado = [];
     $fechaActual = new DateTime();
 
-
     foreach ($usuarios as $index => $usuario) {
         try {
-            // Obtener la fecha de registro
+            // Get registration date
             $fechaRegistro = new DateTime($usuario['registered_at']);
             $diferencia = $fechaActual->diff($fechaRegistro);
             $diasTranscurridos = $diferencia->days;
@@ -153,9 +156,6 @@ function procesarDiasUsuarios($usuarios, $diasPermitidos = 5, $plugin) {
                 'session_id' => $usuario['session_id'],
                 'user_id' => $usuario['user_id'],
                 'registered_at' => $usuario['registered_at'],
-                /*'dias_transcurridos' => $diasTranscurridos,
-                'dias_permitidos' => $diasPermitidos,
-                'dias_restantes' => max(0, $diasPermitidos - $diasTranscurridos),*/
                 'student' => $usuario['student'],
                 'username' => $usuario['username'],
                 'excedido' => $excedido,
@@ -165,7 +165,7 @@ function procesarDiasUsuarios($usuarios, $diasPermitidos = 5, $plugin) {
             ];
 
         } catch (Exception $e) {
-            // Si hay error al procesar una fecha, marcar como error
+            // If there's an error processing a date, mark as error
             $resultado[] = [
                 'index' => $index,
                 'session_id' => $usuario['session_id'],
@@ -181,18 +181,18 @@ function procesarDiasUsuarios($usuarios, $diasPermitidos = 5, $plugin) {
     return $resultado;
 }
 
-// Inicio del proceso
-writeLog("=== INICIO DEL CRON: Desuscripción de usuarios desaprobados ===", $logFile);
+// Start of process
+writeLog("=== START OF CRON: Unsubscription of disapproved users ===", $logFile);
 
 try {
-    $endDate = date('Y-m-d'); // Hoy
-    $startDate = date('Y-m-d', strtotime('-30 days')); // Hace 7 días
-    print_r("Buscando desaprobados desde: $startDate hasta: $endDate", $logFile . '<br>');
+    $endDate = date('Y-m-d'); // Today
+    $startDate = date('Y-m-d', strtotime('-30 days')); // 30 days ago
+    writeLog("Searching for disapproved users from: $startDate to: $endDate", $logFile);
 
     $sessionCategoryIds = [2, 3];
 
     $usersSessions = getSessionStudents();
-    $allowedUsers = procesarDiasUsuarios($usersSessions,5, $plugin);
+    $allowedUsers = procesarDiasUsuarios($usersSessions, 5, $plugin);
 
     $disapprovedUsers = $plugin->getDisapprovedUsersByDateRange(
         $startDate,
@@ -202,10 +202,10 @@ try {
 
     $totalUsers = count($allowedUsers);
 
-    writeLog("Total de usuarios encontrados: $totalUsers", $logFile);
+    writeLog("Total users found: $totalUsers", $logFile);
 
     if ($totalUsers === 0) {
-        writeLog("No hay usuarios para procesar. Finalizando.", $logFile);
+        writeLog("No users to process. Finishing.", $logFile);
         exit(0);
     }
 
@@ -225,13 +225,11 @@ try {
 
         if($status == 'EXPIRADO' && $average == 0) {
             $expiredUsersCount++;
-            writeLog("Verificando usuario: $studentName (ID: $userId, DNI: $username) - Sesión: $sessionId", $logFile);
-            writeLog("  → Usuario $status. Procediendo a eliminarlo...", $logFile);
+            writeLog("Checking user: $studentName (ID: $userId, DNI: $username) - Session: $sessionId", $logFile);
+            writeLog("  → User $status. Proceeding to delete...", $logFile);
 
             StartProcessingDeleteUser($userId, $sessionId, $plugin);
-
         }
-
     }
 
     foreach ($disapprovedUsers as $user) {
@@ -241,25 +239,26 @@ try {
         $username = $user['username'];
         $status = $user['status'];
 
-        // Verificar si el usuario está inscrito en la sesión
+        // Check if user is enrolled in the session
         if (!isUserSubscribedToSession($userId, $sessionId)) {
-            writeLog("  ⊘ Usuario NO está inscrito en la sesión. Saltando...", $logFile);
+            writeLog("  ⊘ User is NOT enrolled in the session. Skipping...", $logFile);
             $skippedCount++;
             continue;
         }
 
         if($status == 'Desaprobado') {
-            writeLog("Verificando usuario: $studentName (ID: $userId, DNI: $username) - Sesión: $sessionId", $logFile);
-            writeLog("  → Usuario encontrado procediendo a eliminarlo...", $logFile);
+            writeLog("Checking user: $studentName (ID: $userId, DNI: $username) - Session: $sessionId", $logFile);
+            writeLog("  → User found, proceeding to delete...", $logFile);
             StartProcessingDeleteUser($userId, $sessionId, $plugin);
         }
-
     }
 
-    writeLog("=== FIN DEL CRON ===", $logFile);
+    writeLog("=== END OF CRON ===", $logFile);
+    writeLog("Summary: Expired users processed: $expiredUsersCount, Skipped: $skippedCount", $logFile);
 
 } catch (Exception $e) {
-    writeLog("ERROR CRÍTICO: " . $e->getMessage(), $logFile);
+    writeLog("CRITICAL ERROR: " . $e->getMessage(), $logFile);
+    writeLog("Stack trace: " . $e->getTraceAsString(), $logFile);
     exit(1);
 }
 
