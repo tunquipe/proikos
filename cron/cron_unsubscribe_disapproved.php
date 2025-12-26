@@ -67,6 +67,38 @@ function getSessionStudents(): array
 
     return $list;
 }
+/**
+ * Verifica si un usuario está inscrito en una sesión
+ *
+ * @param int $userId ID del usuario
+ * @param int $sessionId ID de la sesión
+ * @return bool
+ */
+function isUserSubscribedToSession($userId, $sessionId): bool
+{
+    $userId = intval($userId);
+    $sessionId = intval($sessionId);
+
+    // Método 1: Usando SessionManager (recomendado)
+    $isSubscribed = SessionManager::isUserSubscribedAsStudent($sessionId, $userId);
+
+    if ($isSubscribed) {
+        return true;
+    }
+
+    // Método 2: Consulta directa como respaldo
+    $tableSessionUser = Database::get_main_table(TABLE_MAIN_SESSION_USER);
+    $sql = "SELECT COUNT(*) as count
+            FROM $tableSessionUser
+            WHERE session_id = $sessionId
+            AND user_id = $userId
+            AND relation_type = 0"; // 0 = estudiante
+
+    $result = Database::query($sql);
+    $row = Database::fetch_assoc($result);
+
+    return intval($row['count']) > 0;
+}
 
 function StartProcessingDeleteUser($userId, $sessionId, $obj)
 {
@@ -208,6 +240,14 @@ try {
         $studentName = $user['student'];
         $username = $user['username'];
         $status = $user['status'];
+
+        // Verificar si el usuario está inscrito en la sesión
+        if (!isUserSubscribedToSession($userId, $sessionId)) {
+            writeLog("  ⊘ Usuario NO está inscrito en la sesión. Saltando...", $logFile);
+            $skippedCount++;
+            continue;
+        }
+
         if($status == 'Desaprobado') {
             writeLog("Verificando usuario: $studentName (ID: $userId, DNI: $username) - Sesión: $sessionId", $logFile);
             writeLog("  → Usuario encontrado procediendo a eliminarlo...", $logFile);
