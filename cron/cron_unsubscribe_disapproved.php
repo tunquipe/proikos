@@ -42,39 +42,6 @@ function writeLog($message, $logFile) {
     echo $logMessage . '<br><br>'; // También mostrar en consola
 }
 
-/**
- * Verifica si un usuario está inscrito en una sesión
- *
- * @param int $userId ID del usuario
- * @param int $sessionId ID de la sesión
- * @return bool
- */
-function isUserSubscribedToSession($userId, $sessionId): bool
-{
-    $userId = intval($userId);
-    $sessionId = intval($sessionId);
-
-    // Método 1: Usando SessionManager (recomendado)
-    $isSubscribed = SessionManager::isUserSubscribedAsStudent($sessionId, $userId);
-
-    if ($isSubscribed) {
-        return true;
-    }
-
-    // Método 2: Consulta directa como respaldo
-    $tableSessionUser = Database::get_main_table(TABLE_MAIN_SESSION_USER);
-    $sql = "SELECT COUNT(*) as count
-            FROM $tableSessionUser
-            WHERE session_id = $sessionId
-            AND user_id = $userId
-            AND relation_type = 0"; // 0 = estudiante
-
-    $result = Database::query($sql);
-    $row = Database::fetch_assoc($result);
-
-    return intval($row['count']) > 0;
-}
-
 function getSessionStudents(): array
 {
     $modeSession = 1;
@@ -101,6 +68,25 @@ function getSessionStudents(): array
     return $list;
 }
 
+function StartProcessingDeleteUser($userId, $sessionId, $obj)
+{
+        $exercises = $obj->getExercisesSessionAndCourse($sessionId);
+        $lps = $obj->getLPSession($sessionId);
+        foreach ($lps as $lp) {
+            $course = ['real_id' => $lp['course_id']];
+            Event::delete_student_lp_events(
+                $userId,
+                $lp['lp_id'],
+                $course,
+                $lp['session_id']
+            );
+        }
+        foreach ($exercises as $exercise) {
+            $obj->deleteTrackExercise($exercise, $userId, $sessionId);
+        }
+        SessionManager::unsubscribe_user_from_session($sessionId, $userId);
+}
+
 function procesarDiasUsuarios($usuarios, $diasPermitidos = 5, $plugin) {
     $resultado = [];
     $fechaActual = new DateTime();
@@ -110,12 +96,9 @@ function procesarDiasUsuarios($usuarios, $diasPermitidos = 5, $plugin) {
         try {
             // Obtener la fecha de registro
             $fechaRegistro = new DateTime($usuario['registered_at']);
-
-            // Calcular la diferencia en días
             $diferencia = $fechaActual->diff($fechaRegistro);
             $diasTranscurridos = $diferencia->days;
 
-            // Determinar si excedió el período
             $excedido = $diasTranscurridos > $diasPermitidos;
 
             $userScore = $plugin->getResultExerciseStudent($usuario['user_id'], $usuario['c_id'], $usuario['session_id']);
@@ -172,7 +155,7 @@ writeLog("=== INICIO DEL CRON: Desuscripción de usuarios desaprobados ===", $lo
 try {
     $endDate = date('Y-m-d'); // Hoy
     $startDate = date('Y-m-d', strtotime('-30 days')); // Hace 7 días
-    print_r("Buscando desaprobados desde: $startDate hasta: $endDate", $logFile);
+    print_r("Buscando desaprobados desde: $startDate hasta: $endDate", $logFile . '<br>');
 
     $sessionCategoryIds = [2, 3];
 
@@ -187,7 +170,7 @@ try {
 
     $totalUsers = count($allowedUsers);
 
-    writeLog("Total de usuarios desaprobados encontrados: $totalUsers", $logFile);
+    writeLog("Total de usuarios encontrados: $totalUsers", $logFile);
 
     if ($totalUsers === 0) {
         writeLog("No hay usuarios para procesar. Finalizando.", $logFile);
@@ -197,66 +180,42 @@ try {
     $processedCount = 0;
     $skippedCount = 0;
     $errorCount = 0;
+    $expiredUsersCount = 0;
 
     foreach ($allowedUsers as $user) {
-
         $userId = $user['user_id'];
         $sessionId = $user['session_id'];
         $studentName = $user['student'];
         $username = $user['username'];
         $expired = $user['excedido'];
         $status = $user['estado'];
+        $average = $user['promedio'];
 
-        writeLog("Verificando usuario: $studentName (ID: $userId, DNI: $username) - Sesión: $sessionId", $logFile);
+        if($status == 'EXPIRADO' && $average == 0) {
+            $expiredUsersCount++;
+            writeLog("Verificando usuario: $studentName (ID: $userId, DNI: $username) - Sesión: $sessionId", $logFile);
+            writeLog("  → Usuario $status. Procediendo a eliminarlo...", $logFile);
 
-        writeLog("  → Usuario $status. Procediendo a procesar...", $logFile);
+            StartProcessingDeleteUser($userId, $sessionId, $plugin);
 
-        /*try {
-            // 1. Obtener ejercicios y LPs de la sesión
-            $exercises = $plugin->getExercisesSessionAndCourse($sessionId);
-            $lps = $plugin->getLPSession($sessionId);
+        }
 
-            // 2. Eliminar progreso de LPs (lecciones)
-            $lpCount = 0;
-            foreach ($lps as $lp) {
-                $course = ['real_id' => $lp['course_id']];
-                Event::delete_student_lp_events(
-                    $userId,
-                    $lp['lp_id'],
-                    $course,
-                    $lp['session_id']
-                );
-                $lpCount++;
-            }
-            writeLog("  - LPs eliminados: $lpCount", $logFile);
-
-            // 3. Eliminar progreso de ejercicios
-            $exerciseCount = 0;
-            foreach ($exercises as $exercise) {
-                $plugin->deleteTrackExercise($exercise, $userId, $sessionId);
-                $exerciseCount++;
-            }
-            writeLog("  - Ejercicios eliminados: $exerciseCount", $logFile);
-
-            // 4. Desuscribir usuario de la sesión
-            SessionManager::unsubscribe_user_from_session($sessionId, $userId);
-            writeLog("  - Usuario desuscrito de la sesión $sessionId", $logFile);
-
-            $processedCount++;
-            writeLog("  ✓ Usuario procesado correctamente", $logFile);
-
-        } catch (Exception $e) {
-            $errorCount++;
-            writeLog("  ✗ ERROR procesando usuario $userId: " . $e->getMessage(), $logFile);
-        }*/
     }
 
-    // Resumen final
-    writeLog("=== RESUMEN ===", $logFile);
-    writeLog("Total encontrados: $totalUsers", $logFile);
-    writeLog("Procesados correctamente: $processedCount", $logFile);
-    writeLog("Saltados (no inscritos): $skippedCount", $logFile);
-    writeLog("Con errores: $errorCount", $logFile);
+    foreach ($disapprovedUsers as $user) {
+        $userId = $user['user_id'];
+        $sessionId = $user['session_id'];
+        $studentName = $user['student'];
+        $username = $user['username'];
+        $status = $user['status'];
+        if($status == 'Desaprobado') {
+            writeLog("Verificando usuario: $studentName (ID: $userId, DNI: $username) - Sesión: $sessionId", $logFile);
+            writeLog("  → Usuario encontrado procediendo a eliminarlo...", $logFile);
+            StartProcessingDeleteUser($userId, $sessionId, $plugin);
+        }
+
+    }
+
     writeLog("=== FIN DEL CRON ===", $logFile);
 
 } catch (Exception $e) {
