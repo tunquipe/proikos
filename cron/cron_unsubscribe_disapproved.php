@@ -123,7 +123,7 @@ function StartProcessingDeleteUser($userId, $sessionId, $obj)
     SessionManager::unsubscribe_user_from_session($sessionId, $userId);
 }
 
-function procesarDiasUsuarios($usuarios, $diasPermitidos = 5, $plugin) {
+function procesarDiasUsuarios($usuarios, $diasPermitidos = 4, $plugin) {
     $resultado = [];
     $fechaActual = new DateTime();
 
