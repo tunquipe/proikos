@@ -5485,4 +5485,18 @@ EOT;
         return $users;
     }
 
+    public function getCountSessionUsers($sessionID){
+        if(empty($sessionID)){
+            return 0;
+        }
+        $tableSessionRelUser = Database::get_main_table(TABLE_MAIN_SESSION_USER);
+        $sql = "SELECT count(*) FROM $tableSessionRelUser sru WHERE sru.session_id = $sessionID";
+        $row = 0;
+        $result = Database::query($sql);
+        if (Database::num_rows($result) > 0) {
+            $row = Database::fetch_row($result);
+        }
+        return intval($row[0]);
+    }
+
 }

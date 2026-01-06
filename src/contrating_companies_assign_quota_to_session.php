@@ -124,6 +124,7 @@ if ($form->isSubmitted()) {
     }
 
     $formValues = $form->getSubmitValues();
+
     $sessionFormValues = $formValues['session'];
 
     $sessionsInfoByDetId = [];
@@ -140,6 +141,16 @@ if ($form->isSubmitted()) {
                 !isset($sessionsInfoByDetId[$value['det_id']][$value['session_id']])
             ) {
                 $sessionInfo = api_get_session_info($value['session_id']);
+                $countSession = $plugin->getCountSessionUsers($value['session_id']);
+                $totalSession = $sessionInfo['maximum_users'] ?? 0;
+                $remainingFree = $totalSession - $countSession;
+                $quotaToUse = intval($value['user_quota']);
+                $hasErrors = false;
+                if ($quotaToUse > $remainingFree) {
+                    $hasErrors = true;
+                    $errorsMessage[$value['det_id']][] = 'No hay suficientes lugares libres asignar esa cantidad de cupos a este sesión';
+                    continue;
+                }
                 $sessionsInfoByDetId[$value['det_id']][$value['session_id']] = [
                     'maximum_users' => $sessionInfo['maximum_users'] ?? 0,
                     'user_quota' => 0,
