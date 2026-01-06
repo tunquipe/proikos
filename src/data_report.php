@@ -237,10 +237,20 @@ $form->addText('keyword', $plugin->get_lang('SearchUserByDNI'), false, [
     'placeholder' => 'Buscar usuario por DNI',
     'style' => 'display: block'
 ]);
-$form->addText('ruc', $plugin->get_lang('SearchUserByRUC'), false, [
-    'placeholder' => 'Buscar por RUC de empresa',
-    'style' => 'display: block'
-]);
+
+//$form->addText('ruc', $plugin->get_lang('SearchUserByRUC'), false, [
+//    'placeholder' => 'Buscar por RUC de empresa',
+//    'style' => 'display: block'
+//]);
+
+$contratingCompanies = $plugin->contratingCompaniesModel()->getData();
+$listRuc = [];
+foreach ($contratingCompanies as $company) {
+    $listRuc[$company['ruc']] = $company['ruc'].' - '.$company['name'];
+}
+
+$form->addSelect('ruc', $plugin->get_lang('Company_RUC'), $listRuc);
+
 $form->addButtonSearch(get_lang('Search'));
 $actionsLeft = $form->returnForm();
 
