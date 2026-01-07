@@ -254,8 +254,29 @@ if ($form->validate() && false === $hasErrors) {
     header('Location: ' . $url);
 }
 
-$sessionsList = json_encode($activeSessions);
+$lists = [];
+
+foreach ($activeSessions as $session) {
+    $lists[] = [
+        'id' => $session['id'],
+        'name' => $session['name'],
+        'maximum_users' => $session['maximum_users'],
+        'display_start_date' => $session['display_start_date'],
+        'display_end_date' => $session['display_end_date'],
+        'access_start_date' => $session['access_start_date'],
+        'access_end_date' => $session['access_end_date'],
+        'visibility' => $session['visibility'],
+        'session_category_id' => $session['session_category_id'],
+        'session_mode' => $session['session_mode'],
+        'time_in_session' => $session['time_in_session'],
+        'nbr_users' => $session['nbr_users'],
+        'assigned_quotas' => $plugin->getCountSessionQuotas($session['id'])
+    ];
+}
+
+$sessionsList = json_encode($lists);
 $sessionFormValues = json_encode($sessionFormValues);
+
 $errorsMessage = json_encode($errorsMessage);
 $form->addHtml('<div id="root_asignar_cupos"></div>');
 
@@ -366,7 +387,7 @@ function addNewRow(itemIndex, tableBodyId, itemSessionMode, itemSessionCategoryI
     sessionsByCategory.forEach(session => {
         const option = document.createElement('option');
         option.value = session.id;
-        option.text = session.name + (session.time_in_session > 0 ? (' - ' + session.time_in_session + ' Horas - ('+session.nbr_users+' / '+session.maximum_users+') Estudiantes') : '');
+        option.text = session.name + (session.time_in_session > 0 ? (' - (' + session.time_in_session + ' Horas) - '+session.assigned_quotas+' / '+session.maximum_users+' Cupos Asignados') : '');
         sessionsSelect.appendChild(option);
     });
 
