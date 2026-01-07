@@ -142,15 +142,31 @@ if ($form->isSubmitted()) {
             ) {
                 $sessionInfo = api_get_session_info($value['session_id']);
                 $countSession = $plugin->getCountSessionUsers($value['session_id']);
+                $totalQuotasAssigned = $plugin->getCountSessionQuotas($value['session_id']);
                 $totalSession = $sessionInfo['maximum_users'] ?? 0;
                 $remainingFree = $totalSession - $countSession;
                 $quotaToUse = intval($value['user_quota']);
+
+                $available = $totalSession - ($totalQuotasAssigned + $value['user_quota']);
                 $hasErrors = false;
+
+                if ($available < 0) {
+                    $hasErrors = true;
+                    $errorsMessage[$value['det_id']][] = 'La sesion ya no adminite más cupos';
+                    continue;
+                }
+
                 if ($quotaToUse > $remainingFree) {
                     $hasErrors = true;
                     $errorsMessage[$value['det_id']][] = 'No hay suficientes lugares libres asignar esa cantidad de cupos a este sesión';
                     continue;
                 }
+                if($totalQuotasAssigned == $totalSession){
+                    $hasErrors = true;
+                    $errorsMessage[$value['det_id']][] = 'La sesión ya no admite más cupos, asignalo a otra sesión.';
+                    continue;
+                }
+
                 $sessionsInfoByDetId[$value['det_id']][$value['session_id']] = [
                     'maximum_users' => $sessionInfo['maximum_users'] ?? 0,
                     'user_quota' => 0,

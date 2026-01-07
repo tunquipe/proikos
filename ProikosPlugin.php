@@ -5485,7 +5485,8 @@ EOT;
         return $users;
     }
 
-    public function getCountSessionUsers($sessionID){
+    public function getCountSessionUsers($sessionID): int
+    {
         if(empty($sessionID)){
             return 0;
         }
@@ -5499,4 +5500,20 @@ EOT;
         return intval($row[0]);
     }
 
+    public function getCountSessionQuotas($sessionID): int
+    {
+        if(empty($sessionID)){
+            return 0;
+        }
+        $tableSessionQouta = Database::get_main_table(self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION);
+        $sql = "SELECT SUM(cqs.user_quota) AS total_user_quota
+                FROM $tableSessionQouta cqs
+                WHERE cqs.session_id = $sessionID";
+        $row = 0;
+        $result = Database::query($sql);
+        if (Database::num_rows($result) > 0) {
+            $row = Database::fetch_row($result);
+        }
+        return intval($row[0]);
+    }
 }
