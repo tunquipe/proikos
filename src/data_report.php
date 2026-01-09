@@ -244,7 +244,9 @@ $form->addText('keyword', $plugin->get_lang('SearchUserByDNI'), false, [
 //]);
 
 $contratingCompanies = $plugin->contratingCompaniesModel()->getData();
-$listRuc = [];
+$listRuc = [
+    '0' => 'Selecciona una empresa'
+];
 foreach ($contratingCompanies as $company) {
     $listRuc[$company['ruc']] = $company['ruc'].' - '.$company['name'];
 }
