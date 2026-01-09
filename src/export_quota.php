@@ -64,55 +64,71 @@ $has_filters = ($company_id > 0 || !empty($date_from) || !empty($date_to));
 
 if ($has_filters) {
 
-    // Construir consulta SQL con JOINs a tablas de Chamilo
+// Construir consulta SQL con JOINs a tablas de Chamilo
     $sql = "SELECT
-                pqc.id,
-                pqc.contrating_company_id,
-                cc.name as company_name,
-                cc.ruc,
-                pqc.created_at,
-                pqcd.session_category_id,
-                sc.name as session_category_name,
-                pqcd.user_quota as quota_total,
-                pqcd.price_unit,
-                pqcd.session_mode,
-                CASE
-                    WHEN pqcd.session_mode = 1 THEN 'Asincrónico'
-                    WHEN pqcd.session_mode = 2 THEN 'Sincrónico'
-                    ELSE CONCAT('Modo ', pqcd.session_mode)
-                END as session_mode_text,
-                pqcs.session_id,
-                s.name as session_name,
-                pqcs.user_quota,
-                pqcs.created_user_id as gestor,
-                CONCAT(u.firstname, ' ', u.lastname) as gestor_name
-            FROM plugin_proikos_contrating_companies_quota_cab pqc
-            INNER JOIN plugin_proikos_contrating_companies_quota_det pqcd
-                ON pqcd.cab_id = pqc.id
-            INNER JOIN plugin_proikos_contrating_companies_quota_session pqcs
-                ON pqcd.id = pqcs.det_id
-            LEFT JOIN plugin_proikos_contrating_companies cc
-                ON pqc.contrating_company_id = cc.id
-            LEFT JOIN session s
-                ON pqcs.session_id = s.id
-            LEFT JOIN session_category sc
-                ON pqcd.session_category_id = sc.id
-            LEFT JOIN user u
-                ON pqcs.created_user_id = u.id
-            WHERE 1=1";
+            pqc.id,
+            pqc.contrating_company_id,
+            cc.name as company_name,
+            cc.ruc,
+            pqc.created_at,
+            pqcd.session_category_id,
+            sc.name as session_category_name,
+            pqcd.user_quota as quota_total,
+            pqcd.price_unit,
+            pqcd.session_mode,
+            CASE
+                WHEN pqcd.session_mode = 1 THEN 'Asincrónico'
+                WHEN pqcd.session_mode = 2 THEN 'Sincrónico'
+                ELSE CONCAT('Modo ', pqcd.session_mode)
+            END as session_mode_text,
+            pqcs.session_id,
+            s.name as session_name,
+            SUM(pqcs.user_quota) as user_quota,
+            MIN(pqcs.created_user_id) as gestor,
+            CONCAT(u.firstname, ' ', u.lastname) as gestor_name
+        FROM plugin_proikos_contrating_companies_quota_cab pqc
+        INNER JOIN plugin_proikos_contrating_companies_quota_det pqcd
+            ON pqcd.cab_id = pqc.id
+        INNER JOIN plugin_proikos_contrating_companies_quota_session pqcs
+            ON pqcd.id = pqcs.det_id
+        LEFT JOIN plugin_proikos_contrating_companies cc
+            ON pqc.contrating_company_id = cc.id
+        LEFT JOIN session s
+            ON pqcs.session_id = s.id
+        LEFT JOIN session_category sc
+            ON pqcd.session_category_id = sc.id
+        LEFT JOIN user u
+            ON pqcs.created_user_id = u.id
+        WHERE 1=1";
 
-    // Agregar filtro de empresa si se seleccionó una específica
+// Agregar filtro de empresa si se seleccionó una específica
     if ($company_id > 0) {
         $sql .= " AND pqc.contrating_company_id = ".intval($company_id);
     }
 
-    // Agregar filtros de fecha si existen
+// Agregar filtros de fecha si existen
     if (!empty($date_from)) {
         $sql .= " AND pqc.created_at >= '".Database::escape_string($date_from)." 00:00:00'";
     }
     if (!empty($date_to)) {
         $sql .= " AND pqc.created_at <= '".Database::escape_string($date_to)." 23:59:59'";
     }
+
+    $sql .= " GROUP BY
+            pqc.id,
+            pqc.contrating_company_id,
+            cc.name,
+            cc.ruc,
+            pqc.created_at,
+            pqcd.session_category_id,
+            sc.name,
+            pqcd.user_quota,
+            pqcd.price_unit,
+            pqcd.session_mode,
+            pqcs.session_id,
+            s.name,
+            u.firstname,
+            u.lastname";
 
     $sql .= " ORDER BY pqc.contrating_company_id, pqc.created_at DESC";
 
