@@ -1017,12 +1017,23 @@ if ($action) {
 
             // Intentar obtener del caché
             $fromCache = false;
+            $cacheInfo = null;
             $cachedData = $cacheManager->get($cacheParams);
 
             if ($cachedData !== null && isset($cachedData['data'])) {
                 // Datos del caché
                 $data = $cachedData['data'];
                 $fromCache = true;
+
+                // Obtener información de última actualización
+                $lastUpdate = $cacheManager->getLastUpdate($cacheParams);
+                $timeLeft = $cacheManager->getTimeUntilExpiration($cacheParams);
+
+                $cacheInfo = [
+                    'from_cache' => true,
+                    'last_update' => $lastUpdate,
+                    'time_left' => $timeLeft
+                ];
             } else {
                 // No hay caché válido, consultar DB
                 $data = $plugin->getDataReport(
@@ -1036,14 +1047,28 @@ if ($action) {
 
                 // Guardar en caché
                 $cacheManager->set($cacheParams, $data);
+
+                $cacheInfo = [
+                    'from_cache' => false,
+                    'last_update' => [
+                        'timestamp' => time(),
+                        'datetime' => date('d/m/Y H:i:s'),
+                        'relative' => 'justo ahora',
+                        'from_cache' => false
+                    ],
+                    'time_left' => [
+                        'seconds' => 3600,
+                        'formatted' => '60:00',
+                        'expires_at' => date('H:i:s', time() + 3600)
+                    ]
+                ];
             }
 
             header('Content-Type: application/json');
             echo json_encode([
                 'success' => true,
                 'data' => $data,
-                'cached' => $fromCache,
-                'cache_key' => md5(json_encode($cacheParams))
+                'cache_info' => $cacheInfo
             ]);
             break;
     }

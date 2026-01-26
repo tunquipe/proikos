@@ -537,4 +537,115 @@ class ProikosCacheManager
 
         return $minutes . 'm';
     }
+
+    /**
+     * Obtiene la fecha de última actualización del caché para los parámetros dados
+     */
+    public function getLastUpdate($params)
+    {
+        if (!$this->enabled) {
+            return null;
+        }
+
+        try {
+            $key = $this->getCacheKey($params);
+            $filename = $this->getCacheFilename($key);
+
+            if (!file_exists($filename)) {
+                return null;
+            }
+
+            $content = @file_get_contents($filename);
+            if ($content === false) {
+                return null;
+            }
+
+            $decoded = json_decode($content, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return null;
+            }
+
+            if (isset($decoded['timestamp'])) {
+                return [
+                    'timestamp' => $decoded['timestamp'],
+                    'datetime' => date('d/m/Y H:i:s', $decoded['timestamp']),
+                    'relative' => $this->getRelativeTime($decoded['timestamp']),
+                    'from_cache' => true
+                ];
+            }
+
+            return null;
+        } catch (Exception $e) {
+            error_log("ProikosCacheManager::getLastUpdate() Error: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Obtiene el tiempo relativo desde una marca de tiempo
+     */
+    private function getRelativeTime($timestamp)
+    {
+        $diff = time() - $timestamp;
+
+        if ($diff < 60) {
+            return 'hace ' . $diff . ' segundo' . ($diff != 1 ? 's' : '');
+        }
+
+        $minutes = floor($diff / 60);
+        if ($minutes < 60) {
+            return 'hace ' . $minutes . ' minuto' . ($minutes != 1 ? 's' : '');
+        }
+
+        $hours = floor($minutes / 60);
+        if ($hours < 24) {
+            return 'hace ' . $hours . ' hora' . ($hours != 1 ? 's' : '');
+        }
+
+        $days = floor($hours / 24);
+        return 'hace ' . $days . ' día' . ($days != 1 ? 's' : '');
+    }
+
+    /**
+     * Obtiene el tiempo restante hasta que expire el caché
+     */
+    public function getTimeUntilExpiration($params)
+    {
+        if (!$this->enabled) {
+            return null;
+        }
+
+        try {
+            $key = $this->getCacheKey($params);
+            $filename = $this->getCacheFilename($key);
+
+            if (!file_exists($filename)) {
+                return null;
+            }
+
+            $fileTime = @filemtime($filename);
+            if ($fileTime === false) {
+                return null;
+            }
+
+            $expiresAt = $fileTime + $this->cacheLifetime;
+            $timeLeft = $expiresAt - time();
+
+            if ($timeLeft <= 0) {
+                return null;
+            }
+
+            $minutes = floor($timeLeft / 60);
+            $seconds = $timeLeft % 60;
+
+            return [
+                'seconds' => $timeLeft,
+                'formatted' => $minutes . ':' . str_pad($seconds, 2, '0', STR_PAD_LEFT),
+                'expires_at' => date('H:i:s', $expiresAt)
+            ];
+        } catch (Exception $e) {
+            error_log("ProikosCacheManager::getTimeUntilExpiration() Error: " . $e->getMessage());
+            return null;
+        }
+    }
 }

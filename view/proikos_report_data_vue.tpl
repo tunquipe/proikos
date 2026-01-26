@@ -278,6 +278,61 @@
         font-size: 12px;
         color: #6c757d;
     }
+    /* Cache Indicator Styles */
+    .cache-indicator {
+        border-left: 3px solid #ff9800;
+        transition: all 0.3s ease;
+    }
+
+    .cache-indicator.cache-fresh {
+        border-left-color: #9c27b0;
+    }
+
+    .cache-indicator:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .stat-item .stat-icon.orange {
+        background-color: #fff3e0;
+        color: #ff9800;
+    }
+
+    .stat-item .stat-icon.purple {
+        background-color: #f3e5f5;
+        color: #9c27b0;
+    }
+
+    .cache-pulse {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+
+    /* Tooltip para más información */
+    .cache-tooltip {
+        position: relative;
+        cursor: help;
+    }
+
+    .cache-tooltip:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 8px 12px;
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        border-radius: 4px;
+        white-space: nowrap;
+        z-index: 1000;
+        font-size: 12px;
+        margin-bottom: 5px;
+    }
 </style>
 
 <div id="vue-data-app">
@@ -329,12 +384,24 @@
                     <div class="stat-label">Página</div>
                 </div>
             </div>
-            <div class="stat-item">
-                <div class="stat-icon green">
-                    <i class="fa fa-clock-o"></i>
+
+            <!-- NUEVO: Indicador de caché -->
+            <div v-if="cacheInfo" class="stat-item cache-indicator" :class="cacheInfo.from_cache ? 'cache-active' : 'cache-fresh'">
+                <div class="stat-icon" :class="cacheInfo.from_cache ? 'orange' : 'purple'">
+                    <i class="fa" :class="cacheInfo.from_cache ? 'fa-database' : 'fa-refresh'"></i>
                 </div>
                 <div>
-                    <div class="stat-label">La información se actualiza cada hora</div>
+                    <div class="stat-value" style="font-size: 14px;">
+                        [[ cacheInfo.from_cache ? 'En Caché' : 'Recién Actualizado' ]]
+                    </div>
+                    <div class="stat-label" style="font-size: 11px;">
+                <span v-if="cacheInfo.last_update">
+                    <i class="fa fa-clock-o"></i> [[ cacheInfo.last_update.relative ]]
+                </span>
+                        <span v-if="cacheInfo.time_left && cacheInfo.from_cache" style="margin-left: 5px;">
+                    <i class="fa fa-hourglass-half"></i> Expira en [[ cacheInfo.time_left.formatted ]]
+                </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -605,6 +672,7 @@
             error: false,
             errorMessage: '',
             users: [],
+            cacheInfo: null, // NUEVO
             pagination: {
                 currentPage: 1,
                 totalPages: 0,
@@ -631,12 +699,12 @@
         this.loadData();
     },
     methods: {
-        // Método para formatear números a 2 decimales
         formatNumber: function(value) {
             var num = parseFloat(value);
             if (isNaN(num)) return '0.00';
             return num.toFixed(2);
         },
+
         loadData: function() {
             var self = this;
             self.loading = true;
@@ -662,6 +730,10 @@
                     setTimeout(function() {
                         if (response.success) {
                             self.users = response.data.users || [];
+
+                            // Actualizar información del caché
+                            self.cacheInfo = response.cache_info || null;
+
                             if (response.data.pagination) {
                                 self.pagination.currentPage = response.data.pagination.currentPage || 1;
                                 self.pagination.totalPages = response.data.pagination.totalPages || 0;
