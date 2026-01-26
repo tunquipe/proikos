@@ -1014,10 +1014,23 @@
                         var info = response.data;
                         var message = 'Información del Caché:\n\n';
                         message += '👤 Rol: ' + info.current_user_role + '\n';
+                        message += '━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
                         message += '📁 Total de archivos: ' + info.total_files + '\n';
+                        message += '👨‍💼 Archivos de Admins: ' + info.admin_files + '\n';
+                        message += '🏢 Archivos de Gestores: ' + info.contractor_files + '\n';
+
+                        // Desglose por RUC si hay
+                        if (info.by_ruc && Object.keys(info.by_ruc).length > 0) {
+                            message += '\n📋 Desglose por RUC:\n';
+                            for (var ruc in info.by_ruc) {
+                                message += '   • RUC ' + ruc + ': ' + info.by_ruc[ruc] + ' archivos\n';
+                            }
+                        }
+
+                        message += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
                         message += '✓ Archivos válidos: ' + info.valid_files + '\n';
                         message += '✗ Archivos expirados: ' + info.expired_files + '\n';
-                        message += '🔵 Tus archivos: ' + info.user_files + '\n';
+                        message += '🔵 Archivos de tu rol: ' + info.role_files + '\n';
                         message += '💾 Tamaño total: ' + info.total_size_mb + ' MB\n';
                         message += '⏱️ Duración: ' + info.cache_lifetime_formatted + '\n';
                         alert(message);

@@ -226,7 +226,19 @@ if ($isAdmin) {
             'javascript:void(0)',
             [
                 'id' => 'btn-clear-cache',
+                //'class' => 'btn btn-warning btn-sm',
                 'title' => 'Limpiar todo el caché del sistema'
+            ]
+        );
+
+    // Botón para limpiar solo caché de administradores
+    $actionLinks .= ' ' . Display::url(
+            Display::return_icon('user.png', 'Limpiar Caché de Admins', [], ICON_SIZE_MEDIUM),
+            'javascript:void(0)',
+            [
+                'id' => 'btn-clear-user-cache',
+                //'class' => 'btn btn-info btn-sm',
+                'title' => 'Limpiar solo caché compartido de administradores'
             ]
         );
 
@@ -235,42 +247,50 @@ if ($isAdmin) {
             'javascript:void(0)',
             [
                 'id' => 'btn-clear-expired-cache',
+                //'class' => 'btn btn-info btn-sm',
                 'title' => 'Limpiar solo caché expirado'
             ]
         );
 
+    // Información más detallada
     $cacheInfoText = sprintf(
-        '%s | Total: %d archivos (%s MB) | Válidos: %d | Expirados: %d | Tuyos: %d | Duración: %s',
+        '%s | Total: %d archivos (%s MB) | Admins: %d | Gestores: %d | Válidos: %d | Expirados: %d | Duración: %s',
         $cacheInfo['current_user_role'],
         $cacheInfo['total_files'],
         $cacheInfo['total_size_mb'],
+        $cacheInfo['admin_files'],
+        $cacheInfo['contractor_files'],
         $cacheInfo['valid_files'],
         $cacheInfo['expired_files'],
-        $cacheInfo['user_files'],
         $cacheInfo['cache_lifetime_formatted']
     );
 
     $actionLinks .= ' <span id="cache-info" class="label label-info" style="cursor: help; padding: 5px 10px;" title="' .
         $cacheInfoText . '">' .
-        '<i class="fa fa-database"></i> ' . $cacheInfo['user_files'] . '/' . $cacheInfo['valid_files'] . ' (' . $cacheInfo['total_size_mb'] . ' MB)' .
+        '<i class="fa fa-database"></i> Admins: ' . $cacheInfo['admin_files'] . ' | Gestores: ' . $cacheInfo['contractor_files'] . ' (' . $cacheInfo['total_size_mb'] . ' MB)' .
         '</span>';
+
 } else if (api_is_contractor_admin()) {
-    // Botón solo para limpiar el caché propio (gestores de cupo)
+    // Botón solo para limpiar el caché de su RUC (gestores de cupo)
     $cacheInfo = $cacheManager->getInfo();
 
     $actionLinks .= ' ' . Display::url(
-            Display::return_icon('refresh.png', 'Limpiar Mi Caché', [], ICON_SIZE_MEDIUM),
+            Display::return_icon('data-clear.png', 'Limpiar Mi Caché', [], ICON_SIZE_MEDIUM),
             'javascript:void(0)',
             [
                 'id' => 'btn-clear-user-cache',
-                'class' => 'btn btn-warning btn-sm',
-                'title' => 'Limpiar mi caché personal'
+                //'class' => 'btn btn-warning btn-sm',
+                'title' => 'Limpiar caché de mi RUC'
             ]
         );
 
+    $plugin = ProikosPlugin::create();
+    $myRuc = $plugin::getUserRucCompany();
+    $myRucFiles = $cacheInfo['by_ruc'][$myRuc] ?? 0;
+
     $actionLinks .= ' <span id="cache-info" class="label label-info" style="cursor: help; padding: 5px 10px;" title="' .
-        $cacheInfo['current_user_role'] . ' | Mis archivos: ' . $cacheInfo['user_files'] . '">' .
-        '<i class="fa fa-database"></i> ' . $cacheInfo['user_files'] . ' archivos' .
+        $cacheInfo['current_user_role'] . ' | Archivos de tu RUC: ' . $myRucFiles . '">' .
+        '<i class="fa fa-database"></i> ' . $myRucFiles . ' archivos de tu RUC' .
         '</span>';
 }
 
