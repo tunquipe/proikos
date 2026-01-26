@@ -41,9 +41,6 @@ $ruc = $_GET['ruc'] ?? '0';
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $perPage = isset($_GET['perPage']) ? (int)$_GET['perPage'] : 25;
 
-// Inicializar gestor de caché
-$cacheManager = new ProikosCacheManager();
-$cacheManager->setCacheLifetime(3600); // 1 hora
 
 if (isset($action)) {
     switch ($action) {
@@ -225,21 +222,19 @@ if ($isAdmin) {
 
     // Botón para limpiar TODO el caché (solo admins)
     $actionLinks .= ' ' . Display::url(
-            Display::return_icon('refresh.png', 'Limpiar Todo el Caché', [], ICON_SIZE_MEDIUM),
+            Display::return_icon('data-clear.png', 'Limpiar Todo el Caché', [], ICON_SIZE_MEDIUM),
             'javascript:void(0)',
             [
                 'id' => 'btn-clear-cache',
-                'class' => 'btn btn-warning btn-sm',
                 'title' => 'Limpiar todo el caché del sistema'
             ]
         );
 
     $actionLinks .= ' ' . Display::url(
-            Display::return_icon('clean.png', 'Limpiar Caché Expirado', [], ICON_SIZE_MEDIUM),
+            Display::return_icon('broom.png', 'Limpiar Caché Expirado', [], ICON_SIZE_MEDIUM),
             'javascript:void(0)',
             [
                 'id' => 'btn-clear-expired-cache',
-                'class' => 'btn btn-info btn-sm',
                 'title' => 'Limpiar solo caché expirado'
             ]
         );

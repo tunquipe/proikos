@@ -329,6 +329,14 @@
                     <div class="stat-label">Página</div>
                 </div>
             </div>
+            <div class="stat-item">
+                <div class="stat-icon green">
+                    <i class="fa fa-clock-o"></i>
+                </div>
+                <div>
+                    <div class="stat-label">La información se actualiza cada hora</div>
+                </div>
+            </div>
         </div>
 
         <!-- Pagination Top -->
