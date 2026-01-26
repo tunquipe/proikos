@@ -992,31 +992,59 @@ if ($action) {
             break;
 
         case 'get_data_report':
-            // Importante: establecer el header JSON
-            header('Content-Type: application/json; charset=utf-8');
+            require_once __DIR__ . '/cache_manager.php';
 
-            try {
-                $dni = isset($_GET['keyword']) && $_GET['keyword'] !== '' ? $_GET['keyword'] : null;
-                $courseId = isset($_GET['course_id']) ? $_GET['course_id'] : '%';
-                $sessionId = isset($_GET['session_id']) ? $_GET['session_id'] : '%';
-                $ruc = isset($_GET['ruc']) ? $_GET['ruc'] : '0';
-                $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-                $perPage = isset($_GET['perPage']) ? intval($_GET['perPage']) : 25;
+            $keyword = $_GET['keyword'] ?? null;
+            $courseId = $_GET['course_id'] ?? '%';
+            $sessionId = $_GET['session_id'] ?? '%';
+            $ruc = $_GET['ruc'] ?? '0';
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $perPage = isset($_GET['perPage']) ? (int)$_GET['perPage'] : 25;
 
-                $data = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, $page, $perPage);
+            // Inicializar caché
+            $cacheManager = new ProikosCacheManager();
+            $cacheManager->setCacheLifetime(3600); // 1 hora
 
-                echo json_encode([
-                    'success' => true,
-                    'data' => $data
-                ], JSON_UNESCAPED_UNICODE);
+            // Parámetros para la clave del caché
+            $cacheParams = [
+                'keyword' => $keyword,
+                'courseId' => $courseId,
+                'sessionId' => $sessionId,
+                'ruc' => $ruc,
+                'page' => $page,
+                'perPage' => $perPage
+            ];
 
-            } catch (Exception $e) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Error: ' . $e->getMessage()
-                ]);
+            // Intentar obtener del caché
+            $fromCache = false;
+            $cachedData = $cacheManager->get($cacheParams);
+
+            if ($cachedData !== null && isset($cachedData['data'])) {
+                // Datos del caché
+                $data = $cachedData['data'];
+                $fromCache = true;
+            } else {
+                // No hay caché válido, consultar DB
+                $data = $plugin->getDataReport(
+                    $keyword,
+                    $courseId,
+                    $sessionId,
+                    $ruc,
+                    $page,
+                    $perPage
+                );
+
+                // Guardar en caché
+                $cacheManager->set($cacheParams, $data);
             }
-            exit;
+
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'data' => $data,
+                'cached' => $fromCache,
+                'cache_key' => md5(json_encode($cacheParams))
+            ]);
             break;
     }
 }

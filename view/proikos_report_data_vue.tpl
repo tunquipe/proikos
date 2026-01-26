@@ -836,3 +836,114 @@
         });
     });
 </script>
+
+<script>
+    // Scripts para gestión de caché
+    $(document).ready(function() {
+        // Limpiar todo el caché (solo admin)
+        $('#btn-clear-cache').click(function() {
+            if (confirm('¿Está seguro de limpiar TODO el caché del sistema?\n\nEsto afectará a todos los usuarios y hará que las próximas consultas sean más lentas.')) {
+                var $btn = $(this);
+                $btn.prop('disabled', true).find('img').css('opacity', '0.5');
+
+                $.ajax({
+                    url: '{{ data_report_url }}',
+                    data: { action: 'clear_cache' },
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            alert('✓ ' + response.message);
+                            location.reload();
+                        } else {
+                            alert('✗ ' + (response.message || 'Error desconocido'));
+                            $btn.prop('disabled', false).find('img').css('opacity', '1');
+                        }
+                    },
+                    error: function() {
+                        alert('✗ Error al comunicarse con el servidor');
+                        $btn.prop('disabled', false).find('img').css('opacity', '1');
+                    }
+                });
+            }
+        });
+
+        // Limpiar solo caché expirado (solo admin)
+        $('#btn-clear-expired-cache').click(function() {
+            var $btn = $(this);
+            $btn.prop('disabled', true).find('img').css('opacity', '0.5');
+
+            $.ajax({
+                url: '{{ data_report_url }}',
+                data: { action: 'clear_expired_cache' },
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        alert('✓ ' + response.message);
+                        location.reload();
+                    } else {
+                        alert('✗ ' + (response.message || 'Error desconocido'));
+                    }
+                    $btn.prop('disabled', false).find('img').css('opacity', '1');
+                },
+                error: function() {
+                    alert('✗ Error al comunicarse con el servidor');
+                    $btn.prop('disabled', false).find('img').css('opacity', '1');
+                }
+            });
+        });
+
+        // Limpiar solo mi caché (gestores de cupo)
+        $('#btn-clear-user-cache').click(function() {
+            if (confirm('¿Desea limpiar su caché personal?\n\nEsto solo afectará sus consultas.')) {
+                var $btn = $(this);
+                $btn.prop('disabled', true).find('img').css('opacity', '0.5');
+
+                $.ajax({
+                    url: '{{ data_report_url }}',
+                    data: { action: 'clear_user_cache' },
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            alert('✓ ' + response.message);
+                            location.reload();
+                        } else {
+                            alert('✗ ' + (response.message || 'Error desconocido'));
+                        }
+                        $btn.prop('disabled', false).find('img').css('opacity', '1');
+                    },
+                    error: function() {
+                        alert('✗ Error al comunicarse con el servidor');
+                        $btn.prop('disabled', false).find('img').css('opacity', '1');
+                    }
+                });
+            }
+        });
+
+        // Click en info de caché para ver detalles
+        $('#cache-info').click(function() {
+            $.ajax({
+                url: '{{ data_report_url }}',
+                data: { action: 'cache_info' },
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        var info = response.data;
+                        var message = 'Información del Caché:\n\n';
+                        message += '👤 Rol: ' + info.current_user_role + '\n';
+                        message += '📁 Total de archivos: ' + info.total_files + '\n';
+                        message += '✓ Archivos válidos: ' + info.valid_files + '\n';
+                        message += '✗ Archivos expirados: ' + info.expired_files + '\n';
+                        message += '🔵 Tus archivos: ' + info.user_files + '\n';
+                        message += '💾 Tamaño total: ' + info.total_size_mb + ' MB\n';
+                        message += '⏱️ Duración: ' + info.cache_lifetime_formatted + '\n';
+                        alert(message);
+                    }
+                }
+            });
+        });
+    });
+</script>

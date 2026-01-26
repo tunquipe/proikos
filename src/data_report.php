@@ -3,10 +3,25 @@
 $cidReset = true;
 
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/cache_manager.php'; // Incluir el gestor de caché
+
 api_block_anonymous_users();
 
 if (!api_is_platform_admin() && !api_is_drh() && !api_is_contractor_admin()) {
     api_not_allowed(true);
+}
+
+// Inicializar gestor de caché
+$cacheManager = new ProikosCacheManager();
+$cacheManager->setCacheLifetime(3600); // 1 hora
+
+// Verificar si el caché está habilitado
+if (!$cacheManager->isEnabled()) {
+    $message = Display::return_message(
+        'El sistema de caché no está disponible. Los reportes pueden ser más lentos. ' .
+        'Por favor, verifica que el directorio /plugin/proikos/cache/ exista y tenga permisos de escritura (777).',
+        'warning'
+    );
 }
 
 // Agregar Vue.js
@@ -23,13 +38,77 @@ $courseId = $_GET['course_id'] ?? '%';
 $sessionId = $_GET['session_id'] ?? '%';
 $ruc = $_GET['ruc'] ?? '0';
 
-$page = isset($_GET['page']) ? $_GET['page'] : 1;
-$perPage = isset($_GET['perPage']) ? $_GET['perPage'] : 25;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$perPage = isset($_GET['perPage']) ? (int)$_GET['perPage'] : 25;
+
+// Inicializar gestor de caché
+$cacheManager = new ProikosCacheManager();
+$cacheManager->setCacheLifetime(3600); // 1 hora
 
 if (isset($action)) {
     switch ($action) {
+        case 'clear_user_cache':
+            // Limpiar solo el caché del usuario actual
+            $deleted = $cacheManager->clearUserCache();
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'message' => "Se eliminaron $deleted archivos de caché de su sesión",
+                'deleted' => $deleted
+            ]);
+            exit;
+        case 'clear_cache':
+            // Solo administradores pueden limpiar el caché
+            if (api_is_platform_admin()) {
+                $deleted = $cacheManager->clear();
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'message' => "Se eliminaron $deleted archivos de caché",
+                    'deleted' => $deleted
+                ]);
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'No tiene permisos para realizar esta acción'
+                ]);
+            }
+            exit;
+
+        case 'cache_info':
+            // Información del caché
+            if (api_is_platform_admin()) {
+                $info = $cacheManager->getInfo();
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'data' => $info
+                ]);
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'No tiene permisos'
+                ]);
+            }
+            exit;
+
+        case 'clear_expired_cache':
+            // Limpiar solo caché expirado
+            if (api_is_platform_admin()) {
+                $deleted = $cacheManager->clearExpired();
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'message' => "Se eliminaron $deleted archivos de caché expirados",
+                    'deleted' => $deleted
+                ]);
+            }
+            exit;
+
         case 'cron':
-            $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc,1,10, true, 'ASC');
+            $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, 1, 10, true, 'ASC');
             $count = 0;
 
             foreach ($rawData['users'] as $row) {
@@ -39,11 +118,37 @@ if (isset($action)) {
                 }
             }
 
-            echo 'se registraron ' . $count . ' registros';
-            break;
+            // Limpiar caché después del cron porque los datos cambiaron
+            $cacheManager->clear();
+
+            echo 'se registraron ' . $count . ' registros y se limpió el caché';
+            exit;
+
         case 'xls':
             $fileName = 'report_' . api_get_local_time();
-            $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc,1,10, true);
+
+            // Parámetros para caché de exportación
+            $cacheParams = [
+                'keyword' => $dni,
+                'courseId' => $courseId,
+                'sessionId' => $sessionId,
+                'ruc' => $ruc,
+                'page' => 1,
+                'perPage' => 9999, // Todos los registros para exportar
+                'export' => 'xls'
+            ];
+
+            // Intentar obtener del caché
+            $cachedData = $cacheManager->get($cacheParams);
+
+            if ($cachedData !== null && isset($cachedData['data'])) {
+                $rawData = $cachedData['data'];
+            } else {
+                // No hay caché, consultar DB
+                $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, 1, 9999, true);
+                $cacheManager->set($cacheParams, $rawData);
+            }
+
             $headers = [
                 'Nº',
                 'Codigo',
@@ -97,7 +202,8 @@ if (isset($action)) {
             }
             array_unshift($cleanData, $headers);
             Export::arrayToXls($cleanData, $fileName);
-            break;
+            exit;
+
         default:
             break;
     }
@@ -112,6 +218,66 @@ $actionLinks .= Display::url(
     Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
     api_get_path(WEB_PLUGIN_PATH) . 'proikos/start.php'
 );
+
+// Botones de caché para administradores
+if ($isAdmin) {
+    $cacheInfo = $cacheManager->getInfo();
+
+    // Botón para limpiar TODO el caché (solo admins)
+    $actionLinks .= ' ' . Display::url(
+            Display::return_icon('refresh.png', 'Limpiar Todo el Caché', [], ICON_SIZE_MEDIUM),
+            'javascript:void(0)',
+            [
+                'id' => 'btn-clear-cache',
+                'class' => 'btn btn-warning btn-sm',
+                'title' => 'Limpiar todo el caché del sistema'
+            ]
+        );
+
+    $actionLinks .= ' ' . Display::url(
+            Display::return_icon('clean.png', 'Limpiar Caché Expirado', [], ICON_SIZE_MEDIUM),
+            'javascript:void(0)',
+            [
+                'id' => 'btn-clear-expired-cache',
+                'class' => 'btn btn-info btn-sm',
+                'title' => 'Limpiar solo caché expirado'
+            ]
+        );
+
+    $cacheInfoText = sprintf(
+        '%s | Total: %d archivos (%s MB) | Válidos: %d | Expirados: %d | Tuyos: %d | Duración: %s',
+        $cacheInfo['current_user_role'],
+        $cacheInfo['total_files'],
+        $cacheInfo['total_size_mb'],
+        $cacheInfo['valid_files'],
+        $cacheInfo['expired_files'],
+        $cacheInfo['user_files'],
+        $cacheInfo['cache_lifetime_formatted']
+    );
+
+    $actionLinks .= ' <span id="cache-info" class="label label-info" style="cursor: help; padding: 5px 10px;" title="' .
+        $cacheInfoText . '">' .
+        '<i class="fa fa-database"></i> ' . $cacheInfo['user_files'] . '/' . $cacheInfo['valid_files'] . ' (' . $cacheInfo['total_size_mb'] . ' MB)' .
+        '</span>';
+} else if (api_is_contractor_admin()) {
+    // Botón solo para limpiar el caché propio (gestores de cupo)
+    $cacheInfo = $cacheManager->getInfo();
+
+    $actionLinks .= ' ' . Display::url(
+            Display::return_icon('refresh.png', 'Limpiar Mi Caché', [], ICON_SIZE_MEDIUM),
+            'javascript:void(0)',
+            [
+                'id' => 'btn-clear-user-cache',
+                'class' => 'btn btn-warning btn-sm',
+                'title' => 'Limpiar mi caché personal'
+            ]
+        );
+
+    $actionLinks .= ' <span id="cache-info" class="label label-info" style="cursor: help; padding: 5px 10px;" title="' .
+        $cacheInfo['current_user_role'] . ' | Mis archivos: ' . $cacheInfo['user_files'] . '">' .
+        '<i class="fa fa-database"></i> ' . $cacheInfo['user_files'] . ' archivos' .
+        '</span>';
+}
 
 $courses = [];
 $courses['%'] = $plugin->get_lang('SelectCourse');
@@ -238,11 +404,6 @@ $form->addText('keyword', $plugin->get_lang('SearchUserByDNI'), false, [
     'style' => 'display: block'
 ]);
 
-//$form->addText('ruc', $plugin->get_lang('SearchUserByRUC'), false, [
-//    'placeholder' => 'Buscar por RUC de empresa',
-//    'style' => 'display: block'
-//]);
-
 $contratingCompanies = $plugin->contratingCompaniesModel()->getData();
 $listRuc = [
     '0' => 'Selecciona una empresa'
@@ -262,13 +423,12 @@ $actionsRight = Display::url(
         'action' => 'xls',
         'course_id' => $courseId,
         'session_id' => $sessionId,
+        'keyword' => $dni,
+        'ruc' => $ruc
     ])
 );
 
 $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $actionsRight], [9, 1, 2]);
-
-// NO cargamos los datos aquí, Vue lo hará
-// $data = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, $page, $perPage);
 
 $urlAjaxPlugin = api_get_path(WEB_PLUGIN_PATH)."proikos/src/ajax.php";
 
@@ -288,6 +448,7 @@ $tpl->assign('message', $message);
 $tpl->assign('url_ajax', $urlAjaxPlugin);
 $tpl->assign('vue_params', $vueParams);
 $tpl->assign('perPage', $perPage);
+$tpl->assign('data_report_url', api_get_self());
 
 $content = $tpl->fetch('proikos/view/proikos_report_data_vue.tpl');
 $tpl->assign('content', $toolbarActions . $content);
