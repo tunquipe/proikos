@@ -1001,9 +1001,26 @@ if ($action) {
             $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
             $perPage = isset($_GET['perPage']) ? (int)$_GET['perPage'] : 25;
 
+            $cacheLifetimeAdmin = $plugin->get('cache_data_admin');
+            if (empty($cacheLifetimeAdmin) || !is_numeric($cacheLifetimeAdmin)) {
+                $cacheLifetimeAdmin = 7200; // Valor por defecto: 2 hora
+            }
+            $cacheLifetimeManager = $plugin->get('cache_data_manager');
+            if (empty($cacheLifetimeManager) || !is_numeric($cacheLifetimeManager)) {
+                $cacheLifetimeManager = 3600; // Valor por defecto: 1 hora
+            }
+
             // Inicializar caché
             $cacheManager = new ProikosCacheManager();
-            $cacheManager->setCacheLifetime(3600); // 1 hora
+
+            if (api_is_platform_admin()) {
+                // Admins: 2 horas (consultan mucho, datos cambian poco)
+                $cacheManager->setCacheLifetime($cacheLifetimeAdmin);
+            } else if (api_is_contractor_admin()) {
+                $cacheManager->setCacheLifetime($cacheLifetimeManager);
+            } else {
+                $cacheManager->setCacheLifetime($cacheLifetimeManager);
+            }
 
             // Parámetros para la clave del caché
             $cacheParams = [

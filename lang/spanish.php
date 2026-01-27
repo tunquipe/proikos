@@ -225,3 +225,6 @@ $strings['Gestor'] = 'Gestor';
 $strings['TotalRecords'] = 'Total de registros';
 $strings['ATotalOf'] = 'Se han registrado en total ';
 $strings['RegistrationDateLogo'] = 'Fecha registro log';
+
+$strings['cache_data_admin'] = 'Caché data administrador';
+$strings['cache_data_manager'] = 'Caché data gestor';

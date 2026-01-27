@@ -11,9 +11,30 @@ if (!api_is_platform_admin() && !api_is_drh() && !api_is_contractor_admin()) {
     api_not_allowed(true);
 }
 
+$plugin = ProikosPlugin::create();
+
+$cacheLifetimeAdmin = $plugin->get('cache_data_admin');
+if (empty($cacheLifetimeAdmin) || !is_numeric($cacheLifetimeAdmin)) {
+    $cacheLifetimeAdmin = 7200; // Valor por defecto: 2 hora
+}
+$cacheLifetimeManager = $plugin->get('cache_data_manager');
+if (empty($cacheLifetimeManager) || !is_numeric($cacheLifetimeManager)) {
+    $cacheLifetimeManager = 3600; // Valor por defecto: 1 hora
+}
+
 // Inicializar gestor de caché
 $cacheManager = new ProikosCacheManager();
-$cacheManager->setCacheLifetime(3600); // 1 hora
+
+if (api_is_platform_admin()) {
+    // Admins: 2 horas (consultan mucho, datos cambian poco)
+    $cacheManager->setCacheLifetime($cacheLifetimeAdmin);
+} else if (api_is_contractor_admin()) {
+    $cacheManager->setCacheLifetime($cacheLifetimeManager);
+} else {
+    $cacheManager->setCacheLifetime($cacheLifetimeManager);
+}
+
+//$cacheManager->setCacheLifetime(3600); // 1 hora
 
 // Verificar si el caché está habilitado
 if (!$cacheManager->isEnabled()) {
@@ -27,7 +48,7 @@ if (!$cacheManager->isEnabled()) {
 // Agregar Vue.js
 $htmlHeadXtra[] = '<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.min.js"></script>';
 
-$plugin = ProikosPlugin::create();
+
 $tool_name = 'Data';
 $actionLinks = null;
 $message = null;

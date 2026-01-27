@@ -81,6 +81,8 @@ class ProikosPlugin extends Plugin
                 'enable_limit_user_quotas' => 'boolean',
                 'enable_link_smowl_exercise' => 'boolean',
                 'highest_score_exercise'  => 'boolean',
+                'cache_data_admin'  => 'text',
+                'cache_data_manager'  => 'text',
             ]
         );
         $this->isAdminPlugin = true;
