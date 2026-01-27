@@ -395,15 +395,16 @@
                         [[ cacheInfo.from_cache ? 'En Caché' : 'Recién Actualizado' ]]
                     </div>
                     <div class="stat-label" style="font-size: 11px;">
-                <span v-if="cacheInfo.last_update">
-                    <i class="fa fa-clock-o"></i> [[ cacheInfo.last_update.relative ]]
-                </span>
+            <span v-if="cacheInfo.last_update">
+                <i class="fa fa-clock-o"></i> [[ cacheInfo.last_update.relative ]]
+            </span>
                         <span v-if="cacheInfo.time_left && cacheInfo.from_cache" style="margin-left: 5px;">
-                    <i class="fa fa-hourglass-half"></i> Expira en [[ cacheInfo.time_left.formatted ]]
-                </span>
+                <i class="fa fa-hourglass-half"></i> Expira en [[ cacheInfo.time_left.formatted_short || cacheInfo.time_left.formatted ]]
+            </span>
                     </div>
                 </div>
             </div>
+
         </div>
 
         <!-- Pagination Top -->

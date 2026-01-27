@@ -713,13 +713,26 @@ class ProikosCacheManager
                 return null;
             }
 
-            $minutes = floor($timeLeft / 60);
+            // Formatear el tiempo correctamente
+            $hours = floor($timeLeft / 3600);
+            $minutes = floor(($timeLeft % 3600) / 60);
             $seconds = $timeLeft % 60;
+
+            // Formato: HH:MM:SS o MM:SS según corresponda
+            if ($hours > 0) {
+                $formatted = sprintf('%d:%02d:%02d', $hours, $minutes, $seconds);
+                $formattedShort = $hours . 'h ' . $minutes . 'min';
+            } else {
+                $formatted = sprintf('%d:%02d', $minutes, $seconds);
+                $formattedShort = $minutes . ' min';
+            }
 
             return [
                 'seconds' => $timeLeft,
-                'formatted' => $minutes . ':' . str_pad($seconds, 2, '0', STR_PAD_LEFT),
-                'expires_at' => date('H:i:s', $expiresAt)
+                'formatted' => $formatted,
+                'formatted_short' => $formattedShort,
+                'expires_at' => date('H:i:s', $expiresAt),
+                'expires_at_date' => date('d/m/Y H:i:s', $expiresAt)
             ];
         } catch (Exception $e) {
             error_log("ProikosCacheManager::getTimeUntilExpiration() Error: " . $e->getMessage());
