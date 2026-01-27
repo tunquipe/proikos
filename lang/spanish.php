@@ -228,3 +228,6 @@ $strings['RegistrationDateLogo'] = 'Fecha registro log';
 
 $strings['cache_data_admin'] = 'Caché data administrador';
 $strings['cache_data_manager'] = 'Caché data gestor';
+$strings['AcademicResults'] = 'Resultado Academico';
+$strings['Results'] = 'Resultados';
+$strings['tools_results_enabled'] = 'Activar herramienta resultados en el curso';

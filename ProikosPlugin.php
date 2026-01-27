@@ -68,9 +68,11 @@ class ProikosPlugin extends Plugin
         7 => 'trabajos-de-inmmersion'
     ];
 
+    public const TOOL_ENABLED = 'tools_results_enabled';
     const EVENT_ADD_QUOTA = 'add_quota';
     const EVENT_USER_SUBSCRIPTION_TO_COURSE = 'user_subscription_to_course';
 
+    public $isCoursePlugin = true;
     protected function __construct()
     {
         parent::__construct(
@@ -83,6 +85,7 @@ class ProikosPlugin extends Plugin
                 'highest_score_exercise'  => 'boolean',
                 'cache_data_admin'  => 'text',
                 'cache_data_manager'  => 'text',
+                self::TOOL_ENABLED => 'boolean',
             ]
         );
         $this->isAdminPlugin = true;
@@ -322,6 +325,35 @@ class ProikosPlugin extends Plugin
             $sql = "DROP TABLE IF EXISTS $table";
             Database::query($sql);
         }*/
+    }
+
+    private function deleteCourseToolLinks()
+    {
+        $pluginName = $this->get_name();
+        Database::getManager()
+            ->createQuery('DELETE FROM ChamiloCourseBundle:CTool t WHERE t.category = :category AND t.link LIKE :link')
+            ->execute(['category' => 'plugin', 'link' => $pluginName.'/academic_result.php%']);
+    }
+    public function performActionsAfterConfigure(): ProikosPlugin
+    {
+        $em = Database::getManager();
+
+        $this->deleteCourseToolLinks();
+
+        if ('true' === $this->get(self::TOOL_ENABLED)) {
+            $courses = $em->createQuery('SELECT c.id FROM ChamiloCoreBundle:Course c')->getResult();
+            $pluginName = $this->get_name();
+            foreach ($courses as $course) {
+                $this->createLinkToCourseTool(
+                    $this->get_lang('Results'),
+                    $course['id'],
+                    'results.png',
+                    $pluginName.'/academic_result.php'
+                );
+            }
+        }
+
+        return $this;
     }
     public function getExistsUserProikos($userId)
     {
