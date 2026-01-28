@@ -86,6 +86,7 @@ class ProikosPlugin extends Plugin
                 'cache_data_admin'  => 'text',
                 'cache_data_manager'  => 'text',
                 self::TOOL_ENABLED => 'boolean',
+                'force_results_view' => 'boolean'
             ]
         );
         $this->isAdminPlugin = true;
@@ -345,7 +346,7 @@ class ProikosPlugin extends Plugin
             $pluginName = $this->get_name();
             foreach ($courses as $course) {
                 $this->createLinkToCourseTool(
-                    $this->get_lang('Results'),
+                    $this->get_lang('AcademicResults'),
                     $course['id'],
                     'results.png',
                     $pluginName.'/academic_result.php'
