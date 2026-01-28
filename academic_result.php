@@ -40,18 +40,22 @@ $totalScore = (($examen_de_entrada * $ponderacion_entrada) +
 if ($totalScore == 0) {
     $css_status = 'pending';
     $css_status_light = 'highlight-pending';
+    $image_icon = api_get_path(WEB_PLUGIN_PATH) . 'proikos/images/hourglass.png';
     $status_id = 1;
 } else if ($examen_de_entrada == 0 || $examen_de_salida == 0 || $taller == 0) {
     $css_status = 'failed';
     $css_status_light = 'highlight-failed';
+    $image_icon = api_get_path(WEB_PLUGIN_PATH) . 'proikos/images/sad-face.png';
     $status_id = 0;
 } else if ($totalScore >= 70) {
     $css_status = 'approved';
     $css_status_light = 'highlight-approved';
+    $image_icon = api_get_path(WEB_PLUGIN_PATH) . 'proikos/images/winking-face.png';
     $status_id = 2;
 } else {
     $css_status = 'failed';
     $css_status_light = 'highlight-failed';
+    $image_icon = api_get_path(WEB_PLUGIN_PATH) . 'proikos/images/sad-face.png';
     $status_id = 0;
 }
 
@@ -59,6 +63,7 @@ $tpl = new Template($nameTools, true, true, false, false, true, false);
 $tpl->assign('exams', $exams);
 $tpl->assign('weighted_average', $weightedAverage);
 $tpl->assign('total_score', $totalScore);
+$tpl->assign('image_icon', $image_icon);
 $tpl->assign('css_status', $css_status);
 $tpl->assign('status_id', $status_id);
 $tpl->assign('css_status_light', $css_status_light);

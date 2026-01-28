@@ -5,16 +5,16 @@
 
         {% if status_id == 1 %}
 
-        <div class="proikos-success-icon">⏳</div>
+        <div class="proikos-success-icon"><img src="{{ image_icon }}" alt="Evaluaciones pendientes"/></div>
         <h1>EVALUACIONES PENDIENTES</h1>
         <p>Aún tienes evaluaciones por completar</p>
 
         {% elseif status_id == 2 %}
-        <div class="proikos-success-icon">😊</div>
+        <div class="proikos-success-icon"><img src="{{ image_icon }}" alt="Aprobado"/></div>
         <h1>¡APROBADO!</h1>
         <p>Puntaje Alcanzado con Éxito</p>
         {% else %}
-        <div class="proikos-success-icon">😔</div>
+        <div class="proikos-success-icon"><img src="{{ image_icon }}" alt="Desaprobado"/></div>
         <h1>DESAPROBADO</h1>
         <p>No se alcanzó el puntaje mínimo requerido</p>
         {% endif %}
