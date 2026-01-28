@@ -5132,6 +5132,50 @@ EOT;
         return '';
     }
 
+    function getUrlCertificate($userId, $sessionId): string
+    {
+        $sessionCourses = SessionManager::get_course_list_by_session_id($sessionId);
+        foreach ($sessionCourses as $course) {
+            $category = Category::load(
+                null,
+                null,
+                $course['code'],
+                null,
+                null,
+                $sessionId
+            );
+
+            if (empty($category)) {
+                continue;
+            }
+
+            if (!isset($category[0])) {
+                continue;
+            }
+
+            /** @var Category $category */
+            $category = $category[0];
+
+            // Don't allow generate of certifications
+            if (empty($category->getGenerateCertificates())) {
+                continue;
+            }
+
+            $categoryId = $category->get_id();
+            $certificateInfo = self::get_certificate_by_user_id(
+                $categoryId,
+                $userId
+            );
+
+            if (empty($certificateInfo)) {
+                continue;
+            }
+
+            return api_get_path(WEB_PATH)."certificates/index.php?id={$certificateInfo['id']}";
+        }
+        return '';
+    }
+
     public static function get_certificate_by_user_id($cat_id, $user_id)
     {
         $table = Database::get_main_table(TABLE_MAIN_GRADEBOOK_CERTIFICATE);
