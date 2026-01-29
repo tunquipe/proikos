@@ -1,3 +1,7 @@
+/* ===================================
+   PROIKOS RESULTS - COMPLETE STYLES
+   =================================== */
+
 .proikos-results-container {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     max-width: 900px;
@@ -8,7 +12,10 @@
     overflow: hidden;
 }
 
-/* Estados del header */
+/* ===================================
+   HEADER STATES
+   =================================== */
+
 .proikos-header {
     padding: 40px 30px;
     text-align: center;
@@ -29,9 +36,13 @@
 }
 
 .proikos-success-icon {
-    font-size: 70px;
     margin-bottom: 15px;
     animation: bounce 1s ease-in-out;
+}
+
+.proikos-success-icon img {
+    width: 70px;
+    height: 70px;
 }
 
 @keyframes bounce {
@@ -43,16 +54,26 @@
     font-size: 26px;
     font-weight: 700;
     margin-bottom: 8px;
+    margin-top: 0;
 }
 
 .proikos-header p {
     font-size: 15px;
     opacity: 0.95;
+    margin: 0;
 }
+
+/* ===================================
+   CONTENT AREA
+   =================================== */
 
 .proikos-content {
     padding: 35px 30px;
 }
+
+/* ===================================
+   SCORE SUMMARY CARDS
+   =================================== */
 
 .proikos-score-summary {
     display: grid;
@@ -101,17 +122,22 @@
     font-size: 36px;
     font-weight: 700;
     margin-bottom: 5px;
+    line-height: 1;
 }
 
 .proikos-score-value.pending-value {
     font-size: 24px;
-    opacity: 0.7;
+    opacity: 0.9;
 }
 
 .proikos-score-subtitle {
     font-size: 12px;
     opacity: 0.7;
 }
+
+/* ===================================
+   PROGRESS BARS
+   =================================== */
 
 .proikos-progress-bar {
     width: 100%;
@@ -140,6 +166,44 @@
 .proikos-progress-fill.pending {
     background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
 }
+
+/* ===================================
+   ALERTS
+   =================================== */
+
+.proikos-alert-info {
+    background: #eff6ff;
+    border-left: 4px solid #3b82f6;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    color: #1e40af;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.proikos-alert-danger {
+    background: #fee2e2;
+    border-left: 4px solid #ef4444;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    color: #991b1b;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.proikos-alert-info strong,
+.proikos-alert-danger strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* ===================================
+   EVALUATION SECTION
+   =================================== */
 
 .proikos-section-title {
     font-size: 18px;
@@ -232,6 +296,10 @@
     font-size: 14px;
 }
 
+/* ===================================
+   CERTIFICATE BUTTON
+   =================================== */
+
 .proikos-certificate-button {
     display: inline-flex;
     align-items: center;
@@ -245,6 +313,8 @@
     font-size: 15px;
     transition: all 0.3s ease;
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    border: none;
+    cursor: pointer;
 }
 
 .proikos-certificate-button:hover {
@@ -270,24 +340,28 @@
     margin-top: 25px;
 }
 
-.proikos-alert-info {
-    background: #eff6ff;
-    border-left: 4px solid #3b82f6;
-    padding: 16px;
-    border-radius: 8px;
-    margin-bottom: 25px;
-    color: #1e40af;
-    font-size: 14px;
-    line-height: 1.6;
-}
-
-.proikos-alert-info strong {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 15px;
-}
+/* ===================================
+   RESPONSIVE
+   =================================== */
 
 @media (max-width: 768px) {
+    .proikos-results-container {
+        margin: 10px;
+        border-radius: 16px;
+    }
+
+    .proikos-header {
+        padding: 30px 20px;
+    }
+
+    .proikos-header h1 {
+        font-size: 22px;
+    }
+
+    .proikos-content {
+        padding: 25px 20px;
+    }
+
     .proikos-evaluation-item {
         grid-template-columns: 1fr;
         gap: 12px;
@@ -300,5 +374,32 @@
 
     .proikos-score-summary {
         grid-template-columns: 1fr;
+    }
+
+    .proikos-score-value {
+        font-size: 30px;
+    }
+
+    .proikos-score-value.pending-value {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .proikos-header h1 {
+        font-size: 20px;
+    }
+
+    .proikos-header p {
+        font-size: 14px;
+    }
+
+    .proikos-score-value {
+        font-size: 28px;
+    }
+
+    .proikos-certificate-button {
+        padding: 12px 24px;
+        font-size: 14px;
     }
 }

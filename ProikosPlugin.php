@@ -1580,7 +1580,7 @@ class ProikosPlugin extends Plugin
         return $aux['code'];
     }
 
-    public function getResultExerciseStudent($user_id, $courseId, $session_id = 0, $showEmpty = false)
+    public function getResultExerciseStudent($user_id, $courseId, $session_id = 0, $showEmpty = false, $view_result = false)
     {
         $course_code = self::getCourseCode($courseId);
         $cats = Category::load(
@@ -1592,6 +1592,7 @@ class ProikosPlugin extends Plugin
             $session_id,
             false
         );
+
         foreach ($cats as $cat){
             $cats = $cat->get_subcategories($user_id, $course_code, $session_id);
             $evals = $cat->get_evaluations($user_id, false, $course_code, $session_id);
@@ -1622,7 +1623,12 @@ class ProikosPlugin extends Plugin
                         break;
                     case 'ExerciseLink':
                         /** @var ExerciseLink $item */
-                        $score = self::getScoreExercise($item->get_ref_id(),$session_id,$user_id);
+                        if($view_result){
+                            $score = self::getScoreExercise($item->get_ref_id(),$session_id,$user_id,-1);
+                        } else {
+                            $score = self::getScoreExercise($item->get_ref_id(),$session_id,$user_id,0);
+                        }
+
                         if($showEmpty){
                             if($score==0){
                                 $defaultData=[];
@@ -1637,16 +1643,16 @@ class ProikosPlugin extends Plugin
                         break;
                 }
             }
-
             return $defaultData;
         }
+
     }
 
-    public function getScoreExercise($id_exercise, $session_id, $user_id){
+    public function getScoreExercise($id_exercise, $session_id, $user_id, $score = 0)
+    {
         $table_exercise_log = Database::get_main_table(TABLE_STATISTIC_TRACK_E_EXERCISES);
         $sql = "SELECT * FROM $table_exercise_log tee WHERE tee.exe_exo_id = $id_exercise AND tee.session_id = $session_id AND tee.exe_user_id = $user_id;";
         $result = Database::query($sql);
-        $score = 0;
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_assoc($result)) {
                 $scoreMax = ($this->get('highest_score_exercise') == 'true');
@@ -4187,7 +4193,7 @@ HTML;
 
                 .goog-text-highlight {
                   background: transparent !important;
-                  box-shadow: transparent !important;
+                  box-shadow: none !important;
                 }
 
                 #google_translate_element select {
