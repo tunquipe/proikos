@@ -15,6 +15,48 @@ if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) ||
 // Verificar que el usuario esté autenticado
 api_block_anonymous_users();
 
+// Verificar cuántos certificados se están generando ahora
+$lockFile = sys_get_temp_dir() . '/proikos_cert_generation.lock';
+$maxSimultaneous = 5; // Máximo 5 generaciones simultáneas
+
+// Leer contador actual
+$currentCount = 0;
+if (file_exists($lockFile)) {
+    $data = json_decode(file_get_contents($lockFile), true);
+    $currentCount = isset($data['count']) ? (int)$data['count'] : 0;
+    $timestamp = isset($data['timestamp']) ? $data['timestamp'] : 0;
+
+    // Si el lock tiene más de 30 segundos, resetear
+    if (time() - $timestamp > 30) {
+        $currentCount = 0;
+    }
+}
+
+// Si hay demasiadas generaciones, esperar
+if ($currentCount >= $maxSimultaneous) {
+    exit(json_encode([
+        'success' => false,
+        'message' => 'Hay muchas generaciones en proceso. Por favor, intenta en unos segundos.',
+        'retry' => true
+    ]));
+}
+
+// Incrementar contador
+$currentCount++;
+file_put_contents($lockFile, json_encode([
+    'count' => $currentCount,
+    'timestamp' => time()
+]));
+
+// Al final del script, decrementar
+register_shutdown_function(function() use ($lockFile) {
+    if (file_exists($lockFile)) {
+        $data = json_decode(file_get_contents($lockFile), true);
+        $data['count'] = max(0, $data['count'] - 1);
+        file_put_contents($lockFile, json_encode($data));
+    }
+});
+
 // Cargar el plugin
 $plugin = ProikosPlugin::create();
 
