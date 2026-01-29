@@ -5601,4 +5601,330 @@ EOT;
         }
         return intval($row[0]);
     }
+    /**
+     * Genera el certificado del estudiante si cumple todos los requisitos
+     *
+     * @param int $user_id ID del usuario
+     * @param int $course_id ID del curso
+     * @param int $session_id ID de la sesión
+     * @param int $category_id ID de la categoría del gradebook
+     * @return array Array con información del certificado o error
+     */
+    public function generateStudentCertificate($user_id, $course_id, $session_id, $category_id)
+    {
+        $user_id = (int) $user_id;
+        $course_id = (int) $course_id;
+        $session_id = (int) $session_id;
+        $category_id = (int) $category_id;
+
+        // ==============================================================
+        // 1. VERIFICAR QUE EXISTE LA CATEGORÍA
+        // ==============================================================
+
+        $category = Category::load($category_id, null, null, null, null, null, false);
+
+        if (empty($category) || !isset($category[0])) {
+            return [
+                'success' => false,
+                'message' => 'Categoría no encontrada',
+                'can_generate' => false
+            ];
+        }
+
+        /** @var Category $category */
+        $category = $category[0];
+
+        // ==============================================================
+        // 2. VERIFICAR SI EL PARTICIPANTE FINALIZÓ EL CURSO
+        // ==============================================================
+
+        $userFinishedCourse = Category::userFinishedCourse($user_id, $category, true);
+
+        if (!$userFinishedCourse) {
+            return [
+                'success' => false,
+                'message' => 'El curso no ha sido finalizado',
+                'can_generate' => false
+            ];
+        }
+
+        // ==============================================================
+        // 3. VERIFICAR QUE COMPLETÓ TODOS LOS EXÁMENES
+        // ==============================================================
+
+        $examStatus = $this->checkUserExamCompletion($user_id, $course_id, $session_id);
+
+        if (!$examStatus['all_completed']) {
+            return [
+                'success' => false,
+                'message' => 'Aún hay exámenes pendientes por completar',
+                'can_generate' => false,
+                'pending_exams' => $examStatus['pending_exams']
+            ];
+        }
+
+        // ==============================================================
+        // 4. VERIFICAR CONFIGURACIÓN DEL GRADEBOOK
+        // ==============================================================
+
+        if (empty($category->getGenerateCertificates())) {
+            return [
+                'success' => false,
+                'message' => 'La generación de certificados no está habilitada para este curso',
+                'can_generate' => false
+            ];
+        }
+
+        // ==============================================================
+        // 5. CALCULAR EL PUNTAJE
+        // ==============================================================
+
+        $scoretotal = $category->calc_score($user_id);
+        $scoredisplay = ScoreDisplay::instance();
+        $scoreFormatted = $scoredisplay->display_score($scoretotal, SCORE_SIMPLE);
+
+        // Verificar si aprobó (puntaje >= 70%)
+        if (!empty($scoretotal) && $scoretotal[0] < ($scoretotal[1] * 0.70)) {
+            return [
+                'success' => false,
+                'message' => 'No se alcanzó el puntaje mínimo para aprobar',
+                'can_generate' => false,
+                'score' => $scoretotal[0],
+                'max_score' => $scoretotal[1]
+            ];
+        }
+
+        // ==============================================================
+        // 6. VERIFICAR SI YA EXISTE EL CERTIFICADO
+        // ==============================================================
+
+        $existingCertificate = GradebookUtils::get_certificate_by_user_id($category_id, $user_id);
+
+        if (!empty($existingCertificate)) {
+            // Ya existe, retornar información del certificado existente
+            return [
+                'success' => true,
+                'message' => 'Certificado ya generado anteriormente',
+                'already_exists' => true,
+                'certificate_id' => $existingCertificate['id'],
+                'certificate_url' => api_get_path(WEB_PATH) . 'certificates/index.php?id=' . $existingCertificate['id'] . '&user_id=' . $user_id,
+                'created_at' => $existingCertificate['created_at']
+            ];
+        }
+
+        // ==============================================================
+        // 7. CALCULAR FECHAS DE EXPEDICIÓN Y EXPIRACIÓN
+        // ==============================================================
+
+        $sessionInfo = [];
+        if ($session_id > 0) {
+            $sessionInfo = SessionManager::fetch($session_id);
+        }
+
+        // Obtener configuración de expiración
+        $typeExpiration = EasyCertificatePlugin::getNumberOfDaysToExpiration(
+            $course_id,
+            $session_id,
+            1,
+            $user_id
+        );
+
+        $numberDaysExpiration = isset($typeExpiration['expected_days']) ? $typeExpiration['expected_days'] : 365;
+
+        // Fecha de expedición
+        date_default_timezone_set('America/Lima');
+        $expeditionDay = api_get_utc_datetime();
+        $currentDate = new DateTime();
+
+        // Si el modo de fecha es 1 o 2, usar fecha de inicio de sesión
+        if (isset($typeExpiration['date_issue_mode']) &&
+            ($typeExpiration['date_issue_mode'] == '1' || $typeExpiration['date_issue_mode'] == '2')
+            && !empty($sessionInfo['access_start_date_to_local_time'])) {
+            $expeditionDay = $sessionInfo['access_start_date_to_local_time'];
+            $currentDate = new DateTime($expeditionDay);
+        }
+
+        // Calcular fecha de expiración
+        $currentDate->modify("+{$numberDaysExpiration} days");
+        $expirationDate = $currentDate->format('Y-m-d H:i:s');
+
+        // ==============================================================
+        // 8. REGISTRAR EL CERTIFICADO
+        // ==============================================================
+
+        GradebookUtils::registerUserInfoAboutCertificate(
+            $category_id,
+            $user_id,
+            $scoreFormatted,
+            $expeditionDay,
+            $expirationDate
+        );
+
+        // Obtener el certificado recién creado
+        $newCertificate = GradebookUtils::get_certificate_by_user_id($category_id, $user_id);
+
+        if (empty($newCertificate)) {
+            return [
+                'success' => false,
+                'message' => 'Error al registrar el certificado',
+                'can_generate' => true
+            ];
+        }
+
+        // ==============================================================
+        // 9. GENERAR HTML DEL CERTIFICADO (si aplica)
+        // ==============================================================
+
+        $certificate_obj = new Certificate($newCertificate['id'], 0, false);
+        $fileGenerated = false;
+
+        // Verificar plugins de certificados personalizados
+        if (api_get_plugin_setting('easycertificate', 'enable_plugin_easycertificate') === 'true') {
+            $infoCertificate = EasyCertificatePlugin::getCertificateData($newCertificate['id'], $user_id);
+            if (!empty($infoCertificate)) {
+                $fileGenerated = true;
+            }
+        }
+
+        if (!$fileGenerated && api_get_plugin_setting('customcertificate', 'enable_plugin_customcertificate') === 'true') {
+            $infoCertificate = CustomCertificatePlugin::getCertificateData($newCertificate['id'], $user_id);
+            if (!empty($infoCertificate)) {
+                $fileGenerated = true;
+            }
+        }
+
+        if (!$fileGenerated) {
+            $fileGenerated = $certificate_obj->isHtmlFileGenerated();
+        }
+
+        // ==============================================================
+        // 10. RETORNAR INFORMACIÓN DEL CERTIFICADO GENERADO
+        // ==============================================================
+
+        $certificateUrl = api_get_path(WEB_PATH) . 'certificates/index.php?id=' . $newCertificate['id'] . '&user_id=' . $user_id;
+
+        return [
+            'success' => true,
+            'message' => 'Certificado generado exitosamente',
+            'already_exists' => false,
+            'certificate_id' => $newCertificate['id'],
+            'certificate_url' => $certificateUrl,
+            'certificate_pdf_url' => $certificateUrl . '&action=export',
+            'expedition_date' => $expeditionDay,
+            'expiration_date' => $expirationDate,
+            'score' => isset($scoretotal[0]) ? $scoretotal[0] : 0,
+            'max_score' => isset($scoretotal[1]) ? $scoretotal[1] : 0,
+            'score_formatted' => $scoreFormatted,
+            'file_generated' => $fileGenerated
+        ];
+    }
+
+    /**
+     * Verifica si el usuario completó todos los exámenes requeridos
+     *
+     * @param int $user_id ID del usuario
+     * @param int $course_id ID del curso
+     * @param int $session_id ID de la sesión
+     * @return array Estado de completitud de exámenes
+     */
+    private function checkUserExamCompletion($user_id, $course_id, $session_id)
+    {
+        // Obtener resultados de los exámenes
+        $userScore = $this->getResultExerciseStudent($user_id, $course_id, $session_id, false, true);
+
+        $examen_de_entrada = isset($userScore['examen_de_entrada']) && $userScore['examen_de_entrada'] !== ''
+            ? floatval($userScore['examen_de_entrada'])
+            : -1;
+
+        $taller = isset($userScore['taller']) && $userScore['taller'] !== ''
+            ? floatval($userScore['taller'])
+            : -1;
+
+        $examen_de_salida = isset($userScore['examen_de_salida']) && $userScore['examen_de_salida'] !== ''
+            ? floatval($userScore['examen_de_salida'])
+            : -1;
+
+        // Verificar si hay pendientes (-1 = no resuelto)
+        $pendingExams = [];
+
+        if ($examen_de_entrada == -1) {
+            $pendingExams[] = 'Examen de Entrada';
+        }
+
+        if ($taller == -1) {
+            $pendingExams[] = 'Taller';
+        }
+
+        if ($examen_de_salida == -1) {
+            $pendingExams[] = 'Examen de Salida';
+        }
+
+        $allCompleted = empty($pendingExams);
+
+        return [
+            'all_completed' => $allCompleted,
+            'pending_exams' => $pendingExams,
+            'completed_count' => 3 - count($pendingExams),
+            'total_count' => 3,
+            'exams' => [
+                'entrance' => $examen_de_entrada,
+                'workshop' => $taller,
+                'exit' => $examen_de_salida
+            ]
+        ];
+    }
+
+    /**
+     * Obtiene la URL del certificado si existe y está disponible
+     *
+     * @param int $user_id ID del usuario
+     * @param int $session_id ID de la sesión
+     * @param string $course_code Código del curso
+     * @return string|false URL del certificado o false si no está disponible
+     */
+    public function getUrlCertificateLink($user_id, $session_id, $course_code = null)
+    {
+        if (empty($course_code)) {
+            $course_code = api_get_course_id();
+        }
+
+        $courseInfo = api_get_course_info($course_code);
+        if (empty($courseInfo)) {
+            return false;
+        }
+
+        $course_id = $courseInfo['real_id'];
+
+        // Obtener categoría del gradebook
+        $category = Category::load(null, null, $course_code, null, null, $session_id, false);
+
+        if (empty($category) || !isset($category[0])) {
+            return false;
+        }
+
+        $category_id = $category[0]->get_id();
+
+        // Verificar si existe el certificado
+        $certificate = GradebookUtils::get_certificate_by_user_id($category_id, $user_id);
+
+        if (empty($certificate)) {
+            return false;
+        }
+
+        // Verificar que el archivo esté generado
+        $certificate_obj = new Certificate($certificate['id'], 0, false);
+        $fileGenerated = $certificate_obj->isHtmlFileGenerated();
+
+        // Verificar plugins
+        if (!$fileGenerated && api_get_plugin_setting('easycertificate', 'enable_plugin_easycertificate') === 'true') {
+            $infoCertificate = EasyCertificatePlugin::getCertificateData($certificate['id'], $user_id);
+            $fileGenerated = !empty($infoCertificate);
+        }
+
+        if (!$fileGenerated) {
+            return false;
+        }
+
+        return api_get_path(WEB_PATH) . 'certificates/index.php?id=' . $certificate['id'] . '&user_id=' . $user_id;
+    }
 }
