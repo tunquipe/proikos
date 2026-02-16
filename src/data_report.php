@@ -442,9 +442,13 @@ $form->addText('keyword', $plugin->get_lang('SearchUserByDNI'), false, [
 
 $contratingCompanies = $plugin->contratingCompaniesModel()->getData();
 $listRuc = [
-    '0' => 'Selecciona una empresa'
+    '0' => 'Selecciona una empresa',
+    '20100128218' => '20100128218 - PETROPERÚ S.A.'
 ];
 foreach ($contratingCompanies as $company) {
+    if ($company['ruc'] === '20100128218') {
+        continue;
+    }
     $listRuc[$company['ruc']] = $company['ruc'].' - '.$company['name'];
 }
 
