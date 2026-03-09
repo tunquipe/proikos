@@ -84,6 +84,7 @@ if ($has_filters) {
             pqcs.session_id,
             s.name as session_name,
             SUM(pqcs.user_quota) as user_quota,
+            (pqcd.user_quota - SUM(pqcs.user_quota)) as quota_available,
             MIN(pqcs.created_user_id) as gestor,
             CONCAT(u.firstname, ' ', u.lastname) as gestor_name
         FROM plugin_proikos_contrating_companies_quota_cab pqc
@@ -157,6 +158,7 @@ if ($has_filters) {
             $plugin->get_lang('QuotaTotal'),
             $plugin->get_lang('PriceUnit'),
             $plugin->get_lang('UserQuota'),
+            $plugin->get_lang('QuotaAvailable'),
             $plugin->get_lang('GestorName')
         ];
         $table->setHeaderContents(0, 0, $headers);
@@ -175,6 +177,7 @@ if ($has_filters) {
             $table->setCellContents($row, $col++, $item['quota_total']);
             $table->setCellContents($row, $col++, number_format($item['price_unit'], 2));
             $table->setCellContents($row, $col++, $item['user_quota']);
+            $table->setCellContents($row, $col++, $item['quota_available']);
             $table->setCellContents($row, $col++, $item['gestor_name'] ?: 'N/A');
             $row++;
         }
@@ -229,6 +232,8 @@ function export_to_excel($data, $company_id, $date_from, $date_to) {
         'Nombre Sesión',
         'Modo Sesión',
         'Cupos Comprados',
+        'Cupos Asignados',
+        'Cupos Disponibles',
         'Precio Unitario',
         'Nombre Gestor'
     ];
@@ -264,6 +269,8 @@ function export_to_excel($data, $company_id, $date_from, $date_to) {
             $item['session_name'] ?: 'N/A',
             $item['session_mode_text'],
             $item['quota_total'],
+            $item['user_quota'],
+            $item['quota_available'],
             'S/ ' . number_format($item['price_unit'], 2),
             $item['gestor_name'] ?: 'N/A'
         ];
