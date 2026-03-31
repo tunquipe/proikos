@@ -83,14 +83,14 @@ if ($has_filters) {
             END as session_mode_text,
             pqcs.session_id,
             s.name as session_name,
-            SUM(pqcs.user_quota) as user_quota,
-            (pqcd.user_quota - SUM(pqcs.user_quota)) as quota_available,
+            COALESCE(SUM(pqcs.user_quota), 0) as user_quota,
+            (pqcd.user_quota - COALESCE(SUM(pqcs.user_quota), 0)) as quota_available,
             MIN(pqcs.created_user_id) as gestor,
             CONCAT(u.firstname, ' ', u.lastname) as gestor_name
         FROM plugin_proikos_contrating_companies_quota_cab pqc
         INNER JOIN plugin_proikos_contrating_companies_quota_det pqcd
             ON pqcd.cab_id = pqc.id
-        INNER JOIN plugin_proikos_contrating_companies_quota_session pqcs
+        LEFT JOIN plugin_proikos_contrating_companies_quota_session pqcs
             ON pqcd.id = pqcs.det_id
         LEFT JOIN plugin_proikos_contrating_companies cc
             ON pqc.contrating_company_id = cc.id
@@ -170,7 +170,7 @@ if ($has_filters) {
             $table->setCellContents($row, $col++, $item['id']);
             $table->setCellContents($row, $col++, $item['company_name'] ?: 'N/A');
             $table->setCellContents($row, $col++, $item['ruc'] ?: '-');
-            $table->setCellContents($row, $col++, api_convert_and_format_date($item['created_at']));
+            $table->setCellContents($row, $col++, api_convert_and_format_date($item['created_at'], DATE_FORMAT_SHORT));
             $table->setCellContents($row, $col++, $item['session_category_name'] ?: 'Sin categoría');
             $table->setCellContents($row, $col++, $item['session_name'] ?: 'N/A');
             $table->setCellContents($row, $col++, $item['session_mode_text']);
@@ -263,7 +263,7 @@ function export_to_excel($data, $company_id, $date_from, $date_to) {
         $dataRow = [
             $item['id'],
             $item['company_name'] ?: 'N/A',
-            $item['created_at'],
+            api_convert_and_format_date($item['created_at'], DATE_FORMAT_SHORT),
             $item['session_category_name'] ?: 'Sin categoría',
             $item['session_id'],
             $item['session_name'] ?: 'N/A',
