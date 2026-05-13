@@ -27,18 +27,23 @@ if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
     exit;
 }
 
-// Proteger IPs de red local y loopback
-$privateRanges = [
-    ['10.0.0.0', '10.255.255.255'],
-    ['172.16.0.0', '172.31.255.255'],
-    ['192.168.0.0', '192.168.255.255'],
-    ['127.0.0.0', '127.255.255.255'],
+// Rangos protegidos: red local, loopback y Cloudflare (CIDR)
+$protectedCidrs = [
+    '127.0.0.0/8', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16',
+    '103.21.244.0/22', '103.22.200.0/22', '103.31.4.0/22',
+    '104.16.0.0/13',   '104.24.0.0/14',
+    '108.162.192.0/18','131.0.72.0/22',   '141.101.64.0/18',
+    '162.158.0.0/15',  '172.64.0.0/13',   '173.245.48.0/20',
+    '188.114.96.0/20', '190.93.240.0/20', '197.234.240.0/22',
+    '198.41.128.0/17',
 ];
 
 $ipLong = ip2long($ip);
-foreach ($privateRanges as [$start, $end]) {
-    if ($ipLong >= ip2long($start) && $ipLong <= ip2long($end)) {
-        echo json_encode(['success' => false, 'message' => 'No se puede bloquear una IP de red local o loopback']);
+foreach ($protectedCidrs as $cidr) {
+    [$range, $bits] = explode('/', $cidr);
+    $mask = ~((1 << (32 - (int)$bits)) - 1);
+    if ((ip2long($range) & $mask) === ($ipLong & $mask)) {
+        echo json_encode(['success' => false, 'message' => 'No se puede bloquear esta IP (red protegida o Cloudflare)']);
         exit;
     }
 }

@@ -21,6 +21,7 @@ $backUrl = api_get_path(WEB_PLUGIN_PATH) . 'proikos/start.php';
 // -----------------------------------------------------------------------
 $logFiles = array_filter([
     '/var/log/apache2/access.log',
+    '/var/log/apache2/proikos-access.log',
     '/var/log/apache2/hseq-proikos-access.log',
     '/var/log/proikos_connections.log',
 ], fn($f) => is_readable($f) && filesize($f) > 0);
@@ -36,6 +37,34 @@ $suspiciousPatterns = [
     '/vendor\/phpunit/', '/vendor\/laravel/', '/vendor\/guzzle/',
     '/alfacgiapi/', '/cgi-bin\//', '/\.DS_Store/',
 ];
+
+// IPs/rangos en whitelist — nunca se marcan como sospechosas
+// Formato: CIDR o IP exacta
+$whitelist = [
+    '127.0.0.1',
+    // Cloudflare
+    '103.21.244.0/22', '103.22.200.0/22', '103.31.4.0/22',
+    '104.16.0.0/13',   '104.24.0.0/14',
+    '108.162.192.0/18','131.0.72.0/22',   '141.101.64.0/18',
+    '162.158.0.0/15',  '172.64.0.0/13',   '173.245.48.0/20',
+    '188.114.96.0/20', '190.93.240.0/20', '197.234.240.0/22',
+    '198.41.128.0/17',
+];
+
+function ipInWhitelist(string $ip, array $whitelist): bool {
+    $ipLong = ip2long($ip);
+    if ($ipLong === false) return false;
+    foreach ($whitelist as $entry) {
+        if (strpos($entry, '/') === false) {
+            if ($ip === $entry) return true;
+        } else {
+            [$range, $bits] = explode('/', $entry);
+            $mask = ~((1 << (32 - (int)$bits)) - 1);
+            if ((ip2long($range) & $mask) === ($ipLong & $mask)) return true;
+        }
+    }
+    return false;
+}
 
 // Umbrales para detección automática
 $threshold404     = 10;   // IPs con 10+ errores 404
@@ -72,6 +101,10 @@ foreach ($logFiles as $logFile) {
         [, $ip, $dateStr, $uri, $status] = $m;
         $status = (int) $status;
 
+        if (ipInWhitelist($ip, $whitelist)) {
+            continue;
+        }
+
         $ts   = strtotime(str_replace('/', ' ', substr($dateStr, 0, 11)) . ' ' . substr($dateStr, 12, 8));
         $path = strtok($uri, '?');
 
@@ -106,6 +139,40 @@ foreach ($logFiles as $logFile) {
         }
     }
     fclose($handle);
+}
+
+// -----------------------------------------------------------------------
+// Parsear proikos_ip_history.log  — formato: "IP - YYYY-MM-DD HH:MM:SS"
+// -----------------------------------------------------------------------
+$ipHistoryLog = '/var/log/proikos_ip_history.log';
+if (is_readable($ipHistoryLog) && filesize($ipHistoryLog) > 0) {
+    $handle = fopen($ipHistoryLog, 'r');
+    if ($handle) {
+        while (($line = fgets($handle)) !== false) {
+            if (!preg_match('/^(\d{1,3}(?:\.\d{1,3}){3})\s+-\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})/', $line, $m)) {
+                continue;
+            }
+            [, $ip, $dateStr] = $m;
+
+            if (ipInWhitelist($ip, $whitelist)) {
+                continue;
+            }
+
+            $ts = strtotime($dateStr);
+
+            if (!isset($rawData[$ip])) {
+                $rawData[$ip] = ['total' => 0, 'errors' => 0, 'e404' => 0, 'paths' => [], 'reasons' => [], 'last' => 0, 'sources' => []];
+            }
+            $rawData[$ip]['total']++;
+            if ($ts > $rawData[$ip]['last']) {
+                $rawData[$ip]['last'] = $ts;
+            }
+            if (!in_array('ip_history', $rawData[$ip]['sources'])) {
+                $rawData[$ip]['sources'][] = 'ip_history';
+            }
+        }
+        fclose($handle);
+    }
 }
 
 // Filtrar solo IPs sospechosas por cualquiera de los 3 criterios
