@@ -21,24 +21,39 @@ $backUrl = api_get_path(WEB_PLUGIN_PATH) . 'proikos/start.php';
 // -----------------------------------------------------------------------
 $logFiles = array_filter([
     '/var/log/apache2/access.log',
+    '/var/log/apache2/hseq-proikos-access.log',
     '/var/log/proikos_connections.log',
 ], fn($f) => is_readable($f) && filesize($f) > 0);
 
-// Patrones que delatan escaneo/ataque
+// Patrones de URLs que delatan escaneo/ataque
 $suspiciousPatterns = [
     '/\.env\b/', '/xmlrpc\.php/', '/wp-admin/', '/wp-login\.php/',
     '/\.git\//', '/phpmyadmin/', '/pma\//', '/adminer/',
-    '/config\.php/', '/backup/', '/\.sql\b/', '/\.bak\b/',
-    '/shell\.php/', '/cmd\.php/', '/eval\(/', '/base64_decode/',
-    '/etc\/passwd/', '/proc\/self/', '/\.\.\//','/../',
-    '/setup\.php/', '/install\.php/', '/phpinfo/',
-    '/\.(asp|aspx|jsp|cfm)\b/i',
+    '/\.sql\b/', '/\.bak\b/', '/shell\.php/', '/cmd\.php/',
+    '/eval\(/', '/base64_decode/', '/eval-stdin\.php/',
+    '/etc\/passwd/', '/proc\/self/', '/\.\.\//',
+    '/setup\.php/', '/phpinfo/', '/\.(asp|aspx|jsp|cfm)\b/i',
+    '/vendor\/phpunit/', '/vendor\/laravel/', '/vendor\/guzzle/',
+    '/alfacgiapi/', '/cgi-bin\//', '/\.DS_Store/',
 ];
 
+// Umbrales para detección automática
+$threshold404     = 10;   // IPs con 10+ errores 404
+$thresholdRequests = 50;  // IPs con 50+ requests en el período
+
 // -----------------------------------------------------------------------
-// Parsear logs de Apache
+// Parsear logs de Apache — un solo paso completo
 // -----------------------------------------------------------------------
-$ipData = [];   // [ ip => ['count'=>N, 'paths'=>[], 'last'=>timestamp, 'sources'=>[]] ]
+// Estructura: [ ip => [
+//   'total'   => N,      total de requests
+//   'errors'  => N,      errores 4xx/5xx
+//   'e404'    => N,      errores 404 específicos
+//   'paths'   => [],     rutas visitadas (sospechosas o frecuentes)
+//   'reasons' => [],     por qué es sospechosa
+//   'last'    => ts,
+//   'sources' => [],
+// ]]
+$rawData = [];
 
 foreach ($logFiles as $logFile) {
     $source = basename($logFile);
@@ -47,42 +62,80 @@ foreach ($logFiles as $logFile) {
         continue;
     }
     while (($line = fgets($handle)) !== false) {
-        // Formato Combined Log: IP - - [date] "METHOD URI proto" status bytes ...
-        if (!preg_match('/^(\d{1,3}(?:\.\d{1,3}){3})\s+-\s+-\s+\[([^\]]+)\]\s+"[A-Z]+\s+([^\s"]+)/', $line, $m)) {
+        // Combined log: IP - - [date] "METHOD URI proto" STATUS bytes ...
+        if (!preg_match(
+            '/^(\d{1,3}(?:\.\d{1,3}){3})\s+-\s+-\s+\[([^\]]+)\]\s+"(?:[A-Z]+\s+)?([^\s"]+)[^"]*"\s+(\d{3})/',
+            $line, $m
+        )) {
             continue;
         }
-        [, $ip, $dateStr, $uri] = $m;
+        [, $ip, $dateStr, $uri, $status] = $m;
+        $status = (int) $status;
 
-        $isSuspicious = false;
+        $ts   = strtotime(str_replace('/', ' ', substr($dateStr, 0, 11)) . ' ' . substr($dateStr, 12, 8));
+        $path = strtok($uri, '?');
+
+        if (!isset($rawData[$ip])) {
+            $rawData[$ip] = ['total' => 0, 'errors' => 0, 'e404' => 0, 'paths' => [], 'reasons' => [], 'last' => 0, 'sources' => []];
+        }
+
+        $rawData[$ip]['total']++;
+        if ($status >= 400) {
+            $rawData[$ip]['errors']++;
+        }
+        if ($status === 404) {
+            $rawData[$ip]['e404']++;
+        }
+        if ($ts > $rawData[$ip]['last']) {
+            $rawData[$ip]['last'] = $ts;
+        }
+        if (!in_array($source, $rawData[$ip]['sources'])) {
+            $rawData[$ip]['sources'][] = $source;
+        }
+
+        // Registrar si la URL es sospechosa
+        $isSuspiciousUrl = false;
         foreach ($suspiciousPatterns as $pattern) {
             if (preg_match($pattern, $uri)) {
-                $isSuspicious = true;
+                $isSuspiciousUrl = true;
                 break;
             }
         }
-        if (!$isSuspicious) {
-            continue;
-        }
-
-        // Parsear fecha: "13/May/2026:00:20:14 -0500"
-        $ts = strtotime(str_replace('/', ' ', substr($dateStr, 0, 11)) . ' ' . substr($dateStr, 12, 8));
-
-        if (!isset($ipData[$ip])) {
-            $ipData[$ip] = ['count' => 0, 'paths' => [], 'last' => 0, 'sources' => []];
-        }
-        $ipData[$ip]['count']++;
-        $path = strtok($uri, '?');
-        if (!in_array($path, $ipData[$ip]['paths'])) {
-            $ipData[$ip]['paths'][] = $path;
-        }
-        if ($ts > $ipData[$ip]['last']) {
-            $ipData[$ip]['last'] = $ts;
-        }
-        if (!in_array($source, $ipData[$ip]['sources'])) {
-            $ipData[$ip]['sources'][] = $source;
+        if ($isSuspiciousUrl && !in_array($path, $rawData[$ip]['paths'])) {
+            $rawData[$ip]['paths'][] = $path;
         }
     }
     fclose($handle);
+}
+
+// Filtrar solo IPs sospechosas por cualquiera de los 3 criterios
+$ipData = [];
+foreach ($rawData as $ip => $data) {
+    $reasons = [];
+
+    if (!empty($data['paths'])) {
+        $reasons[] = 'URL sospechosa';
+    }
+    if ($data['e404'] >= $threshold404) {
+        $reasons[] = $data['e404'] . ' errores 404';
+    }
+    if ($data['total'] >= $thresholdRequests) {
+        $reasons[] = $data['total'] . ' requests';
+    }
+
+    if (empty($reasons)) {
+        continue;
+    }
+
+    $ipData[$ip] = [
+        'count'   => $data['total'],
+        'errors'  => $data['errors'],
+        'e404'    => $data['e404'],
+        'paths'   => $data['paths'],
+        'reasons' => $reasons,
+        'last'    => $data['last'],
+        'sources' => $data['sources'],
+    ];
 }
 
 // -----------------------------------------------------------------------
@@ -224,63 +277,83 @@ $content .= '<div class="panel panel-default" style="margin-bottom:20px;">
 
 // Tabla de IPs sospechosas
 $content .= '<div class="panel panel-default">
-    <div class="panel-heading">
-        <strong>IPs Sospechosas Detectadas</strong>
+    <div class="panel-heading" style="background:#333;color:#fff;">
+        <strong><i class="fa fa-exclamation-triangle"></i> IPs Sospechosas Detectadas</strong>
         <span class="badge" style="margin-left:8px;">' . count($ipData) . '</span>
+        <small style="margin-left:12px;opacity:.8;">Criterios: URL maliciosa · +' . $threshold404 . ' errores 404 · +' . $thresholdRequests . ' requests</small>
     </div>
-    <div class="panel-body">';
+    <div class="panel-body" style="padding:0;">';
 
 if (empty($ipData)) {
-    $content .= '<div class="alert alert-info">No se encontraron conexiones sospechosas en los logs disponibles.</div>';
+    $content .= '<div class="alert alert-info" style="margin:15px;">No se encontraron conexiones sospechosas en los logs disponibles.</div>';
 } else {
     $content .= '<div class="table-responsive">
-        <table class="table table-striped table-hover table-bordered" id="security-table">
-            <thead class="thead-dark" style="background:#333;color:#fff;">
+        <table class="table table-striped table-hover table-bordered" style="margin:0;">
+            <thead style="background:#444;color:#fff;">
                 <tr>
                     <th>IP</th>
-                    <th>Intentos</th>
-                    <th>Archivos / Rutas escaneadas</th>
+                    <th style="text-align:center;">Total<br>Requests</th>
+                    <th style="text-align:center;">Errores<br>404</th>
+                    <th>Motivo</th>
+                    <th>Rutas escaneadas</th>
                     <th>Última vez</th>
-                    <th>Fuente de log</th>
-                    <th>Estado</th>
-                    <th>Acción</th>
+                    <th style="text-align:center;">Estado</th>
+                    <th style="text-align:center;">Acción</th>
                 </tr>
             </thead>
             <tbody>';
 
     foreach ($ipData as $ip => $data) {
-        $isBlocked = in_array($ip, $blockedIps);
+        $isBlocked   = in_array($ip, $blockedIps);
         $statusBadge = $isBlocked
-            ? '<span class="label label-success">Bloqueado</span>'
-            : '<span class="label label-danger">Activo</span>';
+            ? '<span class="label label-success"><i class="fa fa-lock"></i> Bloqueado</span>'
+            : '<span class="label label-danger"><i class="fa fa-circle"></i> Activo</span>';
 
-        $paths = array_slice($data['paths'], 0, 8);
-        $pathsHtml = implode('<br>', array_map(fn($p) => '<code style="font-size:11px;">' . htmlspecialchars($p) . '</code>', $paths));
-        if (count($data['paths']) > 8) {
-            $pathsHtml .= '<br><small>... y ' . (count($data['paths']) - 8) . ' más</small>';
+        $paths     = array_slice($data['paths'], 0, 6);
+        $pathsHtml = empty($paths)
+            ? '<span class="text-muted">—</span>'
+            : implode('<br>', array_map(fn($p) => '<code style="font-size:10px;word-break:break-all;">' . htmlspecialchars($p) . '</code>', $paths));
+        if (count($data['paths']) > 6) {
+            $pathsHtml .= '<br><small class="text-muted">+' . (count($data['paths']) - 6) . ' más</small>';
         }
 
-        $lastSeen = $data['last'] ? date('d/m/Y H:i', $data['last']) : '-';
-        $sources  = htmlspecialchars(implode(', ', $data['sources']));
+        $reasonsHtml = implode(' &nbsp;', array_map(
+            fn($r) => '<span class="label label-warning">' . htmlspecialchars($r) . '</span>',
+            $data['reasons']
+        ));
+
+        $lastSeen = $data['last'] ? date('d/m/Y H:i', $data['last']) : '—';
 
         $blockBtn = $isBlocked
             ? '<button class="btn btn-xs btn-success" onclick="unblockIp(\'' . htmlspecialchars($ip, ENT_QUOTES) . '\')">
-                    <i class="fa fa-unlock"></i> Desbloquear
+                   <i class="fa fa-unlock"></i> Desbloquear
                </button>'
             : '<button class="btn btn-xs btn-danger" onclick="blockIp(\'' . htmlspecialchars($ip, ENT_QUOTES) . '\')">
-                    <i class="fa fa-ban"></i> Bloquear
+                   <i class="fa fa-ban"></i> Bloquear
                </button>';
 
-        $rowClass = $isBlocked ? 'success' : ($data['count'] >= 10 ? 'danger' : 'warning');
+        // Color de fila: rojo si activa y alta prioridad, verde si bloqueada
+        if ($isBlocked) {
+            $rowStyle = 'background:#dff0d8;';
+        } elseif ($data['e404'] >= $threshold404 || !empty($data['paths'])) {
+            $rowStyle = 'background:#f2dede;';
+        } else {
+            $rowStyle = 'background:#fcf8e3;';
+        }
 
-        $content .= "<tr class=\"{$rowClass}\">
-            <td><strong>{$ip}</strong></td>
-            <td><span class=\"badge\">{$data['count']}</span></td>
+        $e404Display = $data['e404'] > 0
+            ? '<span class="badge" style="background:#e74c3c;">' . $data['e404'] . '</span>'
+            : '<span class="text-muted">0</span>';
+
+        $content .= "<tr style=\"{$rowStyle}\">
+            <td><strong>{$ip}</strong><br><small class=\"text-muted\">" . htmlspecialchars(implode(', ', $data['sources'])) . "</small></td>
+            <td style=\"text-align:center;\"><span class=\"badge\" style=\"background:#555;\">{$data['count']}</span></td>
+            <td style=\"text-align:center;\">{$e404Display}</td>
+            <td>{$reasonsHtml}</td>
             <td>{$pathsHtml}</td>
-            <td>{$lastSeen}</td>
-            <td><small>{$sources}</small></td>
-            <td>{$statusBadge}</td>
-            <td>{$blockBtn}</td>
+            <td style=\"white-space:nowrap;\">{$lastSeen}</td>
+            <td style=\"text-align:center;\">{$statusBadge}</td>
+            <td style=\"text-align:center;\">{$blockBtn}</td>
         </tr>";
     }
 
