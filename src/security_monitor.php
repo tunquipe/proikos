@@ -235,6 +235,69 @@ if (is_readable($authLog)) {
 }
 
 // -----------------------------------------------------------------------
+// Métricas del servidor para el panel de salud
+// -----------------------------------------------------------------------
+function serverMetric(string $cmd): string {
+    return trim((string) @shell_exec($cmd . ' 2>/dev/null'));
+}
+
+function semaforo(float $val, float $warn, float $crit, bool $invertir = false): string {
+    if (!$invertir) {
+        if ($val >= $crit) return 'danger';
+        if ($val >= $warn) return 'warning';
+        return 'success';
+    } else {
+        if ($val <= $crit) return 'danger';
+        if ($val <= $warn) return 'warning';
+        return 'success';
+    }
+}
+
+function dot(string $color): string {
+    $colors = ['success' => '#27ae60', 'warning' => '#f39c12', 'danger' => '#e74c3c'];
+    $c = $colors[$color] ?? '#999';
+    return "<span style=\"display:inline-block;width:14px;height:14px;border-radius:50%;background:{$c};vertical-align:middle;margin-right:6px;box-shadow:0 0 6px {$c};\"></span>";
+}
+
+// CPU (uso porcentual promedio 1 seg)
+$cpuRaw  = serverMetric("top -bn1 | grep 'Cpu(s)' | awk '{print $2}'");
+$cpuPct  = (float) str_replace(',', '.', $cpuRaw);
+$cpuColor = semaforo($cpuPct, 60, 85);
+
+// RAM
+$memInfo = serverMetric("free | grep Mem");
+$memParts = preg_split('/\s+/', $memInfo);
+$ramTotal = (int)($memParts[1] ?? 1);
+$ramUsed  = (int)($memParts[2] ?? 0);
+$ramPct   = $ramTotal > 0 ? round($ramUsed / $ramTotal * 100, 1) : 0;
+$ramColor = semaforo($ramPct, 70, 90);
+
+// Disco raíz
+$diskRaw  = serverMetric("df / | tail -1 | awk '{print $5}'");
+$diskPct  = (float) str_replace('%', '', $diskRaw);
+$diskColor = semaforo($diskPct, 75, 90);
+
+// Load average (1 min)
+$loadRaw   = serverMetric("cat /proc/loadavg");
+$loadParts = explode(' ', $loadRaw);
+$load1     = (float)($loadParts[0] ?? 0);
+$cpuCores  = (int)(serverMetric("nproc") ?: 1);
+$loadPct   = $cpuCores > 0 ? round($load1 / $cpuCores * 100, 1) : 0;
+$loadColor = semaforo($loadPct, 70, 100);
+
+// Apache
+$apacheStatus = serverMetric("systemctl is-active apache2");
+$apacheColor  = ($apacheStatus === 'active') ? 'success' : 'danger';
+
+// MySQL / MariaDB
+$mysqlStatus = serverMetric("systemctl is-active mysql") ?: serverMetric("systemctl is-active mariadb");
+$mysqlColor  = ($mysqlStatus === 'active') ? 'success' : 'danger';
+
+// Conexiones activas
+$activeConns = (int) serverMetric("ss -tn state established | grep -c ':80\|:443'");
+$connsColor  = semaforo($activeConns, 200, 500);
+
+// -----------------------------------------------------------------------
 // Estado UFW actual — reglas DENY existentes
 // -----------------------------------------------------------------------
 $ufwOutput   = @shell_exec('sudo ufw status numbered 2>/dev/null');
@@ -266,39 +329,157 @@ $actionLinks = Display::url(
     $backUrl
 );
 
+// -----------------------------------------------------------------------
+// Panel salud del servidor
+// -----------------------------------------------------------------------
+$ufwLabel = $ufwInactive ? 'Inactivo' : ($ufwOutput ? 'Activo' : 'Sin permisos');
+$ufwColor = $ufwInactive ? 'danger' : ($ufwOutput ? 'success' : 'warning');
+
+$metrics = [
+    ['icon' => 'fa-microchip',  'label' => 'CPU',        'value' => "{$cpuPct}%",             'color' => $cpuColor],
+    ['icon' => 'fa-server',     'label' => 'RAM',        'value' => "{$ramPct}%",              'color' => $ramColor],
+    ['icon' => 'fa-hdd-o',      'label' => 'Disco',      'value' => "{$diskPct}%",             'color' => $diskColor],
+    ['icon' => 'fa-tachometer', 'label' => 'Load avg',   'value' => "{$load1} ({$loadPct}%)",  'color' => $loadColor],
+    ['icon' => 'fa-globe',      'label' => 'Apache',     'value' => ucfirst($apacheStatus),    'color' => $apacheColor],
+    ['icon' => 'fa-database',   'label' => 'MySQL',      'value' => ucfirst($mysqlStatus),     'color' => $mysqlColor],
+    ['icon' => 'fa-exchange',   'label' => 'Conexiones', 'value' => (string)$activeConns,      'color' => $connsColor],
+    ['icon' => 'fa-shield',     'label' => 'Firewall',   'value' => $ufwLabel,                 'color' => $ufwColor],
+];
+
+$bgColors = ['success' => '#eafaf1', 'warning' => '#fef9e7', 'danger' => '#fdedec'];
+$bdColors = ['success' => '#27ae60', 'warning' => '#f39c12', 'danger' => '#e74c3c'];
+
+// -----------------------------------------------------------------------
+// Queries Chamilo — deben ejecutarse antes del render del nav
+// -----------------------------------------------------------------------
+$isSuperAdmin = (api_get_user_id() === 1);
+
+$dbOnline  = Database::get_main_table(TABLE_STATISTIC_TRACK_E_ONLINE);
+$dbUser    = Database::get_main_table(TABLE_MAIN_USER);
+$dbDefault = Database::get_main_table(TABLE_STATISTIC_TRACK_E_DEFAULT);
+
+$sqlOnline = "SELECT teo.login_user_id, teo.user_ip, teo.login_date,
+                     u.firstname, u.lastname, u.username, u.status
+              FROM {$dbOnline} teo
+              INNER JOIN {$dbUser} u ON u.id = teo.login_user_id
+              WHERE teo.login_date >= DATE_SUB(NOW(), INTERVAL 15 MINUTE)
+              ORDER BY teo.login_date DESC";
+$resOnline   = Database::query($sqlOnline);
+$onlineUsers = Database::store_result($resOnline, 'ASSOC');
+$onlineCount = count($onlineUsers);
+
+$auditRows   = [];
+$processList = [];
+if ($isSuperAdmin) {
+    $sqlAudit = "SELECT ted.default_user_id, ted.default_date, ted.default_event_type,
+                        ted.default_value_type, ted.default_value, ted.c_id,
+                        u.firstname, u.lastname, u.username
+                 FROM {$dbDefault} ted
+                 LEFT JOIN {$dbUser} u ON u.id = ted.default_user_id
+                 WHERE ted.default_date >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                 ORDER BY ted.default_date DESC
+                 LIMIT 200";
+    $resAudit  = Database::query($sqlAudit);
+    $auditRows = Database::store_result($resAudit, 'ASSOC');
+
+    $resProc = Database::query("SHOW FULL PROCESSLIST");
+    while ($row = Database::fetch_assoc($resProc)) {
+        if ($row['Time'] >= 2 && $row['Command'] !== 'Sleep') {
+            $processList[] = $row;
+        }
+    }
+    usort($processList, fn($a, $b) => $b['Time'] <=> $a['Time']);
+}
+
+// -----------------------------------------------------------------------
+// Render con pestañas
+// -----------------------------------------------------------------------
 $content = '<div class="panel-proikos"><h3>Monitor de Seguridad</h3></div>';
 
-// Panel UFW status
-$content .= '<div class="panel panel-default" style="margin-bottom:20px;">
-    <div class="panel-heading"><strong>Estado del Firewall (UFW)</strong></div>
-    <div class="panel-body">';
+// Nav tabs
+$content .= '
+<ul class="nav nav-tabs" style="margin-bottom:0;">
+    <li class="active">
+        <a href="#tab-seguridad" data-toggle="tab">
+            <i class="fa fa-shield"></i> Seguridad / IPs
+            <span class="badge" style="background:#e74c3c;margin-left:4px;">' . count($ipData) . '</span>
+        </a>
+    </li>
+    <li>
+        <a href="#tab-usuarios" data-toggle="tab">
+            <i class="fa fa-users"></i> Usuarios Conectados
+            <span class="badge" style="background:#2980b9;margin-left:4px;">' . $onlineCount . '</span>
+        </a>
+    </li>
+    ' . ($isSuperAdmin ? '
+    <li>
+        <a href="#tab-auditoria" data-toggle="tab">
+            <i class="fa fa-history"></i> Auditoría Chamilo
+        </a>
+    </li>' : '') . '
+    <li>
+        <a href="#tab-servidor" data-toggle="tab">
+            <i class="fa fa-heartbeat"></i> Servidor
+        </a>
+    </li>
+</ul>
+<div class="tab-content" style="border:1px solid #ddd;border-top:none;padding:20px;background:#fff;margin-bottom:20px;">';
 
+// -----------------------------------------------------------------------
+// TAB 1 — Monitor del servidor
+// -----------------------------------------------------------------------
+$content .= '<div class="tab-pane" id="tab-servidor">';
+$content .= '<div class="row">';
+foreach ($metrics as $m) {
+    $bg = $bgColors[$m['color']];
+    $bd = $bdColors[$m['color']];
+    $content .= '<div class="col-md-3 col-sm-6" style="margin-bottom:16px;">
+        <div style="background:' . $bg . ';border:2px solid ' . $bd . ';border-radius:8px;padding:16px;display:flex;align-items:center;gap:12px;">
+            ' . dot($m['color']) . '
+            <div>
+                <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.5px;">' . $m['label'] . '</div>
+                <div style="font-size:20px;font-weight:700;color:#222;">' . $m['value'] . '</div>
+            </div>
+            <i class="fa ' . $m['icon'] . '" style="margin-left:auto;font-size:24px;color:' . $bd . ';opacity:.35;"></i>
+        </div>
+    </div>';
+}
+$content .= '</div>';
+$content .= '<p class="text-muted" style="margin-top:8px;font-size:12px;"><i class="fa fa-refresh"></i> Datos al momento de cargar la página. Recarga para actualizar.</p>';
+$content .= '</div>'; // end tab-servidor
+
+// -----------------------------------------------------------------------
+// TAB 2 — Seguridad / IPs
+// -----------------------------------------------------------------------
+$content .= '<div class="tab-pane active" id="tab-seguridad">';
+
+// UFW status
+$content .= '<div class="panel panel-default" style="margin-bottom:20px;">
+    <div class="panel-heading"><strong><i class="fa fa-fire"></i> Estado del Firewall (UFW)</strong></div>
+    <div class="panel-body">';
 if ($ufwInactive) {
     $content .= '<div class="alert alert-danger" style="margin-bottom:10px;">
         <strong><i class="fa fa-exclamation-triangle"></i> UFW está INACTIVO.</strong>
-        Las reglas de bloqueo se guardarán pero <u>no tendrán efecto</u> hasta activarlo.<br>
-        Ejecuta en el servidor:
+        Las reglas no tendrán efecto hasta activarlo.<br>
         <pre style="background:#222;color:#f90;padding:8px;margin-top:8px;border-radius:4px;">sudo ufw enable</pre>
     </div>';
-    $content .= '<pre style="max-height:100px;overflow:auto;font-size:12px;">' . htmlspecialchars($ufwOutput) . '</pre>';
 } elseif ($ufwOutput) {
     $content .= '<div class="alert alert-success" style="padding:6px 12px;margin-bottom:8px;">
         <i class="fa fa-shield"></i> <strong>UFW activo</strong>
     </div>';
-    $content .= '<pre style="max-height:150px;overflow:auto;font-size:12px;">' . htmlspecialchars($ufwOutput) . '</pre>';
+    $content .= '<pre style="max-height:130px;overflow:auto;font-size:12px;">' . htmlspecialchars($ufwOutput) . '</pre>';
 } else {
-    $content .= '<div class="alert alert-warning">No se pudo leer el estado de UFW. Verifique los permisos de sudo (ver instrucciones abajo).</div>';
+    $content .= '<div class="alert alert-warning">No se pudo leer UFW. Verifique permisos sudo.</div>';
 }
 $content .= '</div></div>';
 
-// Panel: IPs actualmente bloqueadas en UFW
+// IPs bloqueadas
 $content .= '<div class="panel panel-danger" style="margin-bottom:20px;">
     <div class="panel-heading" style="background:#c0392b;color:#fff;border-color:#c0392b;">
         <strong><i class="fa fa-ban"></i> IPs Bloqueadas en UFW</strong>
         <span class="badge" style="margin-left:8px;background:#fff;color:#c0392b;">' . count($blockedIps) . '</span>
     </div>
     <div class="panel-body" style="padding:0;">';
-
 if (empty($blockedIps)) {
     $content .= '<p class="text-muted" style="padding:15px;margin:0;">No hay IPs bloqueadas actualmente.</p>';
 } else {
@@ -307,10 +488,9 @@ if (empty($blockedIps)) {
             <tr>
                 <th style="width:50px;text-align:center;"># Regla</th>
                 <th>IP Bloqueada</th>
-                <th style="width:160px;text-align:center;">Acciones</th>
+                <th style="width:160px;text-align:center;">Acción</th>
             </tr>
-        </thead>
-        <tbody>';
+        </thead><tbody>';
     foreach ($blockedIps as $bip) {
         $ruleNum = $blockedRules[$bip] ?? '?';
         $content .= '<tr>
@@ -327,12 +507,12 @@ if (empty($blockedIps)) {
 }
 $content .= '</div></div>';
 
-// Barra de herramientas: bloquear IP manual
+// Bloquear IP manual
 $content .= '<div class="panel panel-default" style="margin-bottom:20px;">
-    <div class="panel-heading"><strong>Bloquear IP manualmente</strong></div>
+    <div class="panel-heading"><strong><i class="fa fa-lock"></i> Bloquear IP manualmente</strong></div>
     <div class="panel-body">
         <div class="input-group" style="max-width:400px;">
-            <input type="text" id="manual-ip" class="form-control" placeholder="Ej: 192.168.1.100" pattern="\d{1,3}(\.\d{1,3}){3}">
+            <input type="text" id="manual-ip" class="form-control" placeholder="Ej: 45.33.32.156">
             <span class="input-group-btn">
                 <button class="btn btn-danger" onclick="blockIp(document.getElementById(\'manual-ip\').value)">
                     <i class="fa fa-ban"></i> Bloquear con UFW
@@ -342,12 +522,12 @@ $content .= '<div class="panel panel-default" style="margin-bottom:20px;">
     </div>
 </div>';
 
-// Tabla de IPs sospechosas
+// IPs sospechosas
 $content .= '<div class="panel panel-default">
     <div class="panel-heading" style="background:#333;color:#fff;">
         <strong><i class="fa fa-exclamation-triangle"></i> IPs Sospechosas Detectadas</strong>
         <span class="badge" style="margin-left:8px;">' . count($ipData) . '</span>
-        <small style="margin-left:12px;opacity:.8;">Criterios: URL maliciosa · +' . $threshold404 . ' errores 404 · +' . $thresholdRequests . ' requests</small>
+        <small style="margin-left:12px;opacity:.8;">URL maliciosa · +' . $threshold404 . ' errores 404 · +' . $thresholdRequests . ' requests</small>
     </div>
     <div class="panel-body" style="padding:0;">';
 
@@ -367,8 +547,7 @@ if (empty($ipData)) {
                     <th style="text-align:center;">Estado</th>
                     <th style="text-align:center;">Acción</th>
                 </tr>
-            </thead>
-            <tbody>';
+            </thead><tbody>';
 
     foreach ($ipData as $ip => $data) {
         $isBlocked   = in_array($ip, $blockedIps);
@@ -384,7 +563,7 @@ if (empty($ipData)) {
             $pathsHtml .= '<br><small class="text-muted">+' . (count($data['paths']) - 6) . ' más</small>';
         }
 
-        $reasonsHtml = implode(' &nbsp;', array_map(
+        $reasonsHtml = implode(' ', array_map(
             fn($r) => '<span class="label label-warning">' . htmlspecialchars($r) . '</span>',
             $data['reasons']
         ));
@@ -399,7 +578,6 @@ if (empty($ipData)) {
                    <i class="fa fa-ban"></i> Bloquear
                </button>';
 
-        // Color de fila: rojo si activa y alta prioridad, verde si bloqueada
         if ($isBlocked) {
             $rowStyle = 'background:#dff0d8;';
         } elseif ($data['e404'] >= $threshold404 || !empty($data['paths'])) {
@@ -423,11 +601,156 @@ if (empty($ipData)) {
             <td style=\"text-align:center;\">{$blockBtn}</td>
         </tr>";
     }
+    $content .= '</tbody></table></div>';
+}
+$content .= '</div></div>';
+$content .= '</div>'; // end tab-seguridad
 
+// -----------------------------------------------------------------------
+// TAB 3 — Usuarios conectados
+// -----------------------------------------------------------------------
+
+$content .= '<div class="tab-pane" id="tab-usuarios">';
+$content .= '<div class="panel panel-default" style="margin-bottom:0;">
+    <div class="panel-heading" style="background:#2980b9;color:#fff;">
+        <strong><i class="fa fa-users"></i> Usuarios activos en Chamilo</strong>
+        <span class="badge" style="margin-left:8px;background:#fff;color:#2980b9;">' . $onlineCount . '</span>
+        <small style="margin-left:12px;opacity:.85;">Actividad en los últimos 15 minutos</small>
+    </div>
+    <div class="panel-body" style="padding:0;">';
+
+if (empty($onlineUsers)) {
+    $content .= '<div class="alert alert-info" style="margin:15px;">No hay usuarios activos en este momento.</div>';
+} else {
+    $roleLabels = [1 => 'Estudiante', 4 => 'Docente', 6 => 'Admin'];
+    $content .= '<div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered" style="margin:0;">
+            <thead style="background:#2980b9;color:#fff;">
+                <tr>
+                    <th>#</th>
+                    <th>Usuario</th>
+                    <th>Nombre</th>
+                    <th>Rol</th>
+                    <th>IP</th>
+                    <th>Última actividad</th>
+                    <th>Hace</th>
+                </tr>
+            </thead><tbody>';
+    $i = 1;
+    foreach ($onlineUsers as $u) {
+        $lastDate = $u['login_date'];
+        $diffSecs = time() - strtotime($lastDate);
+        if ($diffSecs < 60) {
+            $hace = $diffSecs . 's';
+            $rowCls = 'success';
+        } elseif ($diffSecs < 300) {
+            $hace = round($diffSecs / 60) . ' min';
+            $rowCls = '';
+        } else {
+            $hace = round($diffSecs / 60) . ' min';
+            $rowCls = 'warning';
+        }
+        $role   = $roleLabels[(int)$u['status']] ?? 'Usuario';
+        $ip     = htmlspecialchars($u['user_ip'] ?? '—');
+        $name   = htmlspecialchars(trim($u['firstname'] . ' ' . $u['lastname']));
+        $uname  = htmlspecialchars($u['username']);
+        $content .= "<tr class=\"{$rowCls}\">
+            <td>{$i}</td>
+            <td><strong>{$uname}</strong></td>
+            <td>{$name}</td>
+            <td><span class=\"label label-info\">{$role}</span></td>
+            <td><code>{$ip}</code></td>
+            <td style=\"white-space:nowrap;\">" . date('d/m/Y H:i:s', strtotime($lastDate)) . "</td>
+            <td><span class=\"badge\" style=\"background:#2980b9;\">{$hace}</span></td>
+        </tr>";
+        $i++;
+    }
+    $content .= '</tbody></table></div>';
+}
+$content .= '</div></div>';
+$content .= '</div>'; // end tab-usuarios
+
+// -----------------------------------------------------------------------
+// TAB 4 — Auditoría de Chamilo (solo usuario ID 1)
+// -----------------------------------------------------------------------
+if ($isSuperAdmin):
+
+$content .= '<div class="tab-pane" id="tab-auditoria">';
+
+// Queries lentas activas
+if (!empty($processList)) {
+    $content .= '<div class="alert alert-danger">
+        <strong><i class="fa fa-exclamation-triangle"></i> Queries lentas en ejecución ahora</strong>
+    </div>
+    <div class="table-responsive" style="margin-bottom:20px;">
+        <table class="table table-bordered table-condensed" style="font-size:12px;">
+            <thead style="background:#c0392b;color:#fff;">
+                <tr><th>ID</th><th>Usuario DB</th><th>Tiempo (s)</th><th>Estado</th><th>Query</th></tr>
+            </thead><tbody>';
+    foreach ($processList as $p) {
+        $q = htmlspecialchars(mb_substr($p['Info'] ?? '', 0, 120));
+        $content .= "<tr class=\"danger\">
+            <td>{$p['Id']}</td>
+            <td>{$p['User']}</td>
+            <td><strong>{$p['Time']}</strong></td>
+            <td>{$p['State']}</td>
+            <td><code style=\"font-size:11px;\">{$q}…</code></td>
+        </tr>";
+    }
     $content .= '</tbody></table></div>';
 }
 
+// Historial de eventos
+$content .= '<div class="panel panel-default">
+    <div class="panel-heading" style="background:#8e44ad;color:#fff;">
+        <strong><i class="fa fa-history"></i> Historial de eventos (últimos 7 días)</strong>
+        <span class="badge" style="margin-left:8px;background:#fff;color:#8e44ad;">' . count($auditRows) . '</span>
+    </div>
+    <div class="panel-body" style="padding:0;">';
+
+if (empty($auditRows)) {
+    $content .= '<div class="alert alert-info" style="margin:15px;">No hay eventos registrados en los últimos 7 días.</div>';
+} else {
+    $eventIcons = [
+        'user_export' => 'fa-download', 'user_import' => 'fa-upload',
+        'certificate_generated' => 'fa-certificate', 'report_generated' => 'fa-bar-chart',
+        'user_delete' => 'fa-trash', 'course_delete' => 'fa-trash',
+        'backup_course' => 'fa-archive', 'quiz_export' => 'fa-file',
+    ];
+    $content .= '<div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered" style="margin:0;">
+            <thead style="background:#8e44ad;color:#fff;">
+                <tr>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Evento</th>
+                    <th>Tipo de valor</th>
+                    <th>Detalle</th>
+                </tr>
+            </thead><tbody>';
+    foreach ($auditRows as $row) {
+        $evType  = htmlspecialchars($row['default_event_type']);
+        $icon    = $eventIcons[$row['default_event_type']] ?? 'fa-info-circle';
+        $uname   = $row['username'] ? htmlspecialchars($row['username']) : '<span class="text-muted">sistema</span>';
+        $name    = htmlspecialchars(trim($row['firstname'] . ' ' . $row['lastname']));
+        $valType = htmlspecialchars($row['default_value_type'] ?? '');
+        $val     = htmlspecialchars(mb_substr($row['default_value'] ?? '', 0, 80));
+        $fecha   = date('d/m/Y H:i', strtotime($row['default_date']));
+        $content .= "<tr>
+            <td style=\"white-space:nowrap;\"><small>{$fecha}</small></td>
+            <td><strong>{$uname}</strong><br><small class=\"text-muted\">{$name}</small></td>
+            <td><i class=\"fa {$icon}\"></i> <span class=\"label label-default\">{$evType}</span></td>
+            <td><small class=\"text-muted\">{$valType}</small></td>
+            <td><small><code>{$val}</code></small></td>
+        </tr>";
+    }
+    $content .= '</tbody></table></div>';
+}
 $content .= '</div></div>';
+$content .= '</div>'; // end tab-auditoria
+endif; // end isSuperAdmin
+
+$content .= '</div>'; // end tab-content
 
 // JS
 $content .= <<<JS
