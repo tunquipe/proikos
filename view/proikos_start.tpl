@@ -85,4 +85,14 @@
         </div>
     </div>
     {% endif %}
+    {% if is_platform_admin %}
+    <div class="col-md-3">
+        <div class="tool-box">
+            <a href="{{ src_plugin }}src/security_monitor.php" class="tool">
+                <img src="{{ src_plugin }}/images/firewall.png" alt="">
+                <div class="tool-title" style="color:#c0392b;">Monitor de Seguridad</div>
+            </a>
+        </div>
+    </div>
+    {% endif %}
 </div>

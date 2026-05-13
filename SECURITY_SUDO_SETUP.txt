@@ -1,0 +1,29 @@
+== CONFIGURACIÓN REQUERIDA: sudo para Monitor de Seguridad ==
+
+Para que el bloqueo de IPs funcione desde el panel PHP, ejecuta esto UNA SOLA VEZ
+como usuario con sudo en el servidor:
+
+---[ INSTALAR REGLA SUDOERS ]---
+
+sudo tee /etc/sudoers.d/www-data-ufw << 'EOF'
+# Permite a Apache (www-data) ejecutar solo comandos ufw específicos sin contraseña
+www-data ALL=(root) NOPASSWD: /usr/sbin/ufw deny from *
+www-data ALL=(root) NOPASSWD: /usr/sbin/ufw delete *
+www-data ALL=(root) NOPASSWD: /usr/sbin/ufw status numbered
+EOF
+
+sudo chmod 440 /etc/sudoers.d/www-data-ufw
+
+---[ VERIFICAR ]---
+
+sudo -u www-data sudo ufw status numbered
+
+Debe mostrar el estado de UFW sin pedir contraseña.
+
+---[ SEGURIDAD ]---
+
+Esta configuración NO da acceso root completo a www-data.
+Solo permite ejecutar los tres comandos ufw listados arriba.
+Puedes revocarla en cualquier momento con:
+
+  sudo rm /etc/sudoers.d/www-data-ufw
