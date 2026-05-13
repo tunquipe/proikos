@@ -164,6 +164,33 @@ if ($ufwInactive) {
 }
 $content .= '</div></div>';
 
+// Panel: IPs actualmente bloqueadas en UFW
+$content .= '<div class="panel panel-danger" style="margin-bottom:20px;">
+    <div class="panel-heading">
+        <strong><i class="fa fa-ban"></i> IPs Bloqueadas en UFW</strong>
+        <span class="badge" style="margin-left:8px;">' . count($blockedIps) . '</span>
+    </div>
+    <div class="panel-body">';
+
+if (empty($blockedIps)) {
+    $content .= '<p class="text-muted">No hay IPs bloqueadas actualmente.</p>';
+} else {
+    $content .= '<table class="table table-condensed table-bordered" style="max-width:500px;">
+        <thead><tr><th>IP Bloqueada</th><th>Acción</th></tr></thead><tbody>';
+    foreach ($blockedIps as $bip) {
+        $content .= '<tr>
+            <td><strong>' . htmlspecialchars($bip) . '</strong></td>
+            <td>
+                <button class="btn btn-xs btn-success" onclick="unblockIp(\'' . htmlspecialchars($bip, ENT_QUOTES) . '\')">
+                    <i class="fa fa-unlock"></i> Desbloquear
+                </button>
+            </td>
+        </tr>';
+    }
+    $content .= '</tbody></table>';
+}
+$content .= '</div></div>';
+
 // Barra de herramientas: bloquear IP manual
 $content .= '<div class="panel panel-default" style="margin-bottom:20px;">
     <div class="panel-heading"><strong>Bloquear IP manualmente</strong></div>
