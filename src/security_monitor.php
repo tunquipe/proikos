@@ -117,9 +117,10 @@ if (is_readable($authLog)) {
 // -----------------------------------------------------------------------
 // Estado UFW actual — reglas DENY existentes
 // -----------------------------------------------------------------------
-$ufwOutput = @shell_exec('sudo ufw status numbered 2>/dev/null');
-$blockedIps = [];
-if ($ufwOutput) {
+$ufwOutput   = @shell_exec('sudo ufw status numbered 2>/dev/null');
+$ufwInactive = $ufwOutput && strpos($ufwOutput, 'inactive') !== false;
+$blockedIps  = [];
+if ($ufwOutput && !$ufwInactive) {
     preg_match_all('/DENY\s+(?:IN\s+)?(\d{1,3}(?:\.\d{1,3}){3})/i', $ufwOutput, $ufwMatches);
     $blockedIps = array_unique($ufwMatches[1] ?? []);
 }
@@ -145,7 +146,18 @@ $content .= '<div class="panel panel-default" style="margin-bottom:20px;">
     <div class="panel-heading"><strong>Estado del Firewall (UFW)</strong></div>
     <div class="panel-body">';
 
-if ($ufwOutput) {
+if ($ufwInactive) {
+    $content .= '<div class="alert alert-danger" style="margin-bottom:10px;">
+        <strong><i class="fa fa-exclamation-triangle"></i> UFW está INACTIVO.</strong>
+        Las reglas de bloqueo se guardarán pero <u>no tendrán efecto</u> hasta activarlo.<br>
+        Ejecuta en el servidor:
+        <pre style="background:#222;color:#f90;padding:8px;margin-top:8px;border-radius:4px;">sudo ufw enable</pre>
+    </div>';
+    $content .= '<pre style="max-height:100px;overflow:auto;font-size:12px;">' . htmlspecialchars($ufwOutput) . '</pre>';
+} elseif ($ufwOutput) {
+    $content .= '<div class="alert alert-success" style="padding:6px 12px;margin-bottom:8px;">
+        <i class="fa fa-shield"></i> <strong>UFW activo</strong>
+    </div>';
     $content .= '<pre style="max-height:150px;overflow:auto;font-size:12px;">' . htmlspecialchars($ufwOutput) . '</pre>';
 } else {
     $content .= '<div class="alert alert-warning">No se pudo leer el estado de UFW. Verifique los permisos de sudo (ver instrucciones abajo).</div>';
@@ -209,7 +221,9 @@ if (empty($ipData)) {
         $sources  = htmlspecialchars(implode(', ', $data['sources']));
 
         $blockBtn = $isBlocked
-            ? '<button class="btn btn-xs btn-default" disabled><i class="fa fa-check"></i> Ya bloqueado</button>'
+            ? '<button class="btn btn-xs btn-success" onclick="unblockIp(\'' . htmlspecialchars($ip, ENT_QUOTES) . '\')">
+                    <i class="fa fa-unlock"></i> Desbloquear
+               </button>'
             : '<button class="btn btn-xs btn-danger" onclick="blockIp(\'' . htmlspecialchars($ip, ENT_QUOTES) . '\')">
                     <i class="fa fa-ban"></i> Bloquear
                </button>';
