@@ -119,10 +119,17 @@ if (is_readable($authLog)) {
 // -----------------------------------------------------------------------
 $ufwOutput   = @shell_exec('sudo ufw status numbered 2>/dev/null');
 $ufwInactive = $ufwOutput && strpos($ufwOutput, 'inactive') !== false;
-$blockedIps  = [];
+// $blockedRules: [ ip => ruleNumber ]
+$blockedRules = [];
+$blockedIps   = [];
 if ($ufwOutput && !$ufwInactive) {
-    preg_match_all('/DENY\s+(?:IN\s+)?(\d{1,3}(?:\.\d{1,3}){3})/i', $ufwOutput, $ufwMatches);
-    $blockedIps = array_unique($ufwMatches[1] ?? []);
+    // Línea ejemplo: [ 1] Anywhere   DENY IN   74.249.238.26
+    preg_match_all('/\[\s*(\d+)\].*?DENY\s+(?:IN\s+)?(\d{1,3}(?:\.\d{1,3}){3})/i', $ufwOutput, $ufwMatches, PREG_SET_ORDER);
+    foreach ($ufwMatches as $m) {
+        $blockedRules[$m[2]] = (int) $m[1];
+        $blockedIps[] = $m[2];
+    }
+    $blockedIps = array_unique($blockedIps);
 }
 
 // Ordenar por cantidad de intentos desc
@@ -166,21 +173,30 @@ $content .= '</div></div>';
 
 // Panel: IPs actualmente bloqueadas en UFW
 $content .= '<div class="panel panel-danger" style="margin-bottom:20px;">
-    <div class="panel-heading">
+    <div class="panel-heading" style="background:#c0392b;color:#fff;border-color:#c0392b;">
         <strong><i class="fa fa-ban"></i> IPs Bloqueadas en UFW</strong>
-        <span class="badge" style="margin-left:8px;">' . count($blockedIps) . '</span>
+        <span class="badge" style="margin-left:8px;background:#fff;color:#c0392b;">' . count($blockedIps) . '</span>
     </div>
-    <div class="panel-body">';
+    <div class="panel-body" style="padding:0;">';
 
 if (empty($blockedIps)) {
-    $content .= '<p class="text-muted">No hay IPs bloqueadas actualmente.</p>';
+    $content .= '<p class="text-muted" style="padding:15px;margin:0;">No hay IPs bloqueadas actualmente.</p>';
 } else {
-    $content .= '<table class="table table-condensed table-bordered" style="max-width:500px;">
-        <thead><tr><th>IP Bloqueada</th><th>Acción</th></tr></thead><tbody>';
+    $content .= '<table class="table table-striped table-hover table-bordered" style="margin:0;">
+        <thead style="background:#f2f2f2;">
+            <tr>
+                <th style="width:50px;text-align:center;"># Regla</th>
+                <th>IP Bloqueada</th>
+                <th style="width:160px;text-align:center;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>';
     foreach ($blockedIps as $bip) {
+        $ruleNum = $blockedRules[$bip] ?? '?';
         $content .= '<tr>
-            <td><strong>' . htmlspecialchars($bip) . '</strong></td>
-            <td>
+            <td style="text-align:center;"><span class="label label-default">' . $ruleNum . '</span></td>
+            <td><i class="fa fa-ban" style="color:#c0392b;margin-right:6px;"></i><strong>' . htmlspecialchars($bip) . '</strong></td>
+            <td style="text-align:center;">
                 <button class="btn btn-xs btn-success" onclick="unblockIp(\'' . htmlspecialchars($bip, ENT_QUOTES) . '\')">
                     <i class="fa fa-unlock"></i> Desbloquear
                 </button>
