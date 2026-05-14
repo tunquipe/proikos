@@ -81,12 +81,10 @@ $thresholdRequests = 50;  // IPs con 50+ requests en el período
 // ]]
 $rawData = [];
 
-// Leer solo las últimas 50.000 líneas de cada log para evitar leer archivos históricos enormes
-$logLines = 50000;
-
+// Leer solo las últimas 50.000 líneas de cada log
 foreach ($logFiles as $logFile) {
     $source  = basename($logFile);
-    $handle  = popen("tail -n {$logLines} " . escapeshellarg($logFile) . " 2>/dev/null", 'r');
+    $handle  = popen("tail -n 50000 " . escapeshellarg($logFile) . " 2>/dev/null", 'r');
     if (!$handle) {
         continue;
     }
@@ -105,7 +103,8 @@ foreach ($logFiles as $logFile) {
             continue;
         }
 
-        $ts   = strtotime(str_replace('/', ' ', substr($dateStr, 0, 11)) . ' ' . substr($dateStr, 12, 8));
+        // "14/May/2026:16:10:04 -0500" → "14 May 2026 16:10:04 -0500"
+        $ts   = strtotime(str_replace('/', ' ', substr($dateStr, 0, 11)) . ' ' . substr($dateStr, 12, 8) . ' ' . substr($dateStr, 21));
         $path = strtok($uri, '?');
 
         if (!isset($rawData[$ip])) {
@@ -839,7 +838,7 @@ if (empty($auditRows)) {
         $name    = htmlspecialchars(trim($row['firstname'] . ' ' . $row['lastname']));
         $valType = htmlspecialchars($row['default_value_type'] ?? '');
         $val     = htmlspecialchars(mb_substr($row['default_value'] ?? '', 0, 80));
-        $fecha   = date('d/m/Y H:i', strtotime($row['default_date']));
+        $fecha   = api_get_local_time($row['default_date']);
         $content .= "<tr>
             <td style=\"white-space:nowrap;\"><small>{$fecha}</small></td>
             <td><strong>{$uname}</strong><br><small class=\"text-muted\">{$name}</small></td>
