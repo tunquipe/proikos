@@ -326,8 +326,7 @@ if ($ufwOutput && !$ufwInactive) {
 }
 
 // Ordenar por cantidad de intentos desc
-arsort($ipData);  // arsort no funciona bien con arrays anidados — usamos uasort
-uasort($ipData, fn($a, $b) => $b['count'] <=> $a['count']);
+uasort($ipData, fn($a, $b) => $b['last'] <=> $a['last']);
 
 // -----------------------------------------------------------------------
 // Render
@@ -557,54 +556,50 @@ $content .= '<div class="panel panel-default" style="margin-bottom:20px;">
     </div>
 </div>';
 
+// Mapa IP -> usuario Chamilo conectado
+$ipToUser = [];
+foreach ($onlineUsers as $u) {
+    $uip = $u['user_ip'] ?? '';
+    if ($uip && !isset($ipToUser[$uip])) {
+        $ipToUser[$uip] = htmlspecialchars($u['username']) . '<br><small class="text-muted">' . htmlspecialchars(trim($u['firstname'] . ' ' . $u['lastname'])) . '</small>';
+    }
+}
+
 // Todas las IPs del log
 $suspiciousCount = count(array_filter($ipData, fn($d) => $d['suspicious']));
+$totalIps        = count($ipData);
 $content .= '<div class="panel panel-default">
-    <div class="panel-heading" style="background:#333;color:#fff;">
+    <div class="panel-heading" style="background:#333;color:#fff;display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
         <strong><i class="fa fa-list"></i> IPs detectadas en el log</strong>
-        <span class="badge" style="margin-left:8px;background:#aaa;">' . count($ipData) . ' total</span>
-        <span class="badge" style="margin-left:4px;background:#e74c3c;">' . $suspiciousCount . ' sospechosas</span>
-        <small style="margin-left:12px;opacity:.8;">
+        <span class="badge" style="background:#aaa;">' . $totalIps . ' total</span>
+        <span class="badge" style="background:#e74c3c;">' . $suspiciousCount . ' sospechosas</span>
+        <span style="margin-left:auto;font-size:11px;opacity:.8;">
             <span style="display:inline-block;width:10px;height:10px;background:#f2dede;border:1px solid #e74c3c;border-radius:2px;"></span> Sospechosa &nbsp;
-            <span style="display:inline-block;width:10px;height:10px;background:#fcf8e3;border:1px solid #f0ad4e;border-radius:2px;"></span> Elevada &nbsp;
+            <span style="display:inline-block;width:10px;height:10px;background:#fcf8e3;border:1px solid #f0ad4e;border-radius:2px;"></span> Vigilar &nbsp;
             <span style="display:inline-block;width:10px;height:10px;background:#fff;border:1px solid #ddd;border-radius:2px;"></span> Normal
-        </small>
+        </span>
     </div>
     <div class="panel-body" style="padding:0;">';
 
 if (empty($ipData)) {
     $content .= '<div class="alert alert-info" style="margin:15px;">No se encontraron IPs en el log. Verifique que el archivo sea legible.</div>';
 } else {
-    $content .= '<div class="table-responsive">
-        <table class="table table-hover table-bordered" style="margin:0;font-size:13px;">
-            <thead style="background:#444;color:#fff;">
-                <tr>
-                    <th>IP</th>
-                    <th style="text-align:center;">Requests</th>
-                    <th style="text-align:center;">Errores<br>404</th>
-                    <th style="text-align:center;">Otros<br>errores</th>
-                    <th>Alerta</th>
-                    <th>Rutas sospechosas</th>
-                    <th>Última vez</th>
-                    <th style="text-align:center;">Estado</th>
-                    <th style="text-align:center;">Acción</th>
-                </tr>
-            </thead><tbody>';
-
+    // Construir filas HTML como array para paginación JS
+    $rows = [];
     foreach ($ipData as $ip => $data) {
         $isBlocked = in_array($ip, $blockedIps);
 
         if ($isBlocked) {
-            $rowStyle = 'background:#dff0d8;';
+            $rowStyle    = 'background:#dff0d8;';
             $statusBadge = '<span class="label label-success"><i class="fa fa-lock"></i> Bloqueado</span>';
         } elseif ($data['suspicious']) {
-            $rowStyle = 'background:#f2dede;';
+            $rowStyle    = 'background:#f2dede;';
             $statusBadge = '<span class="label label-danger"><i class="fa fa-exclamation-triangle"></i> Sospechosa</span>';
         } elseif ($data['e404'] > 0 || $data['errors'] > 0) {
-            $rowStyle = 'background:#fcf8e3;';
+            $rowStyle    = 'background:#fcf8e3;';
             $statusBadge = '<span class="label label-warning"><i class="fa fa-eye"></i> Vigilar</span>';
         } else {
-            $rowStyle = '';
+            $rowStyle    = '';
             $statusBadge = '<span class="label label-default"><i class="fa fa-circle-o"></i> Normal</span>';
         }
 
@@ -629,11 +624,15 @@ if (empty($ipData)) {
             ? '<span class="badge" style="background:#e67e22;">' . ($data['errors'] - $data['e404']) . '</span>'
             : '<span class="text-muted">0</span>';
 
+        $userCell = isset($ipToUser[$ip])
+            ? '<span class="label" style="background:#2980b9;font-size:10px;"><i class="fa fa-user"></i></span> ' . $ipToUser[$ip]
+            : '<span class="text-muted" style="font-size:11px;">—</span>';
+
         $blockBtn = $isBlocked
             ? '<button class="btn btn-xs btn-success" onclick="unblockIp(\'' . htmlspecialchars($ip, ENT_QUOTES) . '\')"><i class="fa fa-unlock"></i></button>'
             : '<button class="btn btn-xs btn-danger" onclick="blockIp(\'' . htmlspecialchars($ip, ENT_QUOTES) . '\')"><i class="fa fa-ban"></i> Bloquear</button>';
 
-        $content .= "<tr style=\"{$rowStyle}\">
+        $rows[] = "<tr style=\"{$rowStyle}\">
             <td><strong>{$ip}</strong></td>
             <td style=\"text-align:center;\"><span class=\"badge\" style=\"background:#555;\">{$data['count']}</span></td>
             <td style=\"text-align:center;\">{$e404Display}</td>
@@ -641,11 +640,58 @@ if (empty($ipData)) {
             <td>{$reasonsHtml}</td>
             <td>{$pathsHtml}</td>
             <td style=\"white-space:nowrap;font-size:11px;\">{$lastSeen}</td>
+            <td style=\"font-size:11px;\">{$userCell}</td>
             <td style=\"text-align:center;\">{$statusBadge}</td>
             <td style=\"text-align:center;\">{$blockBtn}</td>
         </tr>";
     }
-    $content .= '</tbody></table></div>';
+
+    $rowsJson   = json_encode($rows);
+    $content .= <<<HTML
+    <div style="padding:8px 12px;background:#f9f9f9;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:12px;color:#555;">Página <strong id="ip-page-cur">1</strong> de <strong id="ip-page-total">1</strong></span>
+        <button class="btn btn-xs btn-default" onclick="ipPageNav(-1)"><i class="fa fa-chevron-left"></i> Anterior</button>
+        <button class="btn btn-xs btn-default" onclick="ipPageNav(1)">Siguiente <i class="fa fa-chevron-right"></i></button>
+        <span style="margin-left:auto;font-size:12px;color:#888;">{$totalIps} IPs en total</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered" id="ip-log-table" style="margin:0;font-size:13px;">
+            <thead style="background:#444;color:#fff;">
+                <tr>
+                    <th>IP</th>
+                    <th style="text-align:center;">Requests</th>
+                    <th style="text-align:center;">Errores<br>404</th>
+                    <th style="text-align:center;">Otros<br>errores</th>
+                    <th>Alerta</th>
+                    <th>Rutas sospechosas</th>
+                    <th>Última vez</th>
+                    <th>Usuario Chamilo</th>
+                    <th style="text-align:center;">Estado</th>
+                    <th style="text-align:center;">Acción</th>
+                </tr>
+            </thead>
+            <tbody id="ip-log-tbody"></tbody>
+        </table>
+    </div>
+    <script>
+    (function(){
+        var rows     = {$rowsJson};
+        var pageSize = 100;
+        var curPage  = 1;
+        var total    = Math.ceil(rows.length / pageSize);
+        document.getElementById('ip-page-total').textContent = total;
+        function render(page) {
+            curPage = Math.max(1, Math.min(page, total));
+            document.getElementById('ip-page-cur').textContent = curPage;
+            var start = (curPage - 1) * pageSize;
+            var html  = rows.slice(start, start + pageSize).join('');
+            document.getElementById('ip-log-tbody').innerHTML = html;
+        }
+        window.ipPageNav = function(dir) { render(curPage + dir); };
+        render(1);
+    })();
+    </script>
+HTML;
 }
 $content .= '</div></div>';
 $content .= '</div>'; // end tab-seguridad
