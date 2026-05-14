@@ -20,10 +20,7 @@ $backUrl = api_get_path(WEB_PLUGIN_PATH) . 'proikos/start.php';
 // Fuentes de logs Apache
 // -----------------------------------------------------------------------
 $logFiles = array_filter([
-    '/var/log/apache2/access.log',
-    '/var/log/apache2/proikos-access.log',
     '/var/log/apache2/hseq-proikos-access.log',
-    '/var/log/proikos_connections.log',
 ], fn($f) => is_readable($f) && filesize($f) > 0);
 
 // Patrones de URLs que delatan escaneo/ataque
