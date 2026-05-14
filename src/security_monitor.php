@@ -455,25 +455,23 @@ $content .= '<div style="background:#f4f6f9;border:1px solid #dce1ea;border-radi
     <span style="font-size:13px;color:#555;"><strong>Uptime del servidor:</strong> ' . htmlspecialchars($uptimeRaw) . '</span>
 </div>';
 
-$content .= '<div class="row">';
+$content .= '<div style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:8px;">';
 foreach ($metrics as $m) {
     $bg  = $bgColors[$m['color']];
     $bd  = $bdColors[$m['color']];
     $sub = htmlspecialchars($m['sub'] ?? '');
 
-    // Barra de progreso solo para métricas numéricas %
     $barHtml = '';
     if (preg_match('/^([\d.]+)%$/', $m['value'], $bm)) {
-        $pct     = min(100, (float)$bm[1]);
-        $barClrs = ['success' => '#27ae60', 'warning' => '#f39c12', 'danger' => '#e74c3c'];
-        $barClr  = $barClrs[$m['color']] ?? '#27ae60';
+        $pct    = min(100, (float)$bm[1]);
+        $barClr = $bdColors[$m['color']];
         $barHtml = '<div style="margin-top:8px;background:#ddd;border-radius:4px;height:6px;overflow:hidden;">
-            <div style="width:' . $pct . '%;background:' . $barClr . ';height:6px;border-radius:4px;transition:width .3s;"></div>
+            <div style="width:' . $pct . '%;background:' . $barClr . ';height:6px;border-radius:4px;"></div>
         </div>';
     }
 
-    $content .= '<div class="col-md-3 col-sm-6" style="margin-bottom:16px;">
-        <div style="background:' . $bg . ';border:2px solid ' . $bd . ';border-radius:8px;padding:16px;">
+    $content .= '<div style="flex:1 1 calc(25% - 14px);min-width:200px;max-width:calc(25% - 14px);box-sizing:border-box;">
+        <div style="background:' . $bg . ';border:2px solid ' . $bd . ';border-radius:8px;padding:16px;height:100%;box-sizing:border-box;">
             <div style="display:flex;align-items:center;gap:10px;">
                 ' . dot($m['color']) . '
                 <div style="flex:1;min-width:0;">
@@ -483,7 +481,7 @@ foreach ($metrics as $m) {
                 <i class="fa ' . $m['icon'] . '" style="font-size:26px;color:' . $bd . ';opacity:.3;flex-shrink:0;"></i>
             </div>
             ' . $barHtml . '
-            <div style="margin-top:6px;font-size:11px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' . $sub . '">' . $sub . '</div>
+            <div style="margin-top:6px;font-size:11px;color:#777;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' . $sub . '">' . $sub . '</div>
         </div>
     </div>';
 }
