@@ -357,11 +357,14 @@ $isSuperAdmin = (api_get_user_id() === 1);
 $dbOnline  = Database::get_main_table(TABLE_STATISTIC_TRACK_E_ONLINE);
 $dbUser    = Database::get_main_table(TABLE_MAIN_USER);
 $dbDefault = Database::get_main_table(TABLE_STATISTIC_TRACK_E_DEFAULT);
+$dbAdmin   = Database::get_main_table(TABLE_MAIN_ADMIN);
 
 $sqlOnline = "SELECT teo.login_user_id, teo.user_ip, teo.login_date,
-                     u.firstname, u.lastname, u.username, u.status
+                     u.firstname, u.lastname, u.username, u.status,
+                     IF(a.user_id IS NOT NULL, 1, 0) AS is_admin
               FROM {$dbOnline} teo
               INNER JOIN {$dbUser} u ON u.id = teo.login_user_id
+              LEFT JOIN {$dbAdmin} a ON a.user_id = u.id
               WHERE teo.login_date >= DATE_SUB(NOW(), INTERVAL 15 MINUTE)
               ORDER BY teo.login_date DESC";
 $resOnline   = Database::query($sqlOnline);
@@ -622,7 +625,8 @@ $content .= '<div class="panel panel-default" style="margin-bottom:0;">
 if (empty($onlineUsers)) {
     $content .= '<div class="alert alert-info" style="margin:15px;">No hay usuarios activos en este momento.</div>';
 } else {
-    $roleLabels = [1 => 'Estudiante', 4 => 'Docente', 6 => 'Admin'];
+    $roleLabels = [1 => 'Docente', 4 => 'Estudiante', 5 => 'DRH', 6 => 'Anónimo'];
+    $roleColors = [1 => '#8e44ad', 4 => '#27ae60', 5 => '#d35400', 6 => '#95a5a6'];
     $content .= '<div class="table-responsive">
         <table class="table table-striped table-hover table-bordered" style="margin:0;">
             <thead style="background:#2980b9;color:#fff;">
@@ -639,27 +643,36 @@ if (empty($onlineUsers)) {
     $i = 1;
     foreach ($onlineUsers as $u) {
         $lastDate = $u['login_date'];
-        $diffSecs = time() - strtotime($lastDate);
+        $diffSecs = max(0, time() - strtotime($lastDate));
+        $mins = floor($diffSecs / 60);
+        $secs = $diffSecs % 60;
         if ($diffSecs < 60) {
             $hace = $diffSecs . 's';
             $rowCls = 'success';
         } elseif ($diffSecs < 300) {
-            $hace = round($diffSecs / 60) . ' min';
+            $hace = $mins . 'm ' . $secs . 's';
             $rowCls = '';
         } else {
-            $hace = round($diffSecs / 60) . ' min';
+            $hace = $mins . 'm ' . $secs . 's';
             $rowCls = 'warning';
         }
-        $role   = $roleLabels[(int)$u['status']] ?? 'Usuario';
-        $ip     = htmlspecialchars($u['user_ip'] ?? '—');
-        $name   = htmlspecialchars(trim($u['firstname'] . ' ' . $u['lastname']));
-        $uname  = htmlspecialchars($u['username']);
+        $status = (int)$u['status'];
+        if (!empty($u['is_admin'])) {
+            $role      = 'Admin';
+            $roleColor = '#c0392b';
+        } else {
+            $role      = $roleLabels[$status] ?? 'Usuario';
+            $roleColor = $roleColors[$status] ?? '#2980b9';
+        }
+        $ip    = htmlspecialchars($u['user_ip'] ?? '—');
+        $name  = htmlspecialchars(trim($u['firstname'] . ' ' . $u['lastname']));
+        $uname = htmlspecialchars($u['username']);
         $content .= "<tr class=\"{$rowCls}\">
             <td>{$i}</td>
             <td><strong>{$uname}</strong></td>
             <td>{$name}</td>
-            <td><span class=\"label label-info\">{$role}</span></td>
-            <td><code>{$ip}</code></td>
+            <td><span class=\"label\" style=\"background:{$roleColor};color:#fff;\">{$role}</span></td>
+            <td><code style=\"color:#c0392b;\">{$ip}</code></td>
             <td style=\"white-space:nowrap;\">" . date('d/m/Y H:i:s', strtotime($lastDate)) . "</td>
             <td><span class=\"badge\" style=\"background:#2980b9;\">{$hace}</span></td>
         </tr>";
