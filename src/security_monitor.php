@@ -625,8 +625,8 @@ $content .= '<div class="panel panel-default" style="margin-bottom:0;">
 if (empty($onlineUsers)) {
     $content .= '<div class="alert alert-info" style="margin:15px;">No hay usuarios activos en este momento.</div>';
 } else {
-    $roleLabels = [1 => 'Docente', 4 => 'Estudiante', 5 => 'DRH', 6 => 'Anónimo'];
-    $roleColors = [1 => '#8e44ad', 4 => '#27ae60', 5 => '#d35400', 6 => '#95a5a6'];
+    $roleLabels = [1 => 'Docente', 4 => 'Administrador Petro Peru', 5 => 'Estudiante', 6 => 'Anónimo', 30 => 'Gestor de cupos'];
+    $roleColors = [1 => '#8e44ad', 4 => '#e67e22', 5 => '#27ae60', 6 => '#95a5a6', 30 => '#16a085'];
     $content .= '<div class="table-responsive">
         <table class="table table-striped table-hover table-bordered" style="margin:0;">
             <thead style="background:#2980b9;color:#fff;">
