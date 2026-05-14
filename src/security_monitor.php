@@ -674,7 +674,7 @@ if (empty($onlineUsers)) {
             <td>{$name}</td>
             <td><span class=\"label\" style=\"background:{$roleColor};color:#fff;\">{$role}</span></td>
             <td><code style=\"color:#c0392b;\">{$ip}</code></td>
-            <td style=\"white-space:nowrap;\">" . date('d/m/Y H:i:s', strtotime($lastDate)) . "</td>
+            <td style=\"white-space:nowrap;\">" . date('d/m/Y H:i:s', strtotime($lastDate . ' UTC')) . "</td>
             <td><span class=\"badge\" style=\"background:#2980b9;\">{$hace}</span></td>
         </tr>";
         $i++;
