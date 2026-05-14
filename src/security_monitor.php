@@ -172,7 +172,7 @@ if (is_readable($ipHistoryLog) && filesize($ipHistoryLog) > 0) {
     }
 }
 
-// Filtrar solo IPs sospechosas por cualquiera de los 3 criterios
+// Incluir todas las IPs — marcar las sospechosas
 $ipData = [];
 foreach ($rawData as $ip => $data) {
     $reasons = [];
@@ -187,18 +187,15 @@ foreach ($rawData as $ip => $data) {
         $reasons[] = $data['total'] . ' requests';
     }
 
-    if (empty($reasons)) {
-        continue;
-    }
-
     $ipData[$ip] = [
-        'count'   => $data['total'],
-        'errors'  => $data['errors'],
-        'e404'    => $data['e404'],
-        'paths'   => $data['paths'],
-        'reasons' => $reasons,
-        'last'    => $data['last'],
-        'sources' => $data['sources'],
+        'count'      => $data['total'],
+        'errors'     => $data['errors'],
+        'e404'       => $data['e404'],
+        'paths'      => $data['paths'],
+        'reasons'    => $reasons,
+        'suspicious' => !empty($reasons),
+        'last'       => $data['last'],
+        'sources'    => $data['sources'],
     ];
 }
 
@@ -418,7 +415,7 @@ $content .= '
     <li class="active">
         <a href="#tab-seguridad" data-toggle="tab">
             <i class="fa fa-shield"></i> Seguridad / IPs
-            <span class="badge" style="background:#e74c3c;margin-left:4px;">' . count($ipData) . '</span>
+            <span class="badge" style="background:#e74c3c;margin-left:4px;">' . count(array_filter($ipData, fn($d) => $d['suspicious'])) . '</span>
         </a>
     </li>
     <li>
@@ -560,27 +557,34 @@ $content .= '<div class="panel panel-default" style="margin-bottom:20px;">
     </div>
 </div>';
 
-// IPs sospechosas
+// Todas las IPs del log
+$suspiciousCount = count(array_filter($ipData, fn($d) => $d['suspicious']));
 $content .= '<div class="panel panel-default">
     <div class="panel-heading" style="background:#333;color:#fff;">
-        <strong><i class="fa fa-exclamation-triangle"></i> IPs Sospechosas Detectadas</strong>
-        <span class="badge" style="margin-left:8px;">' . count($ipData) . '</span>
-        <small style="margin-left:12px;opacity:.8;">URL maliciosa · +' . $threshold404 . ' errores 404 · +' . $thresholdRequests . ' requests</small>
+        <strong><i class="fa fa-list"></i> IPs detectadas en el log</strong>
+        <span class="badge" style="margin-left:8px;background:#aaa;">' . count($ipData) . ' total</span>
+        <span class="badge" style="margin-left:4px;background:#e74c3c;">' . $suspiciousCount . ' sospechosas</span>
+        <small style="margin-left:12px;opacity:.8;">
+            <span style="display:inline-block;width:10px;height:10px;background:#f2dede;border:1px solid #e74c3c;border-radius:2px;"></span> Sospechosa &nbsp;
+            <span style="display:inline-block;width:10px;height:10px;background:#fcf8e3;border:1px solid #f0ad4e;border-radius:2px;"></span> Elevada &nbsp;
+            <span style="display:inline-block;width:10px;height:10px;background:#fff;border:1px solid #ddd;border-radius:2px;"></span> Normal
+        </small>
     </div>
     <div class="panel-body" style="padding:0;">';
 
 if (empty($ipData)) {
-    $content .= '<div class="alert alert-info" style="margin:15px;">No se encontraron conexiones sospechosas en los logs disponibles.</div>';
+    $content .= '<div class="alert alert-info" style="margin:15px;">No se encontraron IPs en el log. Verifique que el archivo sea legible.</div>';
 } else {
     $content .= '<div class="table-responsive">
-        <table class="table table-striped table-hover table-bordered" style="margin:0;">
+        <table class="table table-hover table-bordered" style="margin:0;font-size:13px;">
             <thead style="background:#444;color:#fff;">
                 <tr>
                     <th>IP</th>
-                    <th style="text-align:center;">Total<br>Requests</th>
+                    <th style="text-align:center;">Requests</th>
                     <th style="text-align:center;">Errores<br>404</th>
-                    <th>Motivo</th>
-                    <th>Rutas escaneadas</th>
+                    <th style="text-align:center;">Otros<br>errores</th>
+                    <th>Alerta</th>
+                    <th>Rutas sospechosas</th>
                     <th>Última vez</th>
                     <th style="text-align:center;">Estado</th>
                     <th style="text-align:center;">Acción</th>
@@ -588,53 +592,55 @@ if (empty($ipData)) {
             </thead><tbody>';
 
     foreach ($ipData as $ip => $data) {
-        $isBlocked   = in_array($ip, $blockedIps);
-        $statusBadge = $isBlocked
-            ? '<span class="label label-success"><i class="fa fa-lock"></i> Bloqueado</span>'
-            : '<span class="label label-danger"><i class="fa fa-circle"></i> Activo</span>';
-
-        $paths     = array_slice($data['paths'], 0, 6);
-        $pathsHtml = empty($paths)
-            ? '<span class="text-muted">—</span>'
-            : implode('<br>', array_map(fn($p) => '<code style="font-size:10px;word-break:break-all;">' . htmlspecialchars($p) . '</code>', $paths));
-        if (count($data['paths']) > 6) {
-            $pathsHtml .= '<br><small class="text-muted">+' . (count($data['paths']) - 6) . ' más</small>';
-        }
-
-        $reasonsHtml = implode(' ', array_map(
-            fn($r) => '<span class="label label-warning">' . htmlspecialchars($r) . '</span>',
-            $data['reasons']
-        ));
-
-        $lastSeen = $data['last'] ? date('d/m/Y H:i', $data['last']) : '—';
-
-        $blockBtn = $isBlocked
-            ? '<button class="btn btn-xs btn-success" onclick="unblockIp(\'' . htmlspecialchars($ip, ENT_QUOTES) . '\')">
-                   <i class="fa fa-unlock"></i> Desbloquear
-               </button>'
-            : '<button class="btn btn-xs btn-danger" onclick="blockIp(\'' . htmlspecialchars($ip, ENT_QUOTES) . '\')">
-                   <i class="fa fa-ban"></i> Bloquear
-               </button>';
+        $isBlocked = in_array($ip, $blockedIps);
 
         if ($isBlocked) {
             $rowStyle = 'background:#dff0d8;';
-        } elseif ($data['e404'] >= $threshold404 || !empty($data['paths'])) {
+            $statusBadge = '<span class="label label-success"><i class="fa fa-lock"></i> Bloqueado</span>';
+        } elseif ($data['suspicious']) {
             $rowStyle = 'background:#f2dede;';
-        } else {
+            $statusBadge = '<span class="label label-danger"><i class="fa fa-exclamation-triangle"></i> Sospechosa</span>';
+        } elseif ($data['e404'] > 0 || $data['errors'] > 0) {
             $rowStyle = 'background:#fcf8e3;';
+            $statusBadge = '<span class="label label-warning"><i class="fa fa-eye"></i> Vigilar</span>';
+        } else {
+            $rowStyle = '';
+            $statusBadge = '<span class="label label-default"><i class="fa fa-circle-o"></i> Normal</span>';
         }
 
-        $e404Display = $data['e404'] > 0
+        $paths     = array_slice($data['paths'], 0, 4);
+        $pathsHtml = empty($paths)
+            ? '<span class="text-muted">—</span>'
+            : implode('<br>', array_map(fn($p) => '<code style="font-size:10px;word-break:break-all;">' . htmlspecialchars($p) . '</code>', $paths));
+        if (count($data['paths']) > 4) {
+            $pathsHtml .= '<br><small class="text-muted">+' . (count($data['paths']) - 4) . ' más</small>';
+        }
+
+        $reasonsHtml = !empty($data['reasons'])
+            ? implode(' ', array_map(fn($r) => '<span class="label label-warning" style="font-size:10px;">' . htmlspecialchars($r) . '</span>', $data['reasons']))
+            : '<span class="text-muted">—</span>';
+
+        $lastSeen = $data['last'] ? date('d/m/Y H:i', $data['last']) : '—';
+
+        $e404Display   = $data['e404'] > 0
             ? '<span class="badge" style="background:#e74c3c;">' . $data['e404'] . '</span>'
             : '<span class="text-muted">0</span>';
+        $errorsDisplay = ($data['errors'] - $data['e404']) > 0
+            ? '<span class="badge" style="background:#e67e22;">' . ($data['errors'] - $data['e404']) . '</span>'
+            : '<span class="text-muted">0</span>';
+
+        $blockBtn = $isBlocked
+            ? '<button class="btn btn-xs btn-success" onclick="unblockIp(\'' . htmlspecialchars($ip, ENT_QUOTES) . '\')"><i class="fa fa-unlock"></i></button>'
+            : '<button class="btn btn-xs btn-danger" onclick="blockIp(\'' . htmlspecialchars($ip, ENT_QUOTES) . '\')"><i class="fa fa-ban"></i> Bloquear</button>';
 
         $content .= "<tr style=\"{$rowStyle}\">
-            <td><strong>{$ip}</strong><br><small class=\"text-muted\">" . htmlspecialchars(implode(', ', $data['sources'])) . "</small></td>
+            <td><strong>{$ip}</strong></td>
             <td style=\"text-align:center;\"><span class=\"badge\" style=\"background:#555;\">{$data['count']}</span></td>
             <td style=\"text-align:center;\">{$e404Display}</td>
+            <td style=\"text-align:center;\">{$errorsDisplay}</td>
             <td>{$reasonsHtml}</td>
             <td>{$pathsHtml}</td>
-            <td style=\"white-space:nowrap;\">{$lastSeen}</td>
+            <td style=\"white-space:nowrap;font-size:11px;\">{$lastSeen}</td>
             <td style=\"text-align:center;\">{$statusBadge}</td>
             <td style=\"text-align:center;\">{$blockBtn}</td>
         </tr>";
