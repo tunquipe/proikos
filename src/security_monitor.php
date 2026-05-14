@@ -81,9 +81,12 @@ $thresholdRequests = 50;  // IPs con 50+ requests en el período
 // ]]
 $rawData = [];
 
+// Leer solo las últimas 50.000 líneas de cada log para evitar leer archivos históricos enormes
+$logLines = 50000;
+
 foreach ($logFiles as $logFile) {
-    $source = basename($logFile);
-    $handle = fopen($logFile, 'r');
+    $source  = basename($logFile);
+    $handle  = popen("tail -n {$logLines} " . escapeshellarg($logFile) . " 2>/dev/null", 'r');
     if (!$handle) {
         continue;
     }
@@ -135,7 +138,7 @@ foreach ($logFiles as $logFile) {
             $rawData[$ip]['paths'][] = $path;
         }
     }
-    fclose($handle);
+    pclose($handle);
 }
 
 // -----------------------------------------------------------------------
