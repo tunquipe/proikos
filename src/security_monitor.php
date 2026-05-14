@@ -259,43 +259,59 @@ function dot(string $color): string {
     return "<span style=\"display:inline-block;width:14px;height:14px;border-radius:50%;background:{$c};vertical-align:middle;margin-right:6px;box-shadow:0 0 6px {$c};\"></span>";
 }
 
-// CPU (uso porcentual promedio 1 seg)
-$cpuRaw  = serverMetric("top -bn1 | grep 'Cpu(s)' | awk '{print $2}'");
-$cpuPct  = (float) str_replace(',', '.', $cpuRaw);
+// CPU
+$cpuRaw   = serverMetric("top -bn1 | grep 'Cpu(s)' | awk '{print $2}'");
+$cpuPct   = (float) str_replace(',', '.', $cpuRaw);
+$cpuCores = (int)(serverMetric("nproc") ?: 1);
+$cpuModel = serverMetric("grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | xargs");
 $cpuColor = semaforo($cpuPct, 60, 85);
 
 // RAM
-$memInfo = serverMetric("free | grep Mem");
+$memInfo  = serverMetric("free | grep Mem");
 $memParts = preg_split('/\s+/', $memInfo);
 $ramTotal = (int)($memParts[1] ?? 1);
 $ramUsed  = (int)($memParts[2] ?? 0);
 $ramPct   = $ramTotal > 0 ? round($ramUsed / $ramTotal * 100, 1) : 0;
+$ramTotalGb = round($ramTotal / 1024 / 1024, 1);
+$ramUsedGb  = round($ramUsed  / 1024 / 1024, 1);
 $ramColor = semaforo($ramPct, 70, 90);
 
 // Disco raíz
-$diskRaw  = serverMetric("df / | tail -1 | awk '{print $5}'");
-$diskPct  = (float) str_replace('%', '', $diskRaw);
+$diskRaw   = serverMetric("df -BG / | tail -1 | awk '{print $2, $3, $5}'");
+$diskParts = preg_split('/\s+/', $diskRaw);
+$diskTotal = (int) str_replace('G', '', $diskParts[0] ?? '1');
+$diskUsed  = (int) str_replace('G', '', $diskParts[1] ?? '0');
+$diskPct   = (float) str_replace('%', '', $diskParts[2] ?? '0');
 $diskColor = semaforo($diskPct, 75, 90);
 
-// Load average (1 min)
+// Load average
 $loadRaw   = serverMetric("cat /proc/loadavg");
 $loadParts = explode(' ', $loadRaw);
 $load1     = (float)($loadParts[0] ?? 0);
-$cpuCores  = (int)(serverMetric("nproc") ?: 1);
+$load5     = (float)($loadParts[1] ?? 0);
+$load15    = (float)($loadParts[2] ?? 0);
 $loadPct   = $cpuCores > 0 ? round($load1 / $cpuCores * 100, 1) : 0;
 $loadColor = semaforo($loadPct, 70, 100);
 
 // Apache
-$apacheStatus = serverMetric("systemctl is-active apache2");
-$apacheColor  = ($apacheStatus === 'active') ? 'success' : 'danger';
+$apacheStatus  = serverMetric("systemctl is-active apache2");
+$apacheVersion = serverMetric("apache2 -v 2>/dev/null | grep 'Server version' | awk '{print $3}'");
+$apacheColor   = ($apacheStatus === 'active') ? 'success' : 'danger';
 
 // MySQL / MariaDB
-$mysqlStatus = serverMetric("systemctl is-active mysql") ?: serverMetric("systemctl is-active mariadb");
-$mysqlColor  = ($mysqlStatus === 'active') ? 'success' : 'danger';
+$mysqlStatus  = serverMetric("systemctl is-active mysql") ?: serverMetric("systemctl is-active mariadb");
+$mysqlVersion = serverMetric("mysql --version 2>/dev/null | awk '{print $5}' | tr -d ','");
+$mysqlColor   = ($mysqlStatus === 'active') ? 'success' : 'danger';
 
 // Conexiones activas
 $activeConns = (int) serverMetric("ss -tn state established | grep -c ':80\|:443'");
 $connsColor  = semaforo($activeConns, 200, 500);
+
+// Uptime del servidor
+$uptimeRaw = serverMetric("uptime -p");
+$uptimeRaw = str_replace(['up ', 'weeks', 'week', 'days', 'day', 'hours', 'hour', 'minutes', 'minute'],
+                         ['', 'sem', 'sem', 'd', 'd', 'h', 'h', 'min', 'min'], $uptimeRaw);
+$uptimeRaw = trim(preg_replace('/\s+/', ' ', $uptimeRaw));
 
 // -----------------------------------------------------------------------
 // Estado UFW actual — reglas DENY existentes
@@ -336,14 +352,14 @@ $ufwLabel = $ufwInactive ? 'Inactivo' : ($ufwOutput ? 'Activo' : 'Sin permisos')
 $ufwColor = $ufwInactive ? 'danger' : ($ufwOutput ? 'success' : 'warning');
 
 $metrics = [
-    ['icon' => 'fa-microchip',  'label' => 'CPU',        'value' => "{$cpuPct}%",             'color' => $cpuColor],
-    ['icon' => 'fa-server',     'label' => 'RAM',        'value' => "{$ramPct}%",              'color' => $ramColor],
-    ['icon' => 'fa-hdd-o',      'label' => 'Disco',      'value' => "{$diskPct}%",             'color' => $diskColor],
-    ['icon' => 'fa-tachometer', 'label' => 'Load avg',   'value' => "{$load1} ({$loadPct}%)",  'color' => $loadColor],
-    ['icon' => 'fa-globe',      'label' => 'Apache',     'value' => ucfirst($apacheStatus),    'color' => $apacheColor],
-    ['icon' => 'fa-database',   'label' => 'MySQL',      'value' => ucfirst($mysqlStatus),     'color' => $mysqlColor],
-    ['icon' => 'fa-exchange',   'label' => 'Conexiones', 'value' => (string)$activeConns,      'color' => $connsColor],
-    ['icon' => 'fa-shield',     'label' => 'Firewall',   'value' => $ufwLabel,                 'color' => $ufwColor],
+    ['icon' => 'fa-microchip',  'label' => 'CPU',        'value' => "{$cpuPct}%",            'sub' => "{$cpuCores} núcleos · {$cpuModel}",                    'color' => $cpuColor],
+    ['icon' => 'fa-server',     'label' => 'RAM',        'value' => "{$ramPct}%",             'sub' => "{$ramUsedGb} GB usados de {$ramTotalGb} GB",          'color' => $ramColor],
+    ['icon' => 'fa-hdd-o',      'label' => 'Disco',      'value' => "{$diskPct}%",            'sub' => "{$diskUsed} GB usados de {$diskTotal} GB",            'color' => $diskColor],
+    ['icon' => 'fa-tachometer', 'label' => 'Load avg',   'value' => "{$load1} ({$loadPct}%)", 'sub' => "5min: {$load5} · 15min: {$load15} · {$cpuCores} CPU", 'color' => $loadColor],
+    ['icon' => 'fa-globe',      'label' => 'Apache',     'value' => ucfirst($apacheStatus),   'sub' => $apacheVersion ?: 'Apache2',                          'color' => $apacheColor],
+    ['icon' => 'fa-database',   'label' => 'MySQL',      'value' => ucfirst($mysqlStatus),    'sub' => $mysqlVersion ?: 'MySQL/MariaDB',                      'color' => $mysqlColor],
+    ['icon' => 'fa-exchange',   'label' => 'Conexiones', 'value' => (string)$activeConns,     'sub' => 'Activas en :80 y :443',                               'color' => $connsColor],
+    ['icon' => 'fa-shield',     'label' => 'Firewall',   'value' => $ufwLabel,                'sub' => count($blockedIps) . ' IPs bloqueadas',                'color' => $ufwColor],
 ];
 
 $bgColors = ['success' => '#eafaf1', 'warning' => '#fef9e7', 'danger' => '#fdedec'];
@@ -432,23 +448,47 @@ $content .= '
 // TAB 1 — Monitor del servidor
 // -----------------------------------------------------------------------
 $content .= '<div class="tab-pane" id="tab-servidor">';
+
+// Uptime banner
+$content .= '<div style="background:#f4f6f9;border:1px solid #dce1ea;border-radius:8px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+    <i class="fa fa-clock-o" style="color:#2980b9;font-size:18px;"></i>
+    <span style="font-size:13px;color:#555;"><strong>Uptime del servidor:</strong> ' . htmlspecialchars($uptimeRaw) . '</span>
+</div>';
+
 $content .= '<div class="row">';
 foreach ($metrics as $m) {
-    $bg = $bgColors[$m['color']];
-    $bd = $bdColors[$m['color']];
+    $bg  = $bgColors[$m['color']];
+    $bd  = $bdColors[$m['color']];
+    $sub = htmlspecialchars($m['sub'] ?? '');
+
+    // Barra de progreso solo para métricas numéricas %
+    $barHtml = '';
+    if (preg_match('/^([\d.]+)%$/', $m['value'], $bm)) {
+        $pct     = min(100, (float)$bm[1]);
+        $barClrs = ['success' => '#27ae60', 'warning' => '#f39c12', 'danger' => '#e74c3c'];
+        $barClr  = $barClrs[$m['color']] ?? '#27ae60';
+        $barHtml = '<div style="margin-top:8px;background:#ddd;border-radius:4px;height:6px;overflow:hidden;">
+            <div style="width:' . $pct . '%;background:' . $barClr . ';height:6px;border-radius:4px;transition:width .3s;"></div>
+        </div>';
+    }
+
     $content .= '<div class="col-md-3 col-sm-6" style="margin-bottom:16px;">
-        <div style="background:' . $bg . ';border:2px solid ' . $bd . ';border-radius:8px;padding:16px;display:flex;align-items:center;gap:12px;">
-            ' . dot($m['color']) . '
-            <div>
-                <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.5px;">' . $m['label'] . '</div>
-                <div style="font-size:20px;font-weight:700;color:#222;">' . $m['value'] . '</div>
+        <div style="background:' . $bg . ';border:2px solid ' . $bd . ';border-radius:8px;padding:16px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                ' . dot($m['color']) . '
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.5px;">' . $m['label'] . '</div>
+                    <div style="font-size:22px;font-weight:700;color:#222;line-height:1.2;">' . $m['value'] . '</div>
+                </div>
+                <i class="fa ' . $m['icon'] . '" style="font-size:26px;color:' . $bd . ';opacity:.3;flex-shrink:0;"></i>
             </div>
-            <i class="fa ' . $m['icon'] . '" style="margin-left:auto;font-size:24px;color:' . $bd . ';opacity:.35;"></i>
+            ' . $barHtml . '
+            <div style="margin-top:6px;font-size:11px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' . $sub . '">' . $sub . '</div>
         </div>
     </div>';
 }
 $content .= '</div>';
-$content .= '<p class="text-muted" style="margin-top:8px;font-size:12px;"><i class="fa fa-refresh"></i> Datos al momento de cargar la página. Recarga para actualizar.</p>';
+$content .= '<p class="text-muted" style="margin-top:4px;font-size:12px;"><i class="fa fa-refresh"></i> Datos al momento de cargar la página. Recarga para actualizar.</p>';
 $content .= '</div>'; // end tab-servidor
 
 // -----------------------------------------------------------------------
