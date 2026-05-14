@@ -361,7 +361,8 @@ $dbAdmin   = Database::get_main_table(TABLE_MAIN_ADMIN);
 
 $sqlOnline = "SELECT teo.login_user_id, teo.user_ip, teo.login_date,
                      u.firstname, u.lastname, u.username, u.status,
-                     IF(a.user_id IS NOT NULL, 1, 0) AS is_admin
+                     IF(a.user_id IS NOT NULL, 1, 0) AS is_admin,
+                     TIMESTAMPDIFF(SECOND, teo.login_date, NOW()) AS seconds_ago
               FROM {$dbOnline} teo
               INNER JOIN {$dbUser} u ON u.id = teo.login_user_id
               LEFT JOIN {$dbAdmin} a ON a.user_id = u.id
@@ -643,7 +644,7 @@ if (empty($onlineUsers)) {
     $i = 1;
     foreach ($onlineUsers as $u) {
         $lastDate = $u['login_date'];
-        $diffSecs = max(0, time() - strtotime($lastDate));
+        $diffSecs = max(0, (int)$u['seconds_ago']);
         $mins = floor($diffSecs / 60);
         $secs = $diffSecs % 60;
         if ($diffSecs < 60) {
