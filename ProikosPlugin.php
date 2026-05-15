@@ -4752,11 +4752,11 @@ EOT;
 
         if (!empty($dateFrom)) {
             $dateFromSafe = Database::escape_string($dateFrom);
-            $sql .= " AND s.display_start_date >= '$dateFromSafe 00:00:00' ";
+            $sql .= " AND u.registration_date >= '$dateFromSafe 00:00:00' ";
         }
         if (!empty($dateTo)) {
             $dateToSafe = Database::escape_string($dateTo);
-            $sql .= " AND s.display_start_date <= '$dateToSafe 23:59:59' ";
+            $sql .= " AND u.registration_date <= '$dateToSafe 23:59:59' ";
         }
 
         if (!$isExport) {
