@@ -208,7 +208,8 @@ if (isset($action)) {
             $cleanData = [];
 
             foreach ($rawData['users'] as $row) {
-                $sustenance = $plugin->getSustenanceByUserAndSession($row['id'], $row['session_id']);
+                // sustenance_export ya viene calculado por getDataReport cuando $isExport=true
+                $sustenance = $row['sustenance_export'] ?? $plugin->getSustenanceByUserAndSession($row['id'], $row['session_id']);
                 $cleanData[] = [
                     'id' => $row['id'],
                     'code_user' => 'PROK'.$row['id'],
@@ -312,7 +313,8 @@ if (isset($action)) {
             $cleanData = [$xlsHeaders];
 
             foreach ($rawData['users'] as $row) {
-                $sustenance = $plugin->getSustenanceByUserAndSession($row['id'], $row['session_id']);
+                // sustenance_export ya viene calculado por getDataReport cuando $isExport=true
+                $sustenance = $row['sustenance_export'] ?? $plugin->getSustenanceByUserAndSession($row['id'], $row['session_id']);
                 $cleanData[] = [
                     'id' => $row['id'],
                     'code_user' => 'PROK'.$row['id'],

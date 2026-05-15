@@ -4770,25 +4770,10 @@ EOT;
         if (Database::num_rows($result) > 0) {
             while ($row = Database::fetch_assoc($result)) {
 
-                $cats = Category::load(
-                    null,
-                    null,
-                    $row['code'],
-                    null,
-                    null,
-                    $row['session_id'],
-                    'ORDER By id'
-                );
                 $date = date("Y/m/d", strtotime($row['registration_date']));
                 $row['registration_date_normal'] = $date;
                 $registrationDate = api_format_date($row['registration_date'], DATE_FORMAT_LONG_NO_DAY);
                 $row['registration_date'] = $registrationDate;
-                if (!empty($cats)) {
-                    // Solo si $cats tiene elementos, procedemos a obtener los enlaces
-                    $userLinks = $cats[0]->get_links($row['id'], false, $row['code'], $row['session_id']);
-                } else {
-                    $userLinks = null; // Si no hay categorías, asignamos null
-                }
 
                 $userScore = $this->getResultExerciseStudent($row['id'], $row['c_id'], $row['session_id']);
                 $row['exams'] = $userScore;
@@ -4807,7 +4792,6 @@ EOT;
                 $workshop = floatval($taller);
                 $exit = floatval($examen_de_salida);
                 $promedioPonderado = ($entrance * $ponderacion_entrada) + ($workshop * $ponderacion_taller) + ($exit * $ponderacion_salida);
-
 
                 // Calcular el puntaje total ponderado
                 $puntaje_total = (($examen_de_entrada * $ponderacion_entrada) +
@@ -4828,14 +4812,13 @@ EOT;
                     $status = '<span class="label label-danger">' . $this->get_lang('Failed') . '</span>';
                     $status_id = 0;
                 }
-                $registerCodeSession = $this->registerCodeSessionRelUser($row['id'],$row['session_id']);
-                $row['registration_session_user'] = $registerCodeSession;
+
                 $row['status'] = $status;
                 $row['status_id'] = $status_id;
                 $row['promedio_ponderado'] = $promedioPonderado;
                 $row['score'] = $puntaje_total;
-                if($status_id == 1){
-                    $row['exams']=[
+                if ($status_id == 1) {
+                    $row['exams'] = [
                         'examen_de_entrada' => '-',
                         'examen_de_salida' => '-',
                         'taller' => '-'
@@ -4845,20 +4828,8 @@ EOT;
                 }
 
                 $row['user_id'] = $row['id'];
-                $row['links'] = empty($userLinks);
-                $downloadCertUploadedLink = $this->generateDownloadLinkAttachCertificates($row['id'], $row['student'], $row['session_id']);
-                $row['cert'] = $downloadCertUploadedLink;
-                $iconCertificate = $this->get_icon('certificate');
-                $iconCertificate_na = $this->get_icon('certificate_na');
-                $row['download'] = Display::img($iconCertificate_na, $this->get_lang('CertificateNotGenerated'),['width' => '32px']);
-                if($status_id == 2){
-                    $urlCertificate = $this->getUserCertificateSession($row['id'], $row['session_id']);
-                    $row['download'] = '<a href="'.$urlCertificate.'" target="_blank">'.
-                        Display::img($iconCertificate, $this->get_lang('DownloadCertificate'),['width' => '32px']).
-                        '</a>';
-                }
-                $checkDocument = $this->checkDocuments($row['id'],$row['session_id']);
-                $certificateDates = $this->getCertificateDates($row['id'],$row['session_id']);
+
+                $certificateDates = $this->getCertificateDates($row['id'], $row['session_id']);
                 $row['certificate_date'] = [
                     'created_at' => !empty($certificateDates['created_at'])
                         ? date('d-m-Y', strtotime($certificateDates['created_at']))
@@ -4867,8 +4838,6 @@ EOT;
                         ? date('d-m-Y', strtotime($certificateDates['expiration_date']))
                         : '-',
                 ];
-                $row['check_document'] = $checkDocument;
-                $row['sustenance'] = $this->getSustenanceIconFA($row['id'],$row['c_id'],$row['session_id'], true);
 
                 $timeSpent = api_time_to_hms(
                     Tracking::get_time_spent_on_the_course(
@@ -4877,8 +4846,53 @@ EOT;
                         $row['session_id']
                     )
                 );
-
                 $row['time_course'] = $timeSpent;
+
+                if (!$isExport) {
+                    $cats = Category::load(
+                        null,
+                        null,
+                        $row['code'],
+                        null,
+                        null,
+                        $row['session_id'],
+                        'ORDER By id'
+                    );
+                    $userLinks = !empty($cats)
+                        ? $cats[0]->get_links($row['id'], false, $row['code'], $row['session_id'])
+                        : null;
+                    $row['links'] = empty($userLinks);
+
+                    $registerCodeSession = $this->registerCodeSessionRelUser($row['id'], $row['session_id']);
+                    $row['registration_session_user'] = $registerCodeSession;
+
+                    $downloadCertUploadedLink = $this->generateDownloadLinkAttachCertificates($row['id'], $row['student'], $row['session_id']);
+                    $row['cert'] = $downloadCertUploadedLink;
+
+                    $iconCertificate = $this->get_icon('certificate');
+                    $iconCertificate_na = $this->get_icon('certificate_na');
+                    $row['download'] = Display::img($iconCertificate_na, $this->get_lang('CertificateNotGenerated'), ['width' => '32px']);
+                    if ($status_id == 2) {
+                        $urlCertificate = $this->getUserCertificateSession($row['id'], $row['session_id']);
+                        $row['download'] = '<a href="' . $urlCertificate . '" target="_blank">' .
+                            Display::img($iconCertificate, $this->get_lang('DownloadCertificate'), ['width' => '32px']) .
+                            '</a>';
+                    }
+
+                    $checkDocument = $this->checkDocuments($row['id'], $row['session_id']);
+                    $row['check_document'] = $checkDocument;
+
+                    $row['sustenance'] = $this->getSustenanceIconFA($row['id'], $row['c_id'], $row['session_id'], true);
+                } else {
+                    // Para export: obtener datos de sustento directamente (evita llamada duplicada en el loop de export)
+                    $row['sustenance_export'] = $this->getSustenanceByUserAndSession($row['id'], $row['session_id']);
+                    $row['links'] = true;
+                    $row['cert'] = '';
+                    $row['download'] = '';
+                    $row['check_document'] = false;
+                    $row['sustenance'] = '';
+                }
+
                 $users[] = $row;
             }
         }
