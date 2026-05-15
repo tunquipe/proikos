@@ -436,6 +436,11 @@ $content .= '
             <i class="fa fa-heartbeat"></i> Servidor
         </a>
     </li>
+    <li>
+        <a href="#tab-rendimiento" data-toggle="tab">
+            <i class="fa fa-line-chart"></i> Rendimiento
+        </a>
+    </li>
 </ul>
 <div class="tab-content" style="border:1px solid #ddd;border-top:none;padding:20px;background:#fff;margin-bottom:20px;">';
 
@@ -483,6 +488,156 @@ foreach ($metrics as $m) {
 $content .= '</div>';
 $content .= '<p class="text-muted" style="margin-top:4px;font-size:12px;"><i class="fa fa-refresh"></i> Datos al momento de cargar la página. Recarga para actualizar.</p>';
 $content .= '</div>'; // end tab-servidor
+
+// -----------------------------------------------------------------------
+// TAB — Rendimiento histórico
+// -----------------------------------------------------------------------
+// Consultar datos para gráficos
+$metricsTable = 'plugin_proikos_server_metrics';
+
+// Últimas 24 horas (un punto por hora)
+$rows24h = [];
+$res = Database::query("
+    SELECT DATE_FORMAT(recorded_at,'%H:00') as label,
+           ROUND(AVG(cpu_pct),1) as cpu,
+           ROUND(AVG(ram_pct),1) as ram,
+           ROUND(AVG(load_1min),2) as load1,
+           ROUND(AVG(active_connections),0) as conns
+    FROM `$metricsTable`
+    WHERE recorded_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+    GROUP BY DATE_FORMAT(recorded_at,'%Y-%m-%d %H')
+    ORDER BY recorded_at ASC
+");
+while ($r = Database::fetch_assoc($res)) {
+    $rows24h[] = $r;
+}
+
+// Últimos 7 días (un punto por día)
+$rows7d = [];
+$res = Database::query("
+    SELECT DATE_FORMAT(recorded_at,'%d/%m') as label,
+           ROUND(AVG(cpu_pct),1) as cpu,
+           ROUND(AVG(ram_pct),1) as ram,
+           ROUND(AVG(load_1min),2) as load1,
+           ROUND(AVG(active_connections),0) as conns,
+           ROUND(MAX(cpu_pct),1) as cpu_max,
+           ROUND(MAX(ram_pct),1) as ram_max
+    FROM `$metricsTable`
+    WHERE recorded_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+    GROUP BY DATE(recorded_at)
+    ORDER BY DATE(recorded_at) ASC
+");
+while ($r = Database::fetch_assoc($res)) {
+    $rows7d[] = $r;
+}
+
+// Horas pico: promedio por hora del día (todos los registros)
+$rowsPico = [];
+$res = Database::query("
+    SELECT hour_of_day,
+           CONCAT(LPAD(hour_of_day,2,'0'),':00') as label,
+           ROUND(AVG(cpu_pct),1) as cpu,
+           ROUND(AVG(ram_pct),1) as ram,
+           ROUND(AVG(active_connections),0) as conns,
+           COUNT(*) as samples
+    FROM `$metricsTable`
+    GROUP BY hour_of_day
+    ORDER BY hour_of_day ASC
+");
+while ($r = Database::fetch_assoc($res)) {
+    $rowsPico[] = $r;
+}
+
+// Último registro para el resumen
+$lastMetric = [];
+$res = Database::query("SELECT * FROM `$metricsTable` ORDER BY id DESC LIMIT 1");
+if ($r = Database::fetch_assoc($res)) {
+    $lastMetric = $r;
+}
+
+$totalRecords = (int) Database::result(Database::query("SELECT COUNT(*) FROM `$metricsTable`"), 0);
+$oldestRecord = Database::result(Database::query("SELECT MIN(recorded_at) FROM `$metricsTable`"), 0);
+
+$j24h   = json_encode($rows24h,  JSON_UNESCAPED_UNICODE);
+$j7d    = json_encode($rows7d,   JSON_UNESCAPED_UNICODE);
+$jPico  = json_encode($rowsPico, JSON_UNESCAPED_UNICODE);
+$cronCmd = 'php ' . realpath(__DIR__ . '/cron_server_metrics.php');
+
+$content .= '<div class="tab-pane" id="tab-rendimiento">';
+$content .= '
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+    .perf-card { background:#fff; border:1px solid #e0e0e0; border-radius:8px; padding:16px; margin-bottom:20px; }
+    .perf-card h4 { margin:0 0 14px; font-size:14px; color:#333; font-weight:700; }
+    .perf-stat-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+    .perf-stat { background:#f8f9fa; border:1px solid #e9ecef; border-radius:6px; padding:10px 16px; text-align:center; flex:1; min-width:120px; }
+    .perf-stat .val { font-size:22px; font-weight:700; color:#2c3e50; }
+    .perf-stat .lbl { font-size:11px; color:#888; margin-top:2px; }
+    .chart-wrap { position:relative; height:220px; }
+    .cron-box { background:#1e1e1e; color:#b5e853; border-radius:6px; padding:12px 16px; font-family:monospace; font-size:13px; margin-top:8px; }
+</style>';
+
+// Resumen de cobertura
+$coverageDays = $totalRecords > 0 && $oldestRecord ? ceil((time() - strtotime($oldestRecord)) / 86400) : 0;
+$content .= '<div class="perf-stat-row">';
+$stats = [
+    ['val' => $totalRecords, 'lbl' => 'Registros totales'],
+    ['val' => $coverageDays . ' días', 'lbl' => 'Cobertura histórica'],
+    ['val' => ($lastMetric['cpu_pct'] ?? '-') . '%', 'lbl' => 'CPU (último)'],
+    ['val' => ($lastMetric['ram_pct'] ?? '-') . '%', 'lbl' => 'RAM (último)'],
+    ['val' => ($lastMetric['active_connections'] ?? '-'), 'lbl' => 'Conexiones (último)'],
+    ['val' => $lastMetric ? date('H:i', strtotime($lastMetric['recorded_at'])) : '-', 'lbl' => 'Última muestra'],
+];
+foreach ($stats as $s) {
+    $content .= '<div class="perf-stat"><div class="val">' . htmlspecialchars((string)$s['val']) . '</div><div class="lbl">' . $s['lbl'] . '</div></div>';
+}
+$content .= '</div>';
+
+if ($totalRecords === 0) {
+    $content .= '<div class="alert alert-info"><i class="fa fa-info-circle"></i> Aún no hay datos. Configure el cron para empezar a recolectar métricas.</div>';
+} else {
+    // Gráfico 1: últimas 24 horas
+    $content .= '<div class="perf-card">
+        <h4><i class="fa fa-clock-o" style="color:#3498db"></i> Últimas 24 horas — CPU, RAM y Conexiones</h4>
+        <div class="chart-wrap"><canvas id="chart24h"></canvas></div>
+    </div>';
+
+    // Gráfico 2: últimos 7 días
+    $content .= '<div class="perf-card">
+        <h4><i class="fa fa-calendar" style="color:#27ae60"></i> Últimos 7 días — Promedio diario (CPU / RAM)</h4>
+        <div class="chart-wrap"><canvas id="chart7d"></canvas></div>
+    </div>';
+
+    // Gráfico 3: horas pico
+    $content .= '<div class="perf-card">
+        <h4><i class="fa fa-fire" style="color:#e74c3c"></i> Horas pico — Promedio de CPU por hora del día</h4>
+        <div class="chart-wrap"><canvas id="chartPico"></canvas></div>
+    </div>';
+}
+
+// Instrucciones cron
+$content .= '<div class="perf-card">
+    <h4><i class="fa fa-terminal" style="color:#8e44ad"></i> Configuración del Cron (ejecutar una sola vez)</h4>
+    <p style="font-size:13px; color:#555; margin-bottom:8px;">Agrega esta línea al crontab del servidor para guardar métricas cada hora:</p>
+    <div class="cron-box">0 * * * * ' . htmlspecialchars($cronCmd) . ' >> /var/log/proikos_metrics.log 2>&1</div>
+    <p style="font-size:12px; color:#888; margin-top:8px;">
+        <strong>Para editar el crontab:</strong> <code>crontab -e</code><br>
+        <strong>Ejecutar ahora manualmente:</strong> <a href="' . api_get_self() . '?action=run_metrics_cron" class="btn btn-xs btn-default">
+        <i class="fa fa-play"></i> Ejecutar ahora</a>
+    </p>
+</div>';
+
+$content .= '</div>'; // end tab-rendimiento
+
+// Ejecutar cron manualmente desde URL
+$actionParam = $_GET['action'] ?? '';
+if ($actionParam === 'run_metrics_cron' && api_is_platform_admin()) {
+    ob_start();
+    include __DIR__ . '/cron_server_metrics.php';
+    ob_end_clean();
+    header('Location: ' . api_get_self() . '#tab-rendimiento');
+    exit;
+}
 
 // -----------------------------------------------------------------------
 // TAB 2 — Seguridad / IPs
@@ -915,6 +1070,98 @@ sudo chmod 440 /etc/sudoers.d/www-data-ufw</pre>
         <p class="text-muted"><small>Esto limita sudo exclusivamente al comando ufw, sin exponer otras capacidades de root.</small></p>
     </div>
 </div>';
+
+// -----------------------------------------------------------------------
+// Charts JS (solo si hay datos)
+// -----------------------------------------------------------------------
+if ($totalRecords > 0) {
+    $content .= <<<JS
+<script>
+(function() {
+    var data24h  = {$j24h};
+    var data7d   = {$j7d};
+    var dataPico = {$jPico};
+
+    function labels(arr, key)  { return arr.map(function(r){ return r[key]; }); }
+    function values(arr, key)  { return arr.map(function(r){ return parseFloat(r[key]) || 0; }); }
+
+    var chartOpts = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
+        scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' } }, x: { grid: { display: false } } }
+    };
+
+    // --- Últimas 24h ---
+    if (data24h.length > 0 && document.getElementById('chart24h')) {
+        new Chart(document.getElementById('chart24h'), {
+            type: 'line',
+            data: {
+                labels: labels(data24h, 'label'),
+                datasets: [
+                    { label: 'CPU %',        data: values(data24h,'cpu'),   borderColor:'#3498db', backgroundColor:'rgba(52,152,219,.1)', tension:.3, fill:true, pointRadius:3 },
+                    { label: 'RAM %',        data: values(data24h,'ram'),   borderColor:'#e67e22', backgroundColor:'rgba(230,126,34,.1)',  tension:.3, fill:true, pointRadius:3 },
+                    { label: 'Conexiones',   data: values(data24h,'conns'), borderColor:'#27ae60', backgroundColor:'rgba(39,174,96,.1)',   tension:.3, fill:false, pointRadius:3, yAxisID:'y2' }
+                ]
+            },
+            options: Object.assign({}, chartOpts, {
+                scales: {
+                    y:  { beginAtZero:true, max:100, title:{ display:true, text:'%' }, grid:{ color:'rgba(0,0,0,.05)' } },
+                    y2: { beginAtZero:true, position:'right', title:{ display:true, text:'Conexiones' }, grid:{ drawOnChartArea:false } },
+                    x:  { grid:{ display:false } }
+                }
+            })
+        });
+    }
+
+    // --- 7 días ---
+    if (data7d.length > 0 && document.getElementById('chart7d')) {
+        new Chart(document.getElementById('chart7d'), {
+            type: 'bar',
+            data: {
+                labels: labels(data7d, 'label'),
+                datasets: [
+                    { label: 'CPU prom %',  data: values(data7d,'cpu'),     backgroundColor:'rgba(52,152,219,.7)',  borderColor:'#3498db', borderWidth:1 },
+                    { label: 'CPU max %',   data: values(data7d,'cpu_max'), backgroundColor:'rgba(231,76,60,.5)',   borderColor:'#e74c3c', borderWidth:1 },
+                    { label: 'RAM prom %',  data: values(data7d,'ram'),     backgroundColor:'rgba(230,126,34,.7)',  borderColor:'#e67e22', borderWidth:1 },
+                    { label: 'RAM max %',   data: values(data7d,'ram_max'), backgroundColor:'rgba(155,89,182,.5)',  borderColor:'#9b59b6', borderWidth:1 }
+                ]
+            },
+            options: Object.assign({}, chartOpts, { scales: { y: { beginAtZero:true, max:100 }, x: { grid:{ display:false } } } })
+        });
+    }
+
+    // --- Horas pico ---
+    if (dataPico.length > 0 && document.getElementById('chartPico')) {
+        var cpuVals = values(dataPico,'cpu');
+        var maxCpu  = Math.max.apply(null, cpuVals);
+        var colors  = cpuVals.map(function(v){ return v === maxCpu ? 'rgba(231,76,60,.85)' : 'rgba(52,152,219,.65)'; });
+        new Chart(document.getElementById('chartPico'), {
+            type: 'bar',
+            data: {
+                labels: labels(dataPico, 'label'),
+                datasets: [
+                    { label: 'CPU prom %',      data: cpuVals,                     backgroundColor: colors, borderColor:'transparent', borderWidth:0 },
+                    { label: 'Conexiones prom', data: values(dataPico,'conns'),     backgroundColor:'rgba(39,174,96,.5)', borderColor:'#27ae60', borderWidth:1, type:'line', yAxisID:'y2', tension:.3 }
+                ]
+            },
+            options: Object.assign({}, chartOpts, {
+                scales: {
+                    y:  { beginAtZero:true, max:100, title:{ display:true, text:'CPU %' }, grid:{ color:'rgba(0,0,0,.05)' } },
+                    y2: { beginAtZero:true, position:'right', title:{ display:true, text:'Conexiones' }, grid:{ drawOnChartArea:false } },
+                    x:  { grid:{ display:false } }
+                },
+                plugins: { tooltip: { callbacks: { afterLabel: function(ctx) {
+                    var r = dataPico[ctx.dataIndex];
+                    return r ? '(' + r.samples + ' muestras)' : '';
+                }}}}
+            })
+        });
+    }
+})();
+</script>
+JS;
+}
 
 $tpl->assign('content', $content);
 $tpl->assign('actions', $actionLinks);
