@@ -1,5 +1,6 @@
-<p>{{ 'ATotalOf'|get_plugin_lang('ProikosPlugin') }} <strong>{{ total_companies }}</strong> Empresas</p>
 {{ form }}
+{% if current_action != 'create' and current_action != 'edit' %}
+<p>{{ 'ATotalOf'|get_plugin_lang('ProikosPlugin') }} <strong>{{ total_companies }}</strong> Empresas</p>
 <table class="table table-bordered js-paginated-table">
     <thead>
     <tr>
@@ -30,3 +31,4 @@
 </table>
 
 <script src="../js/table-pagination/main.js"></script>
+{% endif %}

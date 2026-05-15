@@ -178,6 +178,7 @@ $tpl->assign(
     Display::toolbarAction('toolbar', [$actionLinks])
 );
 
+$tpl->assign('current_action', $action);
 $tpl->assign('message', $message);
 $tpl->assign('contrating_companies', $contratingCompanies ?? []);
 $content = $tpl->fetch('proikos/view/proikos_contrating_companies.tpl');
