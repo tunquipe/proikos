@@ -48,11 +48,6 @@ if ($action === 'delete') {
     }
 }
 
-$contratingCompanies = $plugin->contratingCompaniesModel()->getData();
-$totalCompanies = count($contratingCompanies);
-$tpl->assign('contrating_companies', $contratingCompanies);
-$tpl->assign('total_companies', $totalCompanies);
-
 switch ($action) {
     case 'create':
         $actionLinks = Display::url(
@@ -172,6 +167,10 @@ switch ($action) {
 
         break;
     default:
+        $contratingCompanies = $plugin->contratingCompaniesModel()->getData();
+        $totalCompanies = count($contratingCompanies);
+        $tpl->assign('contrating_companies', $contratingCompanies);
+        $tpl->assign('total_companies', $totalCompanies);
 }
 
 $tpl->assign(
@@ -180,7 +179,7 @@ $tpl->assign(
 );
 
 $tpl->assign('message', $message);
-$tpl->assign('contrating_companies', $contratingCompanies);
+$tpl->assign('contrating_companies', $contratingCompanies ?? []);
 $content = $tpl->fetch('proikos/view/proikos_contrating_companies.tpl');
 $tpl->assign('content', $content);
 $tpl->display_one_col_template();
