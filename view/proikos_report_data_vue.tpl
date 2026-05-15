@@ -545,6 +545,75 @@
     </ul>
 </div>
 
+<!-- Modal Exportación Excel -->
+<div class="modal fade" id="modalExportXls" tabindex="-1" role="dialog" aria-labelledby="modalExportXlsLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document" style="max-width: 480px;">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #1d7b3e; color: #fff;">
+                <h5 class="modal-title" id="modalExportXlsLabel">
+                    <i class="fa fa-file-excel-o"></i> Exportar Excel
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar" style="color:#fff; opacity:1;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center" style="padding: 35px 20px;">
+
+                <!-- Estado: generando -->
+                <div id="exportStateGenerating">
+                    <div style="margin-bottom: 18px;">
+                        <div class="spinner-container" style="margin: 0 auto 15px;">
+                            <div class="spinner-ring"></div>
+                            <div class="spinner-ring"></div>
+                            <div class="spinner-ring"></div>
+                        </div>
+                    </div>
+                    <p style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 6px;">Generando reporte...</p>
+                    <p style="font-size: 13px; color: #666;">Por favor espere, esto puede tomar unos segundos.</p>
+                    <div class="progress-bar-container" style="margin: 15px auto 0;">
+                        <div class="progress-bar-animated"></div>
+                    </div>
+                </div>
+
+                <!-- Estado: listo (descarga disponible) -->
+                <div id="exportStateReady" style="display:none;">
+                    <div style="font-size: 54px; color: #1d7b3e; margin-bottom: 12px;">
+                        <i class="fa fa-check-circle"></i>
+                    </div>
+                    <p id="exportReadyMessage" style="font-size: 15px; font-weight: 600; color: #333; margin-bottom: 18px;"></p>
+                    <a id="exportDownloadBtn" href="#" class="btn btn-success btn-lg" style="padding: 10px 30px; font-size: 15px;">
+                        <i class="fa fa-download"></i> Descargar Excel
+                    </a>
+                    <div id="exportCachedNote" style="margin-top: 14px; display:none;">
+                        <p style="font-size: 12px; color: #888; margin-bottom: 8px;">
+                            <i class="fa fa-info-circle"></i> Este archivo fue generado hoy y está disponible en caché.
+                        </p>
+                        <button class="btn btn-default btn-sm" onclick="regenerateExport()">
+                            <i class="fa fa-refresh"></i> Regenerar reporte
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Estado: error -->
+                <div id="exportStateError" style="display:none;">
+                    <div style="font-size: 54px; color: #c0392b; margin-bottom: 12px;">
+                        <i class="fa fa-times-circle"></i>
+                    </div>
+                    <p style="font-size: 15px; font-weight: 600; color: #333; margin-bottom: 8px;">Error al generar el reporte</p>
+                    <p id="exportErrorMessage" style="font-size: 13px; color: #666; margin-bottom: 18px;"></p>
+                    <button class="btn btn-primary" onclick="retryExport()">
+                        <i class="fa fa-refresh"></i> Reintentar
+                    </button>
+                </div>
+
+            </div>
+            <div class="modal-footer" id="exportModalFooter">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal para Ver Detalles de Incidencia -->
 <div class="modal fade" id="modalVerIncidencia" tabindex="-1" role="dialog" aria-labelledby="modalVerIncidenciaLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
@@ -916,6 +985,100 @@
             $('#incidenciaContent').hide();
         });
     });
+</script>
+
+<script>
+    var _exportBaseUrl = '{{ data_report_url }}';
+
+    function openExportModal() {
+        $('#exportStateGenerating').show();
+        $('#exportStateReady').hide();
+        $('#exportStateError').hide();
+        $('#modalExportXls').modal('show');
+        startExport();
+    }
+
+    function retryExport() {
+        $('#exportStateError').hide();
+        $('#exportStateGenerating').show();
+        startExport();
+    }
+
+    function startExport() {
+        var p = vueApp.params;
+        $.ajax({
+            url: _exportBaseUrl,
+            type: 'GET',
+            dataType: 'json',
+            timeout: 300000,
+            data: {
+                action: 'xls_async',
+                course_id: p.course_id || '%',
+                session_id: p.session_id || '%',
+                keyword: p.keyword || '',
+                ruc: p.ruc || '0'
+            },
+            success: function(response) {
+                if (response && response.success && response.token) {
+                    $('#exportStateGenerating').hide();
+                    $('#exportStateReady').show();
+                    var downloadUrl = _exportBaseUrl + '?action=xls_download&token=' + encodeURIComponent(response.token);
+                    $('#exportDownloadBtn').attr('href', downloadUrl);
+                    if (response.cached) {
+                        $('#exportReadyMessage').text('¡Reporte disponible! (generado hoy)');
+                        $('#exportCachedNote').show();
+                    } else {
+                        $('#exportReadyMessage').text('¡Reporte generado correctamente!');
+                        $('#exportCachedNote').hide();
+                    }
+                } else if (response && response.generating) {
+                    // El servidor aún está generando, reintentar en 5 segundos
+                    $('#exportStateGenerating').find('.preloader-text').text('Procesando reporte...');
+                    setTimeout(startExport, 5000);
+                } else {
+                    showExportError((response && response.message) || 'Error desconocido al generar el reporte.');
+                }
+            },
+            error: function(xhr, status) {
+                if (status === 'parseerror' && xhr.status === 200) {
+                    // El servidor está generando y emitió output no-JSON (busy), reintentar
+                    $('#exportStateGenerating').find('.preloader-text').text('Procesando reporte...');
+                    setTimeout(startExport, 5000);
+                } else if (status === 'timeout') {
+                    showExportError('El servidor tardó demasiado. Intente con filtros más específicos.');
+                } else {
+                    showExportError('Error del servidor (código ' + xhr.status + '). Intente nuevamente.');
+                }
+            }
+        });
+    }
+
+    function regenerateExport() {
+        var p = vueApp.params;
+        $.ajax({
+            url: _exportBaseUrl,
+            type: 'GET',
+            dataType: 'json',
+            data: {
+                action: 'xls_delete_cache',
+                course_id: p.course_id || '%',
+                session_id: p.session_id || '%',
+                keyword: p.keyword || '',
+                ruc: p.ruc || '0'
+            },
+            complete: function() {
+                $('#exportStateReady').hide();
+                $('#exportStateGenerating').show();
+                startExport();
+            }
+        });
+    }
+
+    function showExportError(msg) {
+        $('#exportStateGenerating').hide();
+        $('#exportStateError').show();
+        $('#exportErrorMessage').text(msg);
+    }
 </script>
 
 <script>

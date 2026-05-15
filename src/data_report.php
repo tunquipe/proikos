@@ -222,6 +222,151 @@ if (isset($action)) {
             Export::arrayToXls($cleanData, $fileName);
             exit;
 
+        case 'xls_delete_cache':
+            header('Content-Type: application/json');
+            $currentUserId = api_get_user_id();
+            $today = date('Y-m-d');
+            $exportParams = ['keyword' => $dni, 'courseId' => $courseId, 'sessionId' => $sessionId, 'ruc' => $ruc];
+            $paramsHash = md5(serialize($exportParams));
+            $exportToken = 'export_' . $currentUserId . '_' . $today . '_' . $paramsHash;
+            $exportDir = __DIR__ . '/../cache/exports/';
+            $exportFile = $exportDir . $exportToken . '.xlsx';
+            if (file_exists($exportFile)) {
+                @unlink($exportFile);
+            }
+            echo json_encode(['success' => true]);
+            exit;
+
+        case 'xls_async':
+            // Capturar cualquier output espurio (xdebug, notices) para que no rompa el JSON
+            ob_start();
+            @ini_set('display_errors', 0);
+            @ini_set('memory_limit', '512M');
+            @set_time_limit(600);
+
+            $currentUserId = api_get_user_id();
+            $today = date('Y-m-d');
+            $exportParams = ['keyword' => $dni, 'courseId' => $courseId, 'sessionId' => $sessionId, 'ruc' => $ruc];
+            $paramsHash = md5(serialize($exportParams));
+            $exportToken = 'export_' . $currentUserId . '_' . $today . '_' . $paramsHash;
+            $exportDir = __DIR__ . '/../cache/exports/';
+            $exportFile = $exportDir . $exportToken . '.xlsx';
+            $lockFile = $exportFile . '.lock';
+
+            if (!is_dir($exportDir)) {
+                mkdir($exportDir, 0777, true);
+                file_put_contents($exportDir . 'index.html', '');
+            }
+
+            // Limpiar archivos de exportación de días anteriores del usuario
+            foreach (glob($exportDir . 'export_' . $currentUserId . '_*.xlsx') as $oldFile) {
+                if (strpos(basename($oldFile), 'export_' . $currentUserId . '_' . $today . '_') === false) {
+                    @unlink($oldFile);
+                }
+            }
+
+            if (file_exists($exportFile)) {
+                ob_clean();
+                header('Content-Type: application/json');
+                echo json_encode(['success' => true, 'cached' => true, 'token' => $exportToken]);
+                exit;
+            }
+
+            // Si hay un lock activo, indicar que todavía está generando
+            if (file_exists($lockFile) && (time() - filemtime($lockFile)) < 300) {
+                ob_clean();
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'generating' => true, 'message' => 'El reporte se está generando, espere un momento.']);
+                exit;
+            }
+
+            // Crear lock para evitar generaciones paralelas
+            file_put_contents($lockFile, time());
+
+            // Intentar obtener datos del caché JSON
+            $cacheParams = ['keyword' => $dni, 'courseId' => $courseId, 'sessionId' => $sessionId, 'ruc' => $ruc, 'page' => 1, 'perPage' => 9999, 'export' => 'xls'];
+            $cachedData = $cacheManager->get($cacheParams);
+            if ($cachedData !== null && isset($cachedData['data'])) {
+                $rawData = $cachedData['data'];
+            } else {
+                $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, 1, 9999, true);
+                $cacheManager->set($cacheParams, $rawData);
+            }
+
+            $xlsHeaders = ['Nº','Codigo','Fecha','Nº Horas','Curso','Sesión','Apellidos y Nombres','DNI / C.E','RUC','Nombre de Empresa','Sede','Examen de entrada - 10%','Taller - 60%','Examen de salida - 30%','Puntaje','Estado','Observaciones certificado','F. Emision Certificado','F. Vencimiento Certificado','Adjuntos por el estudiante','Incidencias'];
+            $cleanData = [$xlsHeaders];
+
+            foreach ($rawData['users'] as $row) {
+                $sustenance = $plugin->getSustenanceByUserAndSession($row['id'], $row['session_id']);
+                $cleanData[] = [
+                    'id' => $row['id'],
+                    'code_user' => 'PROK'.$row['id'],
+                    'registration_date' => $row['registration_date_normal'],
+                    'time_course' => $row['time_course'],
+                    'session_category_name' => $row['session_category_name'],
+                    'session_name' => $row['session_name'],
+                    'student' => $row['student'],
+                    'DNI' => $row['DNI'],
+                    'ruc_company' => $row['ruc_company'],
+                    'name_company' => $row['name_company'],
+                    'area' => $row['area'],
+                    'examen_de_entrada' => isset($row['exams']['examen_de_entrada']) ? $row['exams']['examen_de_entrada'] : 0,
+                    'taller' => isset($row['exams']['taller']) ? $row['exams']['taller'] : 0,
+                    'examen_de_salida' => isset($row['exams']['examen_de_salida']) ? $row['exams']['examen_de_salida'] : 0,
+                    'score' => $row['score'],
+                    'status' => strip_tags($row['status']),
+                    'certificate_status' => $row['certificate_status'],
+                    'created_at' => $row['certificate_date']['created_at'],
+                    'expiration_date' => $row['certificate_date']['expiration_date'],
+                    'metadata_exists' => $row['metadata_exists'],
+                    'sustenance' => $sustenance,
+                ];
+            }
+
+            $excel = @new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $rowNum = 1;
+            foreach ($cleanData as $item) {
+                $values = array_values($item);
+                for ($i = 0; $i < count($values); $i++) {
+                    @$excel->getActiveSheet()->setCellValueByColumnAndRow($i + 1, $rowNum, $values[$i]);
+                }
+                $rowNum++;
+            }
+            $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($excel, 'Xlsx');
+            $writer->save($exportFile);
+            @unlink($lockFile);
+
+            ob_clean();
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'cached' => false, 'token' => $exportToken]);
+            exit;
+
+        case 'xls_download':
+            $token = $_GET['token'] ?? '';
+            $currentUserId = api_get_user_id();
+            $today = date('Y-m-d');
+
+            if (!preg_match('/^export_[0-9]+_[0-9]{4}-[0-9]{2}-[0-9]{2}_[a-f0-9]{32}$/', $token)) {
+                http_response_code(400);
+                die('Token inválido');
+            }
+            // Verify token belongs to current user and today
+            if (strpos($token, 'export_' . $currentUserId . '_' . $today . '_') !== 0) {
+                http_response_code(403);
+                die('Acceso no autorizado');
+            }
+
+            $exportDir = __DIR__ . '/../cache/exports/';
+            $exportFile = $exportDir . $token . '.xlsx';
+
+            if (!file_exists($exportFile)) {
+                http_response_code(404);
+                die('Archivo no encontrado. Por favor genere el reporte nuevamente.');
+            }
+
+            DocumentManager::file_send_for_download($exportFile, true, 'reporte_data_' . $today . '.xlsx');
+            exit;
+
         default:
             break;
     }
@@ -459,13 +604,8 @@ $actionsLeft = $form->returnForm();
 
 $actionsRight = Display::url(
     Display::return_icon('export_excel.png', get_lang('ExportAsXLS'), [], ICON_SIZE_MEDIUM),
-    api_get_self() . '?' . http_build_query([
-        'action' => 'xls',
-        'course_id' => $courseId,
-        'session_id' => $sessionId,
-        'keyword' => $dni,
-        'ruc' => $ruc
-    ])
+    'javascript:void(0)',
+    ['onclick' => 'openExportModal()', 'title' => 'Exportar Excel']
 );
 
 $toolbarActions = Display::toolbarAction('toolbarData', [$actionsLeft, '', $actionsRight], [9, 1, 2]);
