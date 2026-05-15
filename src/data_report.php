@@ -58,6 +58,19 @@ $dni = $_GET['keyword'] ?? null;
 $courseId = $_GET['course_id'] ?? '%';
 $sessionId = $_GET['session_id'] ?? '%';
 $ruc = $_GET['ruc'] ?? '0';
+$dateFrom = $_GET['date_from'] ?? '';  // formato YYYY-MM-DD (primer día del mes)
+$dateTo   = $_GET['date_to']   ?? '';  // formato YYYY-MM-DD (último día del mes)
+
+// Validar que el rango no supere 3 meses
+if (!empty($dateFrom) && !empty($dateTo)) {
+    $dfObj = new DateTime($dateFrom);
+    $dtObj = new DateTime($dateTo);
+    $diff  = $dfObj->diff($dtObj);
+    $monthsDiff = $diff->y * 12 + $diff->m + ($diff->d > 0 ? 1 : 0);
+    if ($monthsDiff > 3) {
+        $dateTo = (clone $dfObj)->modify('+2 months')->modify('last day of this month')->format('Y-m-d');
+    }
+}
 
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $perPage = isset($_GET['perPage']) ? (int)$_GET['perPage'] : 25;
@@ -151,8 +164,10 @@ if (isset($action)) {
                 'courseId' => $courseId,
                 'sessionId' => $sessionId,
                 'ruc' => $ruc,
+                'dateFrom' => $dateFrom,
+                'dateTo' => $dateTo,
                 'page' => 1,
-                'perPage' => 9999, // Todos los registros para exportar
+                'perPage' => 9999,
                 'export' => 'xls'
             ];
 
@@ -163,7 +178,7 @@ if (isset($action)) {
                 $rawData = $cachedData['data'];
             } else {
                 // No hay caché, consultar DB
-                $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, 1, 9999, true);
+                $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, 1, 9999, true, 'DESC', $dateFrom, $dateTo);
                 $cacheManager->set($cacheParams, $rawData);
             }
 
@@ -226,7 +241,7 @@ if (isset($action)) {
             header('Content-Type: application/json');
             $currentUserId = api_get_user_id();
             $today = date('Y-m-d');
-            $exportParams = ['keyword' => $dni, 'courseId' => $courseId, 'sessionId' => $sessionId, 'ruc' => $ruc];
+            $exportParams = ['keyword' => $dni, 'courseId' => $courseId, 'sessionId' => $sessionId, 'ruc' => $ruc, 'dateFrom' => $dateFrom, 'dateTo' => $dateTo];
             $paramsHash = md5(serialize($exportParams));
             $exportToken = 'export_' . $currentUserId . '_' . $today . '_' . $paramsHash;
             $exportDir = __DIR__ . '/../cache/exports/';
@@ -246,7 +261,7 @@ if (isset($action)) {
 
             $currentUserId = api_get_user_id();
             $today = date('Y-m-d');
-            $exportParams = ['keyword' => $dni, 'courseId' => $courseId, 'sessionId' => $sessionId, 'ruc' => $ruc];
+            $exportParams = ['keyword' => $dni, 'courseId' => $courseId, 'sessionId' => $sessionId, 'ruc' => $ruc, 'dateFrom' => $dateFrom, 'dateTo' => $dateTo];
             $paramsHash = md5(serialize($exportParams));
             $exportToken = 'export_' . $currentUserId . '_' . $today . '_' . $paramsHash;
             $exportDir = __DIR__ . '/../cache/exports/';
@@ -284,12 +299,12 @@ if (isset($action)) {
             file_put_contents($lockFile, time());
 
             // Intentar obtener datos del caché JSON
-            $cacheParams = ['keyword' => $dni, 'courseId' => $courseId, 'sessionId' => $sessionId, 'ruc' => $ruc, 'page' => 1, 'perPage' => 9999, 'export' => 'xls'];
+            $cacheParams = ['keyword' => $dni, 'courseId' => $courseId, 'sessionId' => $sessionId, 'ruc' => $ruc, 'dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'page' => 1, 'perPage' => 9999, 'export' => 'xls'];
             $cachedData = $cacheManager->get($cacheParams);
             if ($cachedData !== null && isset($cachedData['data'])) {
                 $rawData = $cachedData['data'];
             } else {
-                $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, 1, 9999, true);
+                $rawData = $plugin->getDataReport($dni, $courseId, $sessionId, $ruc, 1, 9999, true, 'DESC', $dateFrom, $dateTo);
                 $cacheManager->set($cacheParams, $rawData);
             }
 
@@ -599,6 +614,108 @@ foreach ($contratingCompanies as $company) {
 
 $form->addSelect('ruc', $plugin->get_lang('Company_RUC'), $listRuc);
 
+// Selectores mes/año para filtro de fecha de sesión
+$months = ['' => 'Mes', '01' => 'Enero', '02' => 'Febrero', '03' => 'Marzo', '04' => 'Abril', '05' => 'Mayo', '06' => 'Junio', '07' => 'Julio', '08' => 'Agosto', '09' => 'Septiembre', '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre'];
+$currentYear = (int) date('Y');
+$years = ['' => 'Año'];
+for ($y = $currentYear; $y >= $currentYear - 5; $y--) {
+    $years[$y] = $y;
+}
+
+// Extraer mes/año actuales de $dateFrom y $dateTo
+$fromMonth = $dateFrom ? substr($dateFrom, 5, 2) : '';
+$fromYear  = $dateFrom ? substr($dateFrom, 0, 4) : '';
+$toMonth   = $dateTo   ? substr($dateTo, 5, 2)   : '';
+$toYear    = $dateTo   ? substr($dateTo, 0, 4)   : '';
+
+$form->addHtml(
+    '<div class="form-group" style="display:inline-block; vertical-align:bottom; margin-left:8px;">' .
+    '<label style="display:block; font-size:12px; margin-bottom:2px;">Desde (mes/año)</label>' .
+    '<div style="display:flex; gap:4px;">' .
+    '<select name="from_month" class="form-control input-sm" style="width:100px;">'
+);
+foreach ($months as $val => $label) {
+    $sel = ($fromMonth === $val) ? ' selected' : '';
+    $form->addHtml("<option value=\"{$val}\"{$sel}>{$label}</option>");
+}
+$form->addHtml(
+    '</select>' .
+    '<select name="from_year" class="form-control input-sm" style="width:78px;">'
+);
+foreach ($years as $val => $label) {
+    $sel = ((string)$fromYear === (string)$val) ? ' selected' : '';
+    $form->addHtml("<option value=\"{$val}\"{$sel}>{$label}</option>");
+}
+$form->addHtml(
+    '</select></div></div>' .
+    '<div class="form-group" style="display:inline-block; vertical-align:bottom; margin-left:8px;">' .
+    '<label style="display:block; font-size:12px; margin-bottom:2px;">Hasta (mes/año) <span style="color:#888; font-size:11px;">máx. 3 meses</span></label>' .
+    '<div style="display:flex; gap:4px;">' .
+    '<select name="to_month" class="form-control input-sm" style="width:100px;">'
+);
+foreach ($months as $val => $label) {
+    $sel = ($toMonth === $val) ? ' selected' : '';
+    $form->addHtml("<option value=\"{$val}\"{$sel}>{$label}</option>");
+}
+$form->addHtml(
+    '</select>' .
+    '<select name="to_year" class="form-control input-sm" style="width:78px;">'
+);
+foreach ($years as $val => $label) {
+    $sel = ((string)$toYear === (string)$val) ? ' selected' : '';
+    $form->addHtml("<option value=\"{$val}\"{$sel}>{$label}</option>");
+}
+$form->addHtml('</select></div></div>');
+
+// JS para convertir mes/año → date_from / date_to y validar max 3 meses antes de submit
+$form->addHtml(<<<EOT
+<script>
+$(document).ready(function() {
+    $('form[name="search_simple"]').on('submit', function(e) {
+        var fromM = $('select[name="from_month"]').val();
+        var fromY = $('select[name="from_year"]').val();
+        var toM   = $('select[name="to_month"]').val();
+        var toY   = $('select[name="to_year"]').val();
+
+        if ((fromM && !fromY) || (!fromM && fromY) || (toM && !toY) || (!toM && toY)) {
+            alert('Por favor seleccione mes Y año para el filtro de fecha.');
+            e.preventDefault();
+            return;
+        }
+
+        if (fromM && fromY) {
+            var lastDay = new Date(parseInt(fromY), parseInt(fromM), 0).getDate();
+            $('<input>').attr({type:'hidden', name:'date_from', value: fromY+'-'+fromM+'-01'}).appendTo(this);
+
+            if (toM && toY) {
+                var fromDate = new Date(parseInt(fromY), parseInt(fromM)-1, 1);
+                var toDate   = new Date(parseInt(toY),   parseInt(toM)-1,   1);
+                var monthsDiff = (toDate.getFullYear() - fromDate.getFullYear()) * 12 + (toDate.getMonth() - fromDate.getMonth());
+
+                if (toDate < fromDate) {
+                    alert('La fecha "Hasta" no puede ser anterior a "Desde".');
+                    e.preventDefault();
+                    return;
+                }
+                if (monthsDiff > 2) {
+                    alert('El rango máximo es 3 meses. Se ajustará automáticamente.');
+                    toDate = new Date(fromDate.getFullYear(), fromDate.getMonth() + 2, 1);
+                    toY = toDate.getFullYear();
+                    toM = String(toDate.getMonth() + 1).padStart(2, '0');
+                }
+                var toLastDay = new Date(parseInt(toY), parseInt(toM), 0).getDate();
+                $('<input>').attr({type:'hidden', name:'date_to', value: toY+'-'+toM+'-'+toLastDay}).appendTo(this);
+            } else {
+                // Sin "hasta": usar último día del mes "desde"
+                $('<input>').attr({type:'hidden', name:'date_to', value: fromY+'-'+fromM+'-'+lastDay}).appendTo(this);
+            }
+        }
+    });
+});
+</script>
+EOT
+);
+
 $form->addButtonSearch(get_lang('Search'));
 $actionsLeft = $form->returnForm();
 
@@ -618,6 +735,8 @@ $vueParams = json_encode([
     'course_id' => $courseId,
     'session_id' => $sessionId,
     'ruc' => $ruc,
+    'date_from' => $dateFrom,
+    'date_to' => $dateTo,
     'page' => $page,
     'perPage' => $perPage,
     'ajaxUrl' => $urlAjaxPlugin

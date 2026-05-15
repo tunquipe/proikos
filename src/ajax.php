@@ -998,6 +998,8 @@ if ($action) {
             $courseId = $_GET['course_id'] ?? '%';
             $sessionId = $_GET['session_id'] ?? '%';
             $ruc = $_GET['ruc'] ?? '0';
+            $dateFrom = $_GET['date_from'] ?? '';
+            $dateTo   = $_GET['date_to']   ?? '';
             $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
             $perPage = isset($_GET['perPage']) ? (int)$_GET['perPage'] : 25;
 
@@ -1028,6 +1030,8 @@ if ($action) {
                 'courseId' => $courseId,
                 'sessionId' => $sessionId,
                 'ruc' => $ruc,
+                'dateFrom' => $dateFrom,
+                'dateTo' => $dateTo,
                 'page' => $page,
                 'perPage' => $perPage
             ];
@@ -1059,7 +1063,11 @@ if ($action) {
                     $sessionId,
                     $ruc,
                     $page,
-                    $perPage
+                    $perPage,
+                    false,
+                    'DESC',
+                    $dateFrom,
+                    $dateTo
                 );
 
                 // Guardar en caché

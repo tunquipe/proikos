@@ -546,8 +546,18 @@
 </div>
 
 <!-- Modal Exportación Excel -->
+<style>
+    .export-date-row { display:flex; gap:8px; align-items:flex-end; justify-content:center; margin-bottom:10px; }
+    .export-date-col { text-align:left; }
+    .export-date-col label { display:block; font-size:12px; color:#555; margin-bottom:3px; font-weight:600; }
+    .export-date-col select { width:110px; }
+    .export-date-separator { font-size:20px; color:#aaa; padding-bottom:4px; }
+    #exportDateError { color:#c0392b; font-size:13px; margin-top:8px; display:none; }
+    .export-range-badge { display:inline-block; background:#e8f5e9; color:#1d7b3e; border:1px solid #a5d6a7; border-radius:4px; padding:4px 10px; font-size:12px; margin-top:10px; }
+</style>
+
 <div class="modal fade" id="modalExportXls" tabindex="-1" role="dialog" aria-labelledby="modalExportXlsLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document" style="max-width: 480px;">
+    <div class="modal-dialog" role="document" style="max-width: 500px;">
         <div class="modal-content">
             <div class="modal-header" style="background-color: #1d7b3e; color: #fff;">
                 <h5 class="modal-title" id="modalExportXlsLabel">
@@ -557,10 +567,45 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body text-center" style="padding: 35px 20px;">
+            <div class="modal-body text-center" style="padding: 30px 24px;">
+
+                <!-- Estado: selección de fechas -->
+                <div id="exportStateSelect">
+                    <p style="font-size:15px; font-weight:600; color:#333; margin-bottom:4px;">
+                        <i class="fa fa-calendar" style="color:#1d7b3e;"></i> Seleccione el período a exportar
+                    </p>
+                    <p style="font-size:12px; color:#888; margin-bottom:18px;">Máximo 3 meses por exportación</p>
+
+                    <div class="export-date-row">
+                        <div class="export-date-col">
+                            <label>Desde</label>
+                            <div style="display:flex; gap:4px;">
+                                <select id="expFromMonth" class="form-control input-sm"></select>
+                                <select id="expFromYear"  class="form-control input-sm" style="width:78px;"></select>
+                            </div>
+                        </div>
+                        <div class="export-date-separator">→</div>
+                        <div class="export-date-col">
+                            <label>Hasta <span style="font-weight:400; color:#aaa;">(máx. 3 meses)</span></label>
+                            <div style="display:flex; gap:4px;">
+                                <select id="expToMonth" class="form-control input-sm"></select>
+                                <select id="expToYear"  class="form-control input-sm" style="width:78px;"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="exportDateError"></div>
+                    <div id="exportRangeBadge" class="export-range-badge" style="display:none;"></div>
+
+                    <div style="margin-top:20px;">
+                        <button class="btn btn-success" onclick="confirmExportDates()" style="padding:8px 28px; font-size:14px;">
+                            <i class="fa fa-cog"></i> Generar reporte
+                        </button>
+                    </div>
+                </div>
 
                 <!-- Estado: generando -->
-                <div id="exportStateGenerating">
+                <div id="exportStateGenerating" style="display:none;">
                     <div style="margin-bottom: 18px;">
                         <div class="spinner-container" style="margin: 0 auto 15px;">
                             <div class="spinner-ring"></div>
@@ -568,28 +613,38 @@
                             <div class="spinner-ring"></div>
                         </div>
                     </div>
-                    <p style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 6px;">Generando reporte...</p>
+                    <p class="preloader-text" style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 6px;">Generando reporte...</p>
                     <p style="font-size: 13px; color: #666;">Por favor espere, esto puede tomar unos segundos.</p>
+                    <div id="exportGeneratingRange" style="margin-top:10px; font-size:12px; color:#888;"></div>
                     <div class="progress-bar-container" style="margin: 15px auto 0;">
                         <div class="progress-bar-animated"></div>
                     </div>
                 </div>
 
-                <!-- Estado: listo (descarga disponible) -->
+                <!-- Estado: listo -->
                 <div id="exportStateReady" style="display:none;">
                     <div style="font-size: 54px; color: #1d7b3e; margin-bottom: 12px;">
                         <i class="fa fa-check-circle"></i>
                     </div>
-                    <p id="exportReadyMessage" style="font-size: 15px; font-weight: 600; color: #333; margin-bottom: 18px;"></p>
+                    <p id="exportReadyMessage" style="font-size: 15px; font-weight: 600; color: #333; margin-bottom: 6px;"></p>
+                    <p id="exportReadyRange" style="font-size:13px; color:#888; margin-bottom:16px;"></p>
                     <a id="exportDownloadBtn" href="#" class="btn btn-success btn-lg" style="padding: 10px 30px; font-size: 15px;">
                         <i class="fa fa-download"></i> Descargar Excel
                     </a>
                     <div id="exportCachedNote" style="margin-top: 14px; display:none;">
                         <p style="font-size: 12px; color: #888; margin-bottom: 8px;">
-                            <i class="fa fa-info-circle"></i> Este archivo fue generado hoy y está disponible en caché.
+                            <i class="fa fa-info-circle"></i> Este archivo fue generado hoy y está en caché.
                         </p>
                         <button class="btn btn-default btn-sm" onclick="regenerateExport()">
-                            <i class="fa fa-refresh"></i> Regenerar reporte
+                            <i class="fa fa-refresh"></i> Regenerar
+                        </button>
+                        <button class="btn btn-default btn-sm" onclick="backToExportSelect()" style="margin-left:6px;">
+                            <i class="fa fa-calendar"></i> Cambiar período
+                        </button>
+                    </div>
+                    <div id="exportNewRangeNote" style="margin-top:12px; display:none;">
+                        <button class="btn btn-default btn-sm" onclick="backToExportSelect()">
+                            <i class="fa fa-calendar"></i> Exportar otro período
                         </button>
                     </div>
                 </div>
@@ -601,13 +656,16 @@
                     </div>
                     <p style="font-size: 15px; font-weight: 600; color: #333; margin-bottom: 8px;">Error al generar el reporte</p>
                     <p id="exportErrorMessage" style="font-size: 13px; color: #666; margin-bottom: 18px;"></p>
-                    <button class="btn btn-primary" onclick="retryExport()">
+                    <button class="btn btn-primary" onclick="retryExport()" style="margin-right:8px;">
                         <i class="fa fa-refresh"></i> Reintentar
+                    </button>
+                    <button class="btn btn-default" onclick="backToExportSelect()">
+                        <i class="fa fa-calendar"></i> Cambiar período
                     </button>
                 </div>
 
             </div>
-            <div class="modal-footer" id="exportModalFooter">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
             </div>
         </div>
@@ -786,6 +844,8 @@
             url += '&course_id=' + encodeURIComponent(this.params.course_id || '%');
             url += '&session_id=' + encodeURIComponent(this.params.session_id || '%');
             url += '&ruc=' + encodeURIComponent(this.params.ruc || '0');
+            url += '&date_from=' + encodeURIComponent(this.params.date_from || '');
+            url += '&date_to=' + encodeURIComponent(this.params.date_to || '');
             url += '&page=' + this.pagination.currentPage;
             url += '&perPage=' + this.pagination.perPage;
 
@@ -989,23 +1049,148 @@
 
 <script>
     var _exportBaseUrl = '{{ data_report_url }}';
+    var _exportCurrentDateFrom = '';
+    var _exportCurrentDateTo   = '';
+
+    var _expMonthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+    function _buildMonthOptions(selectId, selectedVal) {
+        var $s = $('#' + selectId).empty();
+        $s.append('<option value="">Mes</option>');
+        for (var i = 1; i <= 12; i++) {
+            var v = String(i).padStart(2,'0');
+            $s.append('<option value="'+v+'"'+(v===selectedVal?' selected':'')+'>'+_expMonthNames[i-1]+'</option>');
+        }
+    }
+
+    function _buildYearOptions(selectId, selectedVal) {
+        var $s = $('#' + selectId).empty();
+        var now = new Date().getFullYear();
+        $s.append('<option value="">Año</option>');
+        for (var y = now; y >= now - 5; y--) {
+            $s.append('<option value="'+y+'"'+(String(y)===String(selectedVal)?' selected':'')+'>'+y+'</option>');
+        }
+    }
+
+    function _lastDayOf(year, month) {
+        return new Date(parseInt(year), parseInt(month), 0).getDate();
+    }
+
+    function _monthLabel(ym) { // ym = "YYYY-MM"
+        if (!ym) return '';
+        var parts = ym.split('-');
+        return _expMonthNames[parseInt(parts[1])-1] + ' ' + parts[0];
+    }
+
+    function _rangeLabel(from, to) {
+        return _monthLabel(from.substring(0,7)) + ' → ' + _monthLabel(to.substring(0,7));
+    }
 
     function openExportModal() {
-        $('#exportStateGenerating').show();
+        var p = vueApp.params;
+        var preFrom = (p.date_from || '').substring(0,7); // "YYYY-MM"
+        var preTo   = (p.date_to   || '').substring(0,7);
+
+        _buildMonthOptions('expFromMonth', preFrom.substring(5,7));
+        _buildYearOptions ('expFromYear',  preFrom.substring(0,4));
+        _buildMonthOptions('expToMonth',   preTo.substring(5,7));
+        _buildYearOptions ('expToYear',    preTo.substring(0,4));
+
+        $('#exportDateError').hide().text('');
+        $('#exportRangeBadge').hide();
+
+        // Actualizar badge cuando cambian los selectores
+        $('#expFromMonth, #expFromYear, #expToMonth, #expToYear').off('change.exp').on('change.exp', _updateRangeBadge);
+        _updateRangeBadge();
+
+        $('#exportStateSelect').show();
+        $('#exportStateGenerating').hide();
         $('#exportStateReady').hide();
         $('#exportStateError').hide();
         $('#modalExportXls').modal('show');
+    }
+
+    function _updateRangeBadge() {
+        var fm = $('#expFromMonth').val(), fy = $('#expFromYear').val();
+        var tm = $('#expToMonth').val(),   ty = $('#expToYear').val();
+        if (fm && fy && tm && ty) {
+            var from = new Date(parseInt(fy), parseInt(fm)-1, 1);
+            var to   = new Date(parseInt(ty), parseInt(tm)-1, 1);
+            var diff = (to.getFullYear()-from.getFullYear())*12 + (to.getMonth()-from.getMonth());
+            var label = _expMonthNames[parseInt(fm)-1]+' '+fy+' → '+_expMonthNames[parseInt(tm)-1]+' '+ty;
+            if (diff < 0) {
+                $('#exportRangeBadge').hide();
+            } else {
+                var months = diff + 1;
+                $('#exportRangeBadge').text(label + ' (' + months + ' mes' + (months>1?'es':'') + ')').show();
+            }
+        } else if (fm && fy) {
+            $('#exportRangeBadge').text(_expMonthNames[parseInt(fm)-1]+' '+fy+' (1 mes)').show();
+        } else {
+            $('#exportRangeBadge').hide();
+        }
+    }
+
+    function confirmExportDates() {
+        var fm = $('#expFromMonth').val(), fy = $('#expFromYear').val();
+        var tm = $('#expToMonth').val(),   ty = $('#expToYear').val();
+        var $err = $('#exportDateError');
+        $err.hide().text('');
+
+        if (!fm || !fy) { $err.text('Seleccione el mes y año de inicio.').show(); return; }
+
+        var fromDate = new Date(parseInt(fy), parseInt(fm)-1, 1);
+        var toDate;
+
+        if (tm && ty) {
+            toDate = new Date(parseInt(ty), parseInt(tm)-1, 1);
+            if (toDate < fromDate) { $err.text('La fecha "Hasta" no puede ser anterior a "Desde".').show(); return; }
+            var diff = (toDate.getFullYear()-fromDate.getFullYear())*12 + (toDate.getMonth()-fromDate.getMonth());
+            if (diff > 2) {
+                toDate = new Date(fromDate.getFullYear(), fromDate.getMonth()+2, 1);
+                ty = toDate.getFullYear();
+                tm = String(toDate.getMonth()+1).padStart(2,'0');
+                $err.text('Rango ajustado a 3 meses máximo.').show();
+            }
+        } else {
+            toDate = fromDate;
+            ty = fy; tm = fm;
+        }
+
+        _exportCurrentDateFrom = fy+'-'+fm+'-01';
+        var toLastDay = _lastDayOf(ty, tm);
+        _exportCurrentDateTo = ty+'-'+tm+'-'+toLastDay;
+
+        var rangeText = _rangeLabel(_exportCurrentDateFrom, _exportCurrentDateTo);
+        $('#exportStateSelect').hide();
+        $('#exportStateGenerating').show();
+        $('#exportGeneratingRange').text(rangeText);
+        $('.preloader-text').text('Generando reporte...');
+
         startExport();
+    }
+
+    function backToExportSelect() {
+        $('#exportStateReady').hide();
+        $('#exportStateError').hide();
+        $('#exportStateGenerating').hide();
+        $('#exportStateSelect').show();
+        _exportCurrentDateFrom = '';
+        _exportCurrentDateTo   = '';
     }
 
     function retryExport() {
         $('#exportStateError').hide();
         $('#exportStateGenerating').show();
+        $('.preloader-text').text('Generando reporte...');
         startExport();
     }
 
     function startExport() {
         var p = vueApp.params;
+        var dateFrom = _exportCurrentDateFrom || p.date_from || '';
+        var dateTo   = _exportCurrentDateTo   || p.date_to   || '';
+
         $.ajax({
             url: _exportBaseUrl,
             type: 'GET',
@@ -1016,7 +1201,9 @@
                 course_id: p.course_id || '%',
                 session_id: p.session_id || '%',
                 keyword: p.keyword || '',
-                ruc: p.ruc || '0'
+                ruc: p.ruc || '0',
+                date_from: dateFrom,
+                date_to: dateTo
             },
             success: function(response) {
                 if (response && response.success && response.token) {
@@ -1024,16 +1211,19 @@
                     $('#exportStateReady').show();
                     var downloadUrl = _exportBaseUrl + '?action=xls_download&token=' + encodeURIComponent(response.token);
                     $('#exportDownloadBtn').attr('href', downloadUrl);
+                    var rangeText = dateFrom ? _rangeLabel(dateFrom, dateTo) : '';
+                    $('#exportReadyRange').text(rangeText ? 'Período: ' + rangeText : '');
                     if (response.cached) {
                         $('#exportReadyMessage').text('¡Reporte disponible! (generado hoy)');
                         $('#exportCachedNote').show();
+                        $('#exportNewRangeNote').hide();
                     } else {
                         $('#exportReadyMessage').text('¡Reporte generado correctamente!');
                         $('#exportCachedNote').hide();
+                        $('#exportNewRangeNote').show();
                     }
                 } else if (response && response.generating) {
-                    // El servidor aún está generando, reintentar en 5 segundos
-                    $('#exportStateGenerating').find('.preloader-text').text('Procesando reporte...');
+                    $('.preloader-text').text('Procesando reporte...');
                     setTimeout(startExport, 5000);
                 } else {
                     showExportError((response && response.message) || 'Error desconocido al generar el reporte.');
@@ -1041,11 +1231,10 @@
             },
             error: function(xhr, status) {
                 if (status === 'parseerror' && xhr.status === 200) {
-                    // El servidor está generando y emitió output no-JSON (busy), reintentar
-                    $('#exportStateGenerating').find('.preloader-text').text('Procesando reporte...');
+                    $('.preloader-text').text('Procesando reporte...');
                     setTimeout(startExport, 5000);
                 } else if (status === 'timeout') {
-                    showExportError('El servidor tardó demasiado. Intente con filtros más específicos.');
+                    showExportError('El servidor tardó demasiado. Intente con un rango menor.');
                 } else {
                     showExportError('Error del servidor (código ' + xhr.status + '). Intente nuevamente.');
                 }
@@ -1055,6 +1244,8 @@
 
     function regenerateExport() {
         var p = vueApp.params;
+        var dateFrom = _exportCurrentDateFrom || p.date_from || '';
+        var dateTo   = _exportCurrentDateTo   || p.date_to   || '';
         $.ajax({
             url: _exportBaseUrl,
             type: 'GET',
@@ -1064,11 +1255,15 @@
                 course_id: p.course_id || '%',
                 session_id: p.session_id || '%',
                 keyword: p.keyword || '',
-                ruc: p.ruc || '0'
+                ruc: p.ruc || '0',
+                date_from: dateFrom,
+                date_to: dateTo
             },
             complete: function() {
                 $('#exportStateReady').hide();
                 $('#exportStateGenerating').show();
+                $('.preloader-text').text('Generando reporte...');
+                $('#exportGeneratingRange').text(dateFrom ? _rangeLabel(dateFrom, dateTo) : '');
                 startExport();
             }
         });

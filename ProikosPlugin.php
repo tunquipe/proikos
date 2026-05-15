@@ -4662,7 +4662,7 @@ EOT;
         ];
     }
 
-    public function getDataReport($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false): array
+    public function getDataReport($dni = null, $courseId = 0, $session_id = 0, $ruc = 0, $page = 1, $perPage = 10, $isExport = false, $sortOrder = 'DESC', $dateFrom = null, $dateTo = null): array
     {
         $tbl_course = Database::get_main_table(TABLE_MAIN_COURSE);
         $tbl_session_course_user = Database::get_main_table(TABLE_MAIN_SESSION_COURSE_USER);
@@ -4749,6 +4749,16 @@ EOT;
                 $sql.= " AND ppu.ruc_company = $ruc ";
             }
         }
+
+        if (!empty($dateFrom)) {
+            $dateFromSafe = Database::escape_string($dateFrom);
+            $sql .= " AND s.display_start_date >= '$dateFromSafe 00:00:00' ";
+        }
+        if (!empty($dateTo)) {
+            $dateToSafe = Database::escape_string($dateTo);
+            $sql .= " AND s.display_start_date <= '$dateToSafe 23:59:59' ";
+        }
+
         if (!$isExport) {
             $sql.= " ORDER BY u.id DESC LIMIT $offset, $perPage;";
         } else {
