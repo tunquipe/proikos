@@ -156,6 +156,8 @@ class ProikosCacheManager
             'courseId' => $params['courseId'] ?? '%',
             'sessionId' => $params['sessionId'] ?? '%',
             'ruc' => $params['ruc'] ?? '0',
+            'dateFrom' => $params['dateFrom'] ?? '',
+            'dateTo' => $params['dateTo'] ?? '',
             'page' => $params['page'] ?? 1,
             'perPage' => $params['perPage'] ?? 25,
             'export' => $params['export'] ?? false
