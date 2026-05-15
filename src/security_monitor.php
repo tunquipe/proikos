@@ -492,8 +492,34 @@ $content .= '</div>'; // end tab-servidor
 // -----------------------------------------------------------------------
 // TAB — Rendimiento histórico
 // -----------------------------------------------------------------------
-// Consultar datos para gráficos
 $metricsTable = 'plugin_proikos_server_metrics';
+
+// Crear tabla si aún no existe (primera vez)
+Database::query("
+CREATE TABLE IF NOT EXISTS `$metricsTable` (
+    `id`                 INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `recorded_at`        DATETIME     NOT NULL,
+    `hour_of_day`        TINYINT      NOT NULL,
+    `day_of_week`        TINYINT      NOT NULL,
+    `cpu_pct`            DECIMAL(5,2) DEFAULT NULL,
+    `cpu_cores`          TINYINT      DEFAULT NULL,
+    `ram_pct`            DECIMAL(5,2) DEFAULT NULL,
+    `ram_used_gb`        DECIMAL(6,2) DEFAULT NULL,
+    `ram_total_gb`       DECIMAL(6,2) DEFAULT NULL,
+    `disk_pct`           DECIMAL(5,2) DEFAULT NULL,
+    `disk_used_gb`       SMALLINT     DEFAULT NULL,
+    `disk_total_gb`      SMALLINT     DEFAULT NULL,
+    `load_1min`          DECIMAL(6,2) DEFAULT NULL,
+    `load_5min`          DECIMAL(6,2) DEFAULT NULL,
+    `load_15min`         DECIMAL(6,2) DEFAULT NULL,
+    `load_pct`           DECIMAL(5,2) DEFAULT NULL,
+    `apache_active`      TINYINT(1)   DEFAULT NULL,
+    `mysql_active`       TINYINT(1)   DEFAULT NULL,
+    `active_connections` SMALLINT     DEFAULT NULL,
+    INDEX `idx_recorded_at` (`recorded_at`),
+    INDEX `idx_hour`        (`hour_of_day`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+");
 
 // Últimas 24 horas (un punto por hora)
 $rows24h = [];
