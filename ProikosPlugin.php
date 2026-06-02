@@ -85,6 +85,7 @@ class ProikosPlugin extends Plugin
                 'highest_score_exercise'  => 'boolean',
                 'cache_data_admin'  => 'text',
                 'cache_data_manager'  => 'text',
+                'session_selector_days'  => 'text',
                 self::TOOL_ENABLED => 'boolean',
                 'force_results_view' => 'boolean'
             ]

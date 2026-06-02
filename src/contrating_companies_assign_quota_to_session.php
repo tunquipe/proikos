@@ -75,18 +75,15 @@ $deleteIcon = Display::return_icon(
 );
 $detalle = $plugin->contratingCompaniesQuotaCabModel()->getDetails($_GET['quota_cab_id']);
 $today = date('Y-m-d');
+$selectorDays = (int) $plugin->get('session_selector_days');
+if ($selectorDays <= 0) {
+    $selectorDays = 7;
+}
+$weekEnd = date('Y-m-d', strtotime("+$selectorDays days"));
 $whereClause = "
     1 = 1
-    AND (
-        display_start_date >= '$today'
-        OR (
-            display_start_date <= '$today'
-            AND (
-                display_end_date IS NULL
-                OR display_end_date >= '$today'
-            )
-        )
-    )
+    AND display_start_date >= '$today'
+    AND display_start_date <= '$weekEnd'
 ";
 $activeSessions = SessionManager::getSessionsForAdmin(
     api_get_user_id(),

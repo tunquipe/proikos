@@ -130,3 +130,4 @@ $strings['SearchUserByDNI'] = 'Search user by DNI';
 $strings['SetQuotaToSessions'] = 'Assign quotas to sessions';
 $strings['StudentName'] = 'Student name';
 $strings['StudentSubscriptionDate'] = 'Subscription date';
+$strings['session_selector_days'] = 'Days to show in session selector (assign quotas)';

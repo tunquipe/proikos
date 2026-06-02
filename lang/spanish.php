@@ -229,6 +229,7 @@ $strings['RegistrationDateLogo'] = 'Fecha registro log';
 
 $strings['cache_data_admin'] = 'Caché data administrador';
 $strings['cache_data_manager'] = 'Caché data gestor';
+$strings['session_selector_days'] = 'Días a mostrar en selector de sesiones (asignar cupos)';
 $strings['AcademicResults'] = 'Resultado Academico';
 $strings['force_results_view'] = 'Forzar  nueva vista de resultados';
 $strings['tools_results_enabled'] = 'Activar herramienta resultados en el curso';
