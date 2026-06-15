@@ -571,31 +571,40 @@
 
                 <!-- Estado: selección de fechas -->
                 <div id="exportStateSelect">
-                    <p style="font-size:15px; font-weight:600; color:#333; margin-bottom:4px;">
-                        <i class="fa fa-calendar" style="color:#1d7b3e;"></i> Seleccione el período a exportar
-                    </p>
-                    <p style="font-size:12px; color:#888; margin-bottom:18px;">Máximo 3 meses por exportación</p>
+                    <div id="exportDateSection">
+                        <p style="font-size:15px; font-weight:600; color:#333; margin-bottom:4px;">
+                            <i class="fa fa-calendar" style="color:#1d7b3e;"></i> Seleccione el período a exportar
+                        </p>
+                        <p style="font-size:12px; color:#888; margin-bottom:18px;">Máximo 3 meses por exportación</p>
 
-                    <div class="export-date-row">
-                        <div class="export-date-col">
-                            <label>Desde</label>
-                            <div style="display:flex; gap:4px;">
-                                <select id="expFromMonth" class="form-control input-sm"></select>
-                                <select id="expFromYear"  class="form-control input-sm" style="width:78px;"></select>
+                        <div class="export-date-row">
+                            <div class="export-date-col">
+                                <label>Desde</label>
+                                <div style="display:flex; gap:4px;">
+                                    <select id="expFromMonth" class="form-control input-sm"></select>
+                                    <select id="expFromYear"  class="form-control input-sm" style="width:78px;"></select>
+                                </div>
+                            </div>
+                            <div class="export-date-separator">→</div>
+                            <div class="export-date-col">
+                                <label>Hasta <span style="font-weight:400; color:#aaa;">(máx. 3 meses)</span></label>
+                                <div style="display:flex; gap:4px;">
+                                    <select id="expToMonth" class="form-control input-sm"></select>
+                                    <select id="expToYear"  class="form-control input-sm" style="width:78px;"></select>
+                                </div>
                             </div>
                         </div>
-                        <div class="export-date-separator">→</div>
-                        <div class="export-date-col">
-                            <label>Hasta <span style="font-weight:400; color:#aaa;">(máx. 3 meses)</span></label>
-                            <div style="display:flex; gap:4px;">
-                                <select id="expToMonth" class="form-control input-sm"></select>
-                                <select id="expToYear"  class="form-control input-sm" style="width:78px;"></select>
-                            </div>
-                        </div>
+
+                        <div id="exportDateError"></div>
+                        <div id="exportRangeBadge" class="export-range-badge" style="display:none;"></div>
                     </div>
 
-                    <div id="exportDateError"></div>
-                    <div id="exportRangeBadge" class="export-range-badge" style="display:none;"></div>
+                    <div id="exportSessionNote" style="display:none; padding:10px 0 4px;">
+                        <p style="font-size:15px; font-weight:600; color:#333; margin-bottom:4px;">
+                            <i class="fa fa-graduation-cap" style="color:#1d7b3e;"></i> Exportar sesión seleccionada
+                        </p>
+                        <p style="font-size:12px; color:#888;">Se exportarán todos los inscritos de la sesión. El rango de fechas no aplica.</p>
+                    </div>
 
                     <div style="margin-top:20px;">
                         <button class="btn btn-success" onclick="confirmExportDates()" style="padding:8px 28px; font-size:14px;">
@@ -1086,8 +1095,23 @@
         return _monthLabel(from.substring(0,7)) + ' → ' + _monthLabel(to.substring(0,7));
     }
 
+    function _hasSessionSelected() {
+        var s = vueApp.params.session_id;
+        return s && s !== '%' && s !== '0';
+    }
+
     function openExportModal() {
         var p = vueApp.params;
+
+        // Si hay una sesión seleccionada, se exporta toda la sesión sin filtro de fecha
+        if (_hasSessionSelected()) {
+            $('#exportDateSection').hide();
+            $('#exportSessionNote').show();
+        } else {
+            $('#exportDateSection').show();
+            $('#exportSessionNote').hide();
+        }
+
         var preFrom = (p.date_from || '').substring(0,7); // "YYYY-MM"
         var preTo   = (p.date_to   || '').substring(0,7);
 
@@ -1132,6 +1156,18 @@
     }
 
     function confirmExportDates() {
+        // Con sesión seleccionada se ignora el rango de fechas y se exporta toda la sesión
+        if (_hasSessionSelected()) {
+            _exportCurrentDateFrom = '';
+            _exportCurrentDateTo   = '';
+            $('#exportStateSelect').hide();
+            $('#exportStateGenerating').show();
+            $('#exportGeneratingRange').text('Sesión seleccionada');
+            $('.preloader-text').text('Generando reporte...');
+            startExport();
+            return;
+        }
+
         var fm = $('#expFromMonth').val(), fy = $('#expFromYear').val();
         var tm = $('#expToMonth').val(),   ty = $('#expToYear').val();
         var $err = $('#exportDateError');
@@ -1188,8 +1224,9 @@
 
     function startExport() {
         var p = vueApp.params;
-        var dateFrom = _exportCurrentDateFrom || p.date_from || '';
-        var dateTo   = _exportCurrentDateTo   || p.date_to   || '';
+        // Con sesión seleccionada no se envían fechas (se exporta toda la sesión)
+        var dateFrom = _hasSessionSelected() ? '' : (_exportCurrentDateFrom || p.date_from || '');
+        var dateTo   = _hasSessionSelected() ? '' : (_exportCurrentDateTo   || p.date_to   || '');
 
         $.ajax({
             url: _exportBaseUrl,
@@ -1244,8 +1281,9 @@
 
     function regenerateExport() {
         var p = vueApp.params;
-        var dateFrom = _exportCurrentDateFrom || p.date_from || '';
-        var dateTo   = _exportCurrentDateTo   || p.date_to   || '';
+        // Con sesión seleccionada no se envían fechas (mismo criterio que startExport)
+        var dateFrom = _hasSessionSelected() ? '' : (_exportCurrentDateFrom || p.date_from || '');
+        var dateTo   = _hasSessionSelected() ? '' : (_exportCurrentDateTo   || p.date_to   || '');
         $.ajax({
             url: _exportBaseUrl,
             type: 'GET',

@@ -673,6 +673,22 @@ $form->addHtml('</select></div></div>');
 $form->addHtml(<<<EOT
 <script>
 $(document).ready(function() {
+    // Al seleccionar una sesión, el rango de fechas se ignora (se exporta toda
+    // la sesión), por lo que se deshabilitan los selectores de mes/año.
+    function toggleDateFilters() {
+        var sessionVal = $('select[name="session_id"]').val();
+        var hasSession = sessionVal && sessionVal !== '%' && sessionVal !== '0';
+        $('select[name="from_month"], select[name="from_year"], select[name="to_month"], select[name="to_year"]').each(function() {
+            $(this).prop('disabled', hasSession);
+            if (hasSession) {
+                $(this).val('');
+            }
+            $(this).css('background-color', hasSession ? '#eee' : '');
+        });
+    }
+    $('select[name="session_id"]').on('change', toggleDateFilters);
+    toggleDateFilters();
+
     $('form[name="search_simple"]').on('submit', function(e) {
         var fromM = $('select[name="from_month"]').val();
         var fromY = $('select[name="from_year"]').val();
