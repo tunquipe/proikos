@@ -529,6 +529,97 @@ if (!empty($courseId)) {
 
 $form = new FormValidator('search_simple', 'get', null, null, null, 'inline');
 
+// Estilos para ordenar y dar coherencia visual a los filtros del reporte
+$form->addHtml(<<<EOT
+<style>
+    form[name="search_simple"] {
+        background: #fff;
+        border: 1px solid #e3e6ea;
+        border-radius: 8px;
+        padding: 16px 18px 18px;
+        margin-bottom: 18px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.04);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 12px 16px;
+    }
+    form[name="search_simple"] .form-group {
+        margin: 0;
+        vertical-align: bottom;
+    }
+    form[name="search_simple"] .control-label,
+    form[name="search_simple"] label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
+        text-transform: uppercase;
+        letter-spacing: .3px;
+        margin-bottom: 4px;
+        display: block;
+    }
+    form[name="search_simple"] .form-control,
+    form[name="search_simple"] .chosen-container {
+        min-width: 200px;
+    }
+    /* Estado deshabilitado: gris y cursor no permitido */
+    form[name="search_simple"] .form-control:disabled,
+    form[name="search_simple"] .form-control[disabled] {
+        background-color: #f1f3f5 !important;
+        color: #adb5bd !important;
+        cursor: not-allowed;
+    }
+    /* Mensaje de modo: ocupa toda la fila */
+    #filterModeHint {
+        flex: 0 0 100%;
+        font-size: 12px;
+        color: #1d7b3e;
+        font-weight: 600;
+        margin: 0 0 4px;
+    }
+    #filterModeHint .fa { margin-right: 5px; }
+    /* Bloque de filtros por entidad: fila propia con sus 4 campos */
+    .filter-entity-wrap {
+        flex: 0 0 100%;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 12px 16px;
+        margin-bottom: 6px;
+    }
+    /* El recuadro de fechas empieza en una fila nueva (ocupa todo el ancho) */
+    .filter-date-wrap {
+        flex: 0 0 100%;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 10px;
+        padding: 8px 12px;
+        margin-bottom: 6px;
+        background: #f8fbf9;
+        border: 1px dashed #bfe3cd;
+        border-radius: 6px;
+    }
+    .filter-date-wrap .form-control { min-width: auto; }
+    /* Fila de botones: separada de los filtros, en su propia línea */
+    .filter-actions {
+        flex: 0 0 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 6px;
+    }
+    .filter-actions .form-group { margin: 0; }
+    form[name="search_simple"] .btn { white-space: nowrap; }
+</style>
+EOT
+);
+
+$form->addHtml('<span id="filterModeHint"></span>');
+
+// Inicio del bloque de filtros por entidad (Curso / Sesión / DNI / Empresa)
+$form->addHtml('<div class="filter-entity-wrap">');
+
 $form->addSelect(
     'course_id',
     get_lang('Course'),
@@ -616,6 +707,9 @@ foreach ($contratingCompanies as $company) {
 
 $form->addSelect('ruc', $plugin->get_lang('Company_RUC'), $listRuc);
 
+// Fin del bloque de filtros por entidad
+$form->addHtml('</div>');
+
 // Selectores mes/año para filtro de fecha de sesión
 $months = ['' => 'Mes', '01' => 'Enero', '02' => 'Febrero', '03' => 'Marzo', '04' => 'Abril', '05' => 'Mayo', '06' => 'Junio', '07' => 'Julio', '08' => 'Agosto', '09' => 'Septiembre', '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre'];
 $currentYear = (int) date('Y');
@@ -631,10 +725,11 @@ $toMonth   = $dateTo   ? substr($dateTo, 5, 2)   : '';
 $toYear    = $dateTo   ? substr($dateTo, 0, 4)   : '';
 
 $form->addHtml(
-    '<div class="form-group" style="display:inline-block; vertical-align:bottom; margin-left:8px;">' .
-    '<label style="display:block; font-size:12px; margin-bottom:2px;">Desde (mes/año)</label>' .
+    '<div class="filter-date-wrap">' .
+    '<div class="form-group" style="display:inline-block; vertical-align:bottom; margin:0;">' .
+    '<label>Desde (mes/año)</label>' .
     '<div style="display:flex; gap:4px;">' .
-    '<select name="from_month" class="form-control input-sm" style="width:100px;">'
+    '<select name="from_month" class="form-control input-sm" style="width:120px; min-width:120px;">'
 );
 foreach ($months as $val => $label) {
     $sel = ($fromMonth === $val) ? ' selected' : '';
@@ -642,7 +737,7 @@ foreach ($months as $val => $label) {
 }
 $form->addHtml(
     '</select>' .
-    '<select name="from_year" class="form-control input-sm" style="width:78px;">'
+    '<select name="from_year" class="form-control input-sm" style="width:88px; min-width:88px;">'
 );
 foreach ($years as $val => $label) {
     $sel = ((string)$fromYear === (string)$val) ? ' selected' : '';
@@ -650,10 +745,11 @@ foreach ($years as $val => $label) {
 }
 $form->addHtml(
     '</select></div></div>' .
-    '<div class="form-group" style="display:inline-block; vertical-align:bottom; margin-left:8px;">' .
-    '<label style="display:block; font-size:12px; margin-bottom:2px;">Hasta (mes/año) <span style="color:#888; font-size:11px;">máx. 3 meses</span></label>' .
+    '<span style="font-size:18px; color:#bfe3cd; padding-bottom:6px;">&rarr;</span>' .
+    '<div class="form-group" style="display:inline-block; vertical-align:bottom; margin:0;">' .
+    '<label>Hasta (mes/año) <span style="color:#888; font-size:11px; font-weight:400; text-transform:none;">máx. 3 meses</span></label>' .
     '<div style="display:flex; gap:4px;">' .
-    '<select name="to_month" class="form-control input-sm" style="width:100px;">'
+    '<select name="to_month" class="form-control input-sm" style="width:120px; min-width:120px;">'
 );
 foreach ($months as $val => $label) {
     $sel = ($toMonth === $val) ? ' selected' : '';
@@ -661,7 +757,7 @@ foreach ($months as $val => $label) {
 }
 $form->addHtml(
     '</select>' .
-    '<select name="to_year" class="form-control input-sm" style="width:78px;">'
+    '<select name="to_year" class="form-control input-sm" style="width:88px; min-width:88px;">'
 );
 foreach ($years as $val => $label) {
     $sel = ((string)$toYear === (string)$val) ? ' selected' : '';
@@ -673,21 +769,62 @@ $form->addHtml('</select></div></div>');
 $form->addHtml(<<<EOT
 <script>
 $(document).ready(function() {
-    // Al seleccionar una sesión, el rango de fechas se ignora (se exporta toda
-    // la sesión), por lo que se deshabilitan los selectores de mes/año.
-    function toggleDateFilters() {
-        var sessionVal = $('select[name="session_id"]').val();
-        var hasSession = sessionVal && sessionVal !== '%' && sessionVal !== '0';
-        $('select[name="from_month"], select[name="from_year"], select[name="to_month"], select[name="to_year"]').each(function() {
-            $(this).prop('disabled', hasSession);
-            if (hasSession) {
+    // El reporte tiene dos modos de búsqueda mutuamente excluyentes:
+    //  - Por sesión/curso/DNI/empresa  -> se bloquea el rango de fechas.
+    //  - Por rango de fechas           -> se bloquean curso, sesión, DNI y empresa.
+    var dateFields    = $('select[name="from_month"], select[name="from_year"], select[name="to_month"], select[name="to_year"]');
+    var entityFields  = $('select[name="course_id"], select[name="session_id"], input[name="keyword"], select[name="ruc"]');
+
+    function _isSet(val) {
+        return val && val !== '%' && val !== '0' && val !== '';
+    }
+
+    function setDisabled(els, disabled) {
+        els.each(function() {
+            $(this).prop('disabled', disabled);
+            if (disabled) {
                 $(this).val('');
             }
-            $(this).css('background-color', hasSession ? '#eee' : '');
+            $(this).css('background-color', disabled ? '#eee' : '');
         });
+        // Refrescar widgets de selects estilizados (Chosen / selectpicker)
+        var selects = els.filter('select');
+        selects.trigger('chosen:updated');
+        if ($.fn.selectpicker) {
+            selects.selectpicker('refresh');
+        }
     }
-    $('select[name="session_id"]').on('change', toggleDateFilters);
-    toggleDateFilters();
+
+    function toggleSearchMode() {
+        var hasSession = _isSet($('select[name="session_id"]').val());
+        var hasCourse  = _isSet($('select[name="course_id"]').val());
+        var hasDni     = _isSet($('input[name="keyword"]').val());
+        var hasRuc     = _isSet($('select[name="ruc"]').val());
+        var hasEntity  = hasSession || hasCourse || hasDni || hasRuc;
+
+        var hasDate = _isSet($('select[name="from_month"]').val()) || _isSet($('select[name="from_year"]').val());
+
+        var hint = $('#filterModeHint');
+        if (hasEntity) {
+            // Modo entidad: bloquear fechas
+            setDisabled(dateFields, true);
+            setDisabled(entityFields, false);
+            hint.html('<i class="fa fa-filter"></i> Buscando por curso / sesión / DNI / empresa. El rango de fechas está desactivado.');
+        } else if (hasDate) {
+            // Modo fecha: bloquear curso/sesión/DNI/empresa
+            setDisabled(entityFields, true);
+            setDisabled(dateFields, false);
+            hint.html('<i class="fa fa-calendar"></i> Buscando por rango de fechas. Los demás filtros están desactivados.');
+        } else {
+            // Nada seleccionado: todo habilitado
+            setDisabled(dateFields, false);
+            setDisabled(entityFields, false);
+            hint.html('<i class="fa fa-info-circle"></i> Elija un curso/sesión <strong>o</strong> un rango de fechas para filtrar.');
+        }
+    }
+
+    entityFields.add(dateFields).on('change keyup', toggleSearchMode);
+    toggleSearchMode();
 
     $('form[name="search_simple"]').on('submit', function(e) {
         var fromM = $('select[name="from_month"]').val();
@@ -734,7 +871,19 @@ $(document).ready(function() {
 EOT
 );
 
+// Fila propia para los botones de acción (separada de los filtros)
+$form->addHtml('<div class="filter-actions">');
+
 $form->addButtonSearch(get_lang('Search'));
+
+// Botón para limpiar todos los filtros y volver al estado inicial
+$form->addHtml(
+    '<a href="' . $url . '" class="btn btn-default" title="Limpiar filtros">' .
+    '<i class="fa fa-eraser"></i> Limpiar filtros</a>'
+);
+
+$form->addHtml('</div>');
+
 $actionsLeft = $form->returnForm();
 
 $actionsRight = Display::url(
