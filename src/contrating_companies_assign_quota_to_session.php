@@ -84,17 +84,30 @@ $selectorDays = (int) $selectorDaysRaw;
 // por si el valor numérico difiere entre entornos).
 $asyncCondition = "(session_mode = 1 OR name LIKE '%Asincr%')";
 
+// Una sesión sincrónica sigue disponible para asignar cupos mientras no haya
+// terminado: la fecha de fin a mostrar (display_end_date) debe ser >= hoy
+// (o no tener fecha de fin definida). Esto incluye sesiones ya iniciadas pero
+// aún vigentes (ej. inicio en mayo, fin en julio, hoy en junio).
+$notEndedCondition = "(display_end_date IS NULL OR display_end_date >= '$today')";
+
 if ($selectorDays < 0) {
-    // -1 (o cualquier negativo): sincrónicas futuras (sin límite superior) +
-    // todas las asincrónicas
-    $dateCondition = "display_start_date >= '$today'";
+    // -1 (o cualquier negativo): sincrónicas no terminadas (sin límite superior
+    // de inicio) + todas las asincrónicas
+    $dateCondition = $notEndedCondition;
 } else {
     // 0 o vacío: usar el valor por defecto (7 días)
     if ($selectorDays === 0) {
         $selectorDays = 7;
     }
     $weekEnd = date('Y-m-d', strtotime("+$selectorDays days"));
-    $dateCondition = "display_start_date >= '$today' AND display_start_date <= '$weekEnd'";
+    // Sincrónicas que inician dentro de la ventana de N días, o que ya están en
+    // curso pero aún no han terminado.
+    $dateCondition = "
+        $notEndedCondition
+        AND (
+            display_start_date <= '$weekEnd'
+        )
+    ";
 }
 
 $whereClause = "
