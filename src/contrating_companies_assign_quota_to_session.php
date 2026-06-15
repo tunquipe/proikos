@@ -78,25 +78,31 @@ $today = date('Y-m-d');
 $selectorDaysRaw = $plugin->get('session_selector_days');
 $selectorDays = (int) $selectorDaysRaw;
 
+// Las sesiones asincrónicas (session_mode = 1) siempre se muestran, aunque su
+// fecha de inicio sea antigua. El filtro de fechas aplica solo a las
+// sincrónicas (session_mode = 2).
+$asyncMode = 1;
+
 if ($selectorDays < 0) {
-    // -1 (o cualquier negativo): mostrar todas las sesiones futuras (sin límite
-    // superior de días), excluyendo las que ya pasaron
-    $whereClause = "
-        1 = 1
-        AND display_start_date >= '$today'
-    ";
+    // -1 (o cualquier negativo): sincrónicas futuras (sin límite superior) +
+    // todas las asincrónicas
+    $dateCondition = "display_start_date >= '$today'";
 } else {
     // 0 o vacío: usar el valor por defecto (7 días)
     if ($selectorDays === 0) {
         $selectorDays = 7;
     }
     $weekEnd = date('Y-m-d', strtotime("+$selectorDays days"));
-    $whereClause = "
-        1 = 1
-        AND display_start_date >= '$today'
-        AND display_start_date <= '$weekEnd'
-    ";
+    $dateCondition = "display_start_date >= '$today' AND display_start_date <= '$weekEnd'";
 }
+
+$whereClause = "
+    1 = 1
+    AND (
+        session_mode = $asyncMode
+        OR ( $dateCondition )
+    )
+";
 $activeSessions = SessionManager::getSessionsForAdmin(
     api_get_user_id(),
     [
