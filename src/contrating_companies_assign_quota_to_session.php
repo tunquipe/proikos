@@ -78,10 +78,11 @@ $today = date('Y-m-d');
 $selectorDaysRaw = $plugin->get('session_selector_days');
 $selectorDays = (int) $selectorDaysRaw;
 
-// Las sesiones asincrónicas (session_mode = 1) siempre se muestran, aunque su
-// fecha de inicio sea antigua. El filtro de fechas aplica solo a las
-// sincrónicas (session_mode = 2).
-$asyncMode = 1;
+// Las sesiones asincrónicas siempre se muestran, aunque su fecha de inicio sea
+// antigua. El filtro de fechas aplica solo a las sincrónicas.
+// Se detecta "asincrónica" por session_mode = 1 o por el nombre (más robusto,
+// por si el valor numérico difiere entre entornos).
+$asyncCondition = "(session_mode = 1 OR name LIKE '%Asincr%')";
 
 if ($selectorDays < 0) {
     // -1 (o cualquier negativo): sincrónicas futuras (sin límite superior) +
@@ -99,7 +100,7 @@ if ($selectorDays < 0) {
 $whereClause = "
     1 = 1
     AND (
-        session_mode = $asyncMode
+        $asyncCondition
         OR ( $dateCondition )
     )
 ";
@@ -356,7 +357,7 @@ if (detalle?.length > 0) {
         document.getElementById(plusButtonId).addEventListener('click', function() {
             lastIndex++;
             const itemIndex = parseInt(lastIndex);
-            addNewRow(itemIndex, tableBodyId, item.session_mode, item.session_category_id, item.id);
+            addNewRow(itemIndex, tableBodyId, item.session_mode, item.session_category_id, item.id, null, null, item.session_mode_name);
         });
 
         let sessionValues = JSON.parse('{$sessionFormValues}');
@@ -368,7 +369,7 @@ if (detalle?.length > 0) {
 
                 lastIndex++;
                 const itemIndex = parseInt(lastIndex);
-                addNewRow(itemIndex, tableBodyId, item.session_mode, item.session_category_id, item.id, value.session_id, value.user_quota);
+                addNewRow(itemIndex, tableBodyId, item.session_mode, item.session_category_id, item.id, value.session_id, value.user_quota, item.session_mode_name);
             }
         }
 
@@ -391,8 +392,23 @@ if (detalle?.length > 0) {
     });
 }
 
-function addNewRow(itemIndex, tableBodyId, itemSessionMode, itemSessionCategoryId, itemDetId = null, itemSessionId = null, itemUserQuota = null) {
-    const sessionsByCategory = sessionsList.filter(session => session.session_category_id == itemSessionCategoryId && session.session_mode == itemSessionMode);
+function isAsyncSession(mode, name) {
+    // Asincrónica: por session_mode == 1 o por nombre (robusto entre entornos)
+    return mode == 1 || (typeof name === 'string' && name.toLowerCase().indexOf('asincr') !== -1);
+}
+
+function addNewRow(itemIndex, tableBodyId, itemSessionMode, itemSessionCategoryId, itemDetId = null, itemSessionId = null, itemUserQuota = null, itemSessionModeName = '') {
+    const rowIsAsync = isAsyncSession(itemSessionMode, itemSessionModeName);
+    const sessionsByCategory = sessionsList.filter(function(session) {
+        if (session.session_category_id != itemSessionCategoryId) {
+            return false;
+        }
+        // Coincidencia directa por modalidad, o ambas asincrónicas (por modo o nombre)
+        if (session.session_mode == itemSessionMode) {
+            return true;
+        }
+        return rowIsAsync && isAsyncSession(session.session_mode, session.name);
+    });
     const tableBody = document.getElementById(tableBodyId);
     const newRow = document.createElement('tr');
     const sessionsSelect = document.createElement('select');
