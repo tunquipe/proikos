@@ -4672,7 +4672,6 @@ EOT;
         $tbl_session_category = Database::get_main_table(TABLE_MAIN_SESSION_CATEGORY);
         $tbl_proikos_user = Database::get_main_table(self::TABLE_PROIKOS_USERS);
         $table_plugin_easycertificate_send = Database::get_main_table(self::TABLE_PLUGIN_EASY_CERTIFICATE_SEND);
-        $tbl_track_e_course_access = Database::get_main_table(TABLE_STATISTIC_TRACK_E_COURSE_ACCESS);
 
         // Calcular el offset para la paginación
         $offset = ($page - 1) * $perPage;
@@ -4695,13 +4694,7 @@ EOT;
                 s.name as session_name,
                 s.display_start_date,
                 s.display_end_date,
-                (
-                    SELECT MIN(tca.login_course_date)
-                    FROM {$tbl_track_e_course_access} tca
-                    WHERE tca.user_id = u.id
-                      AND tca.c_id = srcu.c_id
-                      AND tca.session_id = srcu.session_id
-                ) AS session_first_access,
+                s.access_start_date AS session_first_access,
                  ppu.name_company,
                 ppu.ruc_company,
                 ppu.stakeholders,
@@ -4759,29 +4752,20 @@ EOT;
             }
         }
 
-        // El rango de fechas filtra por la fecha de inscripción a la sesión
-        // (session_rel_user.registered_at), NO por la fecha de creación de la
-        // cuenta del usuario (u.registration_date). Si se seleccionó una sesión
+        // El rango de fechas filtra por la fecha de inicio de acceso de la sesión
+        // de formación (s.access_start_date), NO por la fecha de inscripción del
+        // usuario ni por la creación de su cuenta. Si se seleccionó una sesión
         // específica se ignora el rango de fechas y se exportan todos sus inscritos.
         // Nota: $session_id puede llegar como '%' (sin sesión) o como entero.
         $hasSessionFilter = is_numeric($session_id) && (int)$session_id > 0;
         if (!$hasSessionFilter && (!empty($dateFrom) || !empty($dateTo))) {
-            $tbl_session_user = Database::get_main_table(TABLE_MAIN_SESSION_USER);
             if (!empty($dateFrom)) {
                 $dateFromSafe = Database::escape_string($dateFrom);
-                $sql .= " AND EXISTS (SELECT 1 FROM $tbl_session_user sru_f
-                    WHERE sru_f.session_id = srcu.session_id
-                      AND sru_f.user_id = srcu.user_id
-                      AND sru_f.relation_type = 0
-                      AND sru_f.registered_at >= '$dateFromSafe 00:00:00') ";
+                $sql .= " AND s.access_start_date >= '$dateFromSafe 00:00:00' ";
             }
             if (!empty($dateTo)) {
                 $dateToSafe = Database::escape_string($dateTo);
-                $sql .= " AND EXISTS (SELECT 1 FROM $tbl_session_user sru_t
-                    WHERE sru_t.session_id = srcu.session_id
-                      AND sru_t.user_id = srcu.user_id
-                      AND sru_t.relation_type = 0
-                      AND sru_t.registered_at <= '$dateToSafe 23:59:59') ";
+                $sql .= " AND s.access_start_date <= '$dateToSafe 23:59:59' ";
             }
         }
 
@@ -4961,26 +4945,17 @@ EOT;
             }
         }
 
-        // Mismo criterio de fechas que la consulta principal (por fecha de
-        // inscripción a la sesión; se ignora cuando hay una sesión seleccionada)
+        // Mismo criterio de fechas que la consulta principal (por fecha de inicio
+        // de acceso de la sesión; se ignora cuando hay una sesión seleccionada)
         $hasSessionFilter = is_numeric($session_id) && (int)$session_id > 0;
         if (!$hasSessionFilter && (!empty($dateFrom) || !empty($dateTo))) {
-            $tbl_session_user = Database::get_main_table(TABLE_MAIN_SESSION_USER);
             if (!empty($dateFrom)) {
                 $dateFromSafe = Database::escape_string($dateFrom);
-                $sqlTotal .= " AND EXISTS (SELECT 1 FROM $tbl_session_user sru_f
-                    WHERE sru_f.session_id = srcu.session_id
-                      AND sru_f.user_id = srcu.user_id
-                      AND sru_f.relation_type = 0
-                      AND sru_f.registered_at >= '$dateFromSafe 00:00:00') ";
+                $sqlTotal .= " AND s.access_start_date >= '$dateFromSafe 00:00:00' ";
             }
             if (!empty($dateTo)) {
                 $dateToSafe = Database::escape_string($dateTo);
-                $sqlTotal .= " AND EXISTS (SELECT 1 FROM $tbl_session_user sru_t
-                    WHERE sru_t.session_id = srcu.session_id
-                      AND sru_t.user_id = srcu.user_id
-                      AND sru_t.relation_type = 0
-                      AND sru_t.registered_at <= '$dateToSafe 23:59:59') ";
+                $sqlTotal .= " AND s.access_start_date <= '$dateToSafe 23:59:59' ";
             }
         }
 
