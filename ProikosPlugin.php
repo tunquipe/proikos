@@ -4672,6 +4672,7 @@ EOT;
         $tbl_session_category = Database::get_main_table(TABLE_MAIN_SESSION_CATEGORY);
         $tbl_proikos_user = Database::get_main_table(self::TABLE_PROIKOS_USERS);
         $table_plugin_easycertificate_send = Database::get_main_table(self::TABLE_PLUGIN_EASY_CERTIFICATE_SEND);
+        $tbl_track_e_course_access = Database::get_main_table(TABLE_STATISTIC_TRACK_E_COURSE_ACCESS);
 
         // Calcular el offset para la paginación
         $offset = ($page - 1) * $perPage;
@@ -4694,6 +4695,13 @@ EOT;
                 s.name as session_name,
                 s.display_start_date,
                 s.display_end_date,
+                (
+                    SELECT MIN(tca.login_course_date)
+                    FROM {$tbl_track_e_course_access} tca
+                    WHERE tca.user_id = u.id
+                      AND tca.c_id = srcu.c_id
+                      AND tca.session_id = srcu.session_id
+                ) AS session_first_access,
                  ppu.name_company,
                 ppu.ruc_company,
                 ppu.stakeholders,
@@ -4790,6 +4798,11 @@ EOT;
 
                 $date = date("Y/m/d", strtotime($row['registration_date']));
                 $row['registration_date_normal'] = $date;
+
+                // Fecha de primer acceso del usuario a la sesión (puede ser NULL si nunca accedió)
+                $row['session_first_access_normal'] = !empty($row['session_first_access'])
+                    ? date("Y/m/d H:i:s", strtotime($row['session_first_access']))
+                    : '-';
                 $registrationDate = api_format_date($row['registration_date'], DATE_FORMAT_LONG_NO_DAY);
                 $row['registration_date'] = $registrationDate;
 

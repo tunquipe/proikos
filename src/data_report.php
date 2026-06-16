@@ -185,10 +185,11 @@ if (isset($action)) {
             $headers = [
                 'Nº',
                 'Codigo',
-                'Fecha',
+                'Fecha inscripcion usuario',
                 'Nº Horas',
                 'Curso',
                 'Sesión',
+                'F. Acceso Inicio Sesión',
                 'Apellidos y Nombres',
                 'DNI / C.E',
                 'RUC',
@@ -217,6 +218,7 @@ if (isset($action)) {
                     'time_course' => $row['time_course'],
                     'session_category_name' => $row['session_category_name'],
                     'session_name' => $row['session_name'],
+                    'session_first_access' => $row['session_first_access_normal'] ?? '-',
                     'student' => $row['student'],
                     'DNI' => $row['DNI'],
                     'ruc_company' => $row['ruc_company'],
@@ -309,7 +311,7 @@ if (isset($action)) {
                 $cacheManager->set($cacheParams, $rawData);
             }
 
-            $xlsHeaders = ['Nº','Codigo','Fecha','Nº Horas','Curso','Sesión','Apellidos y Nombres','DNI / C.E','RUC','Nombre de Empresa','Sede','Examen de entrada - 10%','Taller - 60%','Examen de salida - 30%','Puntaje','Estado','Observaciones certificado','F. Emision Certificado','F. Vencimiento Certificado','Adjuntos por el estudiante','Incidencias'];
+            $xlsHeaders = ['Nº','Codigo','Fecha inscripcion usuario','Nº Horas','Curso','Sesión','F. Acceso Inicio Sesión','Apellidos y Nombres','DNI / C.E','RUC','Nombre de Empresa','Sede','Examen de entrada - 10%','Taller - 60%','Examen de salida - 30%','Puntaje','Estado','Observaciones certificado','F. Emision Certificado','F. Vencimiento Certificado','Adjuntos por el estudiante','Incidencias'];
             $cleanData = [$xlsHeaders];
 
             foreach ($rawData['users'] as $row) {
@@ -322,6 +324,7 @@ if (isset($action)) {
                     'time_course' => $row['time_course'],
                     'session_category_name' => $row['session_category_name'],
                     'session_name' => $row['session_name'],
+                    'session_first_access' => $row['session_first_access_normal'] ?? '-',
                     'student' => $row['student'],
                     'DNI' => $row['DNI'],
                     'ruc_company' => $row['ruc_company'],

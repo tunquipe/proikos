@@ -320,6 +320,17 @@ class ProikosCacheManager
                 }
             }
 
+            // También limpiar los Excel ya generados en disco (cache/exports/*.xlsx),
+            // de lo contrario el export sigue devolviendo el archivo viejo.
+            $exportFiles = glob($this->cacheDir . 'exports/export_*.xlsx');
+            if ($exportFiles !== false) {
+                foreach ($exportFiles as $exportFile) {
+                    if (@unlink($exportFile)) {
+                        $count++;
+                    }
+                }
+            }
+
             return $count;
         } catch (Exception $e) {
             error_log("ProikosCacheManager::clear() Error: " . $e->getMessage());
