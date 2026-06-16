@@ -4785,7 +4785,7 @@ EOT;
 
                 // Fecha de primer acceso del usuario a la sesión (puede ser NULL si nunca accedió)
                 $row['session_first_access_normal'] = !empty($row['session_first_access'])
-                    ? date("Y/m/d H:i:s", strtotime($row['session_first_access']))
+                    ? date("Y/m/d", strtotime($row['session_first_access']))
                     : '-';
                 $registrationDate = api_format_date($row['registration_date'], DATE_FORMAT_LONG_NO_DAY);
                 $row['registration_date'] = $registrationDate;
@@ -4914,7 +4914,7 @@ EOT;
         ///var_dump($users); exit;
         // Contar el total de registros sin LIMIT
         $sqlTotal = "
-        SELECT COUNT(DISTINCT u.id) as total_users
+        SELECT COUNT(DISTINCT u.id, srcu.session_id, srcu.c_id) as total_users
         FROM $tbl_session_course_user srcu
         INNER JOIN $tbl_course c ON c.id = srcu.c_id
         INNER JOIN $tbl_session s ON s.id = srcu.session_id
