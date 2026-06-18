@@ -4362,6 +4362,18 @@ EOT;
 
         $table = Database::get_main_table(self::TABLE_PROIKOS_DATA_LOG);
 
+        // Evitar duplicados: si el alumno ya tiene un registro para este
+        // curso/sesión (misma inscripción), no volver a insertar. Esto permite
+        // re-ejecutar el cron sin duplicar y recuperar solo los faltantes.
+        $checkUserId = $format ? ($values['user_id'] ?? 0) : ($values['user_id'] ?? 0);
+        $checkCourseId = $format ? ($values['course_id'] ?? 0) : ($values['c_id'] ?? 0);
+        $checkSessionId = $values['session_id'] ?? 0;
+        if (!empty($checkUserId) && !empty($checkCourseId) && !empty($checkSessionId)) {
+            if ($this->checkRegisterLogData((int)$checkUserId, (int)$checkCourseId, (int)$checkSessionId) > 0) {
+                return 0;
+            }
+        }
+
         if($format){
             $id = Database::insert($table, $values);
         } else {
@@ -4735,20 +4747,23 @@ EOT;
             $sql.= " AND u.username = $dni ";
         }
 
-        if($courseId != 0){
-            $sql.= " AND srcu.c_id = $courseId ";
+        // Solo filtrar si llega un id numérico válido (> 0). Antes se usaba
+        // "!= 0", lo que dejaba pasar '%' y producía "AND srcu.c_id = %"
+        // (MySQL lo convierte a 0) → ninguna fila, el cron no guardaba nada.
+        if(is_numeric($courseId) && (int)$courseId > 0){
+            $sql.= " AND srcu.c_id = ".(int)$courseId." ";
         }
 
-        if($session_id != 0){
-            $sql.= " AND srcu.session_id = $session_id ";
+        if(is_numeric($session_id) && (int)$session_id > 0){
+            $sql.= " AND srcu.session_id = ".(int)$session_id." ";
         }
 
         if (api_is_contractor_admin()) {
             $rucCompany = self::getUserRucCompany();
             $sql.= " AND ppu.ruc_company = $rucCompany ";
         } else {
-            if($ruc != 0){
-                $sql.= " AND ppu.ruc_company = $ruc ";
+            if(is_numeric($ruc) && (int)$ruc > 0){
+                $sql.= " AND ppu.ruc_company = ".(int)$ruc." ";
             }
         }
 
@@ -4928,20 +4943,20 @@ EOT;
             $sqlTotal .= " AND u.username = '$dni' ";
         }
 
-        if ($courseId != 0) {
-            $sqlTotal .= " AND srcu.c_id = $courseId ";
+        if (is_numeric($courseId) && (int)$courseId > 0) {
+            $sqlTotal .= " AND srcu.c_id = ".(int)$courseId." ";
         }
 
-        if ($session_id != 0) {
-            $sqlTotal .= " AND srcu.session_id = $session_id ";
+        if (is_numeric($session_id) && (int)$session_id > 0) {
+            $sqlTotal .= " AND srcu.session_id = ".(int)$session_id." ";
         }
 
         if (api_is_contractor_admin()) {
             $rucCompany = self::getUserRucCompany();
             $sqlTotal .= " AND ppu.ruc_company = $rucCompany ";
         } else {
-            if ($ruc != 0) {
-                $sqlTotal .= " AND ppu.ruc_company = $ruc ";
+            if (is_numeric($ruc) && (int)$ruc > 0) {
+                $sqlTotal .= " AND ppu.ruc_company = ".(int)$ruc." ";
             }
         }
 
