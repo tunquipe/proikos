@@ -2708,12 +2708,48 @@ class ProikosPlugin extends Plugin
         return $list;
     }
 
-    public function getUsers() {
+    private function getUsersSearchCondition($search = '') {
+        $search = trim($search);
+        if ($search === '') {
+            return '';
+        }
+        $search = Database::escape_string($search);
+
+        return " WHERE (u.firstname LIKE '%$search%'
+                OR u.lastname LIKE '%$search%'
+                OR CONCAT(u.firstname, ' ', u.lastname) LIKE '%$search%'
+                OR u.username LIKE '%$search%'
+                OR u.email LIKE '%$search%'
+                OR ppu.number_document LIKE '%$search%'
+                OR ppu.ruc_company LIKE '%$search%'
+                OR ppu.name_company LIKE '%$search%')";
+    }
+
+    public function countUsers($search = '') {
         $tableUser = Database::get_main_table(TABLE_MAIN_USER);
         $tableUserProikos = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $condition = $this->getUsersSearchCondition($search);
+        $sql = "SELECT COUNT(u.id) AS total
+                FROM $tableUser u LEFT JOIN $tableUserProikos ppu ON ppu.user_id = u.id
+                $condition";
+        $result = Database::query($sql);
+        $row = Database::fetch_array($result);
+
+        return (int) ($row['total'] ?? 0);
+    }
+
+    public function getUsers($search = '', $offset = 0, $limit = 50) {
+        $tableUser = Database::get_main_table(TABLE_MAIN_USER);
+        $tableUserProikos = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $condition = $this->getUsersSearchCondition($search);
+        $offset = (int) $offset;
+        $limit = (int) $limit;
         $sql = "SELECT u.id, ppu.user_id, u.firstname, u.lastname, u.username, u.email, ppu.phone, ppu.number_document,
                 ppu.ruc_company, ppu.name_company, ppu.code_reference, ppu.stakeholders
-                FROM $tableUser u LEFT JOIN $tableUserProikos ppu ON ppu.user_id = u.id;";
+                FROM $tableUser u LEFT JOIN $tableUserProikos ppu ON ppu.user_id = u.id
+                $condition
+                ORDER BY u.lastname, u.firstname
+                LIMIT $offset, $limit";
         $result = Database::query($sql);
         $list = [];
         if (Database::num_rows($result) > 0) {
@@ -4243,9 +4279,16 @@ EOT;
 
     public function checkRegisterLogData($userID, $courseID, $sessionID)
     {
-        $codeRegister = $this->registerCodeSessionRelUser($userID, $sessionID);
+        // La unicidad de un registro en el log la define la terna
+        // usuario + curso + sesión. No se filtra por registration_session_user
+        // porque en los registros guardados vía export ese campo puede quedar
+        // NULL, lo que provocaba que el chequeo nunca hiciera match y se
+        // insertaran duplicados.
+        $userID = (int) $userID;
+        $courseID = (int) $courseID;
+        $sessionID = (int) $sessionID;
         $tableLog = Database::get_main_table(self::TABLE_PROIKOS_DATA_LOG);
-        $sql = "SELECT count(*) as total FROM $tableLog ppl WHERE ppl.user_id = $userID AND ppl.course_id = $courseID AND ppl.session_id = $sessionID AND ppl.registration_session_user = $codeRegister; ";
+        $sql = "SELECT count(*) as total FROM $tableLog ppl WHERE ppl.user_id = $userID AND ppl.course_id = $courseID AND ppl.session_id = $sessionID; ";
         $result = Database::query($sql);
         $total = 0;
         if (Database::num_rows($result) > 0) {

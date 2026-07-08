@@ -98,9 +98,24 @@ switch ($action){
             Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
             api_get_path(WEB_PLUGIN_PATH) . 'proikos/start.php'
         );
-        $users = $plugin->getUsers();
+        $perPage = 50;
+        $search = trim($_GET['search'] ?? '');
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+
+        $totalUsers = $plugin->countUsers($search);
+        $totalPages = max(1, (int) ceil($totalUsers / $perPage));
+        $page = min($page, $totalPages);
+
+        $users = $plugin->getUsers($search, ($page - 1) * $perPage, $perPage);
 
         $tpl->assign('users', $users);
+        $tpl->assign('search', Security::remove_XSS($search));
+        $tpl->assign('current_page', $page);
+        $tpl->assign('total_pages', $totalPages);
+        $tpl->assign('page_start', max(1, $page - 3));
+        $tpl->assign('page_end', min($totalPages, $page + 3));
+        $tpl->assign('total_users', $totalUsers);
+        $tpl->assign('list_url', api_get_path(WEB_PLUGIN_PATH).'proikos/src/users_management.php?action=list');
         default;
 }
 $tpl->assign(
