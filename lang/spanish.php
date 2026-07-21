@@ -233,3 +233,7 @@ $strings['session_selector_days'] = 'Días a mostrar en selector de sesiones (as
 $strings['AcademicResults'] = 'Resultado Academico';
 $strings['force_results_view'] = 'Forzar  nueva vista de resultados';
 $strings['tools_results_enabled'] = 'Activar herramienta resultados en el curso';
+$strings['UsersSessionReport'] = 'Reporte de usuarios inscritos en sesiones';
+$strings['AllSessions'] = 'Todas las sesiones';
+$strings['RegisteredAt'] = 'Fecha de inscripción';
+$strings['SelectReportFilters'] = 'Por favor seleccione al menos un filtro (sesión o rango de fechas de inscripción)';

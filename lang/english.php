@@ -131,3 +131,7 @@ $strings['SetQuotaToSessions'] = 'Assign quotas to sessions';
 $strings['StudentName'] = 'Student name';
 $strings['StudentSubscriptionDate'] = 'Subscription date';
 $strings['session_selector_days'] = 'Days to show in session selector (assign quotas)';
+$strings['UsersSessionReport'] = 'Report of users registered in sessions';
+$strings['AllSessions'] = 'All sessions';
+$strings['RegisteredAt'] = 'Registration date';
+$strings['SelectReportFilters'] = 'Please select at least one filter (session or registration date range)';
