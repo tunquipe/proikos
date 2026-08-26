@@ -1,6 +1,12 @@
 <?php
 
 require_once __DIR__ . '/../config.php';
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+
 api_block_anonymous_users();
 $action = $_GET['action'] ?? null;
 $plugin = ProikosPlugin::create();
@@ -98,6 +104,10 @@ switch ($action){
             Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
             api_get_path(WEB_PLUGIN_PATH) . 'proikos/start.php'
         );
+        $actionLinks .= Display::url(
+            Display::return_icon('export_excel.png', $plugin->get_lang('UsersSessionReport'), [], ICON_SIZE_MEDIUM),
+            api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/users_management.php?action=report'
+        );
         $perPage = 50;
         $search = trim($_GET['search'] ?? '');
         $page = max(1, (int) ($_GET['page'] ?? 1));
@@ -116,6 +126,158 @@ switch ($action){
         $tpl->assign('page_end', min($totalPages, $page + 3));
         $tpl->assign('total_users', $totalUsers);
         $tpl->assign('list_url', api_get_path(WEB_PLUGIN_PATH).'proikos/src/users_management.php?action=list');
+        break;
+    case 'report':
+        $actionLinks = Display::url(
+            Display::return_icon('back.png', get_lang('Back'), [], ICON_SIZE_MEDIUM),
+            api_get_path(WEB_PLUGIN_PATH) . 'proikos/src/users_management.php?action=list'
+        );
+
+        $sessionId = isset($_GET['session_id']) ? (int) $_GET['session_id'] : 0;
+        $dateFrom = $_GET['date_from'] ?? '';
+        $dateTo = $_GET['date_to'] ?? '';
+        $export = $_GET['export'] ?? '';
+
+        $form = new FormValidator('report_form', 'get', api_get_self());
+        $form->addHeader($plugin->get_lang('UsersSessionReport'));
+
+        $tableSession = Database::get_main_table(TABLE_MAIN_SESSION);
+        $result = Database::query("SELECT id, name FROM $tableSession ORDER BY name");
+        $sessionOptions = [0 => $plugin->get_lang('AllSessions')];
+        while ($row = Database::fetch_array($result, 'ASSOC')) {
+            $sessionOptions[$row['id']] = $row['name'];
+        }
+        $form->addSelect('session_id', $plugin->get_lang('SessionName'), $sessionOptions);
+        $form->addDatePicker('date_from', $plugin->get_lang('DateFrom'));
+        $form->addDatePicker('date_to', $plugin->get_lang('DateTo'));
+        $form->addHidden('action', 'report');
+        $form->addHidden('export', '');
+        $form->addButtonSearch($plugin->get_lang('Filter'), 'submit_filter');
+        $form->addButton('submit_export', $plugin->get_lang('ExportExcel'), 'file-excel-o', 'success');
+        $form->setDefaults([
+            'session_id' => $sessionId,
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+        ]);
+
+        $js = "
+        <script>
+        $(document).ready(function() {
+            $('button[name=\"submit_filter\"]').on('click', function() {
+                $('input[name=\"export\"]').val('');
+            });
+            $('button[name=\"submit_export\"]').on('click', function(e) {
+                e.preventDefault();
+                $('input[name=\"export\"]').val('excel');
+                $('#report_form').submit();
+            });
+        });
+        </script>
+        ";
+        $tpl->assign('js_content', $js);
+
+        $hasFilters = ($sessionId > 0 || !empty($dateFrom) || !empty($dateTo));
+
+        if ($hasFilters) {
+            $tableUser = Database::get_main_table(TABLE_MAIN_USER);
+            $tableSessionUser = Database::get_main_table(TABLE_MAIN_SESSION_USER);
+            $tableUserProikos = Database::get_main_table('plugin_proikos_users');
+
+            $sql = "SELECT
+                        u.lastname,
+                        u.firstname,
+                        u.email,
+                        u.username,
+                        ppu.ruc_company,
+                        ppu.name_company,
+                        s.name AS session_name,
+                        sru.registered_at
+                    FROM $tableSessionUser sru
+                    INNER JOIN $tableUser u ON u.id = sru.user_id
+                    INNER JOIN $tableSession s ON s.id = sru.session_id
+                    LEFT JOIN $tableUserProikos ppu ON ppu.user_id = u.id
+                    WHERE sru.relation_type = 0";
+
+            if ($sessionId > 0) {
+                $sql .= " AND sru.session_id = $sessionId";
+            }
+            if (!empty($dateFrom)) {
+                $sql .= " AND sru.registered_at >= '".Database::escape_string($dateFrom)." 00:00:00'";
+            }
+            if (!empty($dateTo)) {
+                $sql .= " AND sru.registered_at <= '".Database::escape_string($dateTo)." 23:59:59'";
+            }
+            $sql .= " ORDER BY s.name, u.lastname, u.firstname";
+
+            $result = Database::query($sql);
+            $data = Database::store_result($result, 'ASSOC');
+
+            if ($export === 'excel' && !empty($data)) {
+                exportUsersSessionReport($data, $sessionId, $dateFrom, $dateTo);
+                exit;
+            }
+
+            if (!empty($data)) {
+                $table = new HTML_Table(['class' => 'table table-hover table-striped']);
+                $headers = [
+                    '#',
+                    $plugin->get_lang('LastNamesAndFirstNames'),
+                    $plugin->get_lang('Email'),
+                    $plugin->get_lang('Username'),
+                    $plugin->get_lang('ContratingCompanyRUC'),
+                    $plugin->get_lang('ContratingCompanyName'),
+                    $plugin->get_lang('SessionName'),
+                    $plugin->get_lang('RegisteredAt'),
+                ];
+                $table->setHeaderContents(0, 0, $headers);
+
+                $row = 1;
+                foreach ($data as $item) {
+                    $col = 0;
+                    $table->setCellContents($row, $col++, $row);
+                    $table->setCellContents($row, $col++, $item['lastname'].' '.$item['firstname']);
+                    $table->setCellContents($row, $col++, $item['email']);
+                    $table->setCellContents($row, $col++, $item['username']);
+                    $table->setCellContents($row, $col++, $item['ruc_company'] ?: '-');
+                    $table->setCellContents($row, $col++, $item['name_company'] ?: '-');
+                    $table->setCellContents($row, $col++, $item['session_name']);
+                    $table->setCellContents(
+                        $row,
+                        $col++,
+                        $item['registered_at']
+                            ? api_convert_and_format_date($item['registered_at'], DATE_TIME_FORMAT_SHORT)
+                            : '-'
+                    );
+                    $row++;
+                }
+
+                $tpl->assign('report_table', $table->toHtml());
+                $tpl->assign('report_total', count($data));
+
+                $filterInfo = [];
+                if ($sessionId > 0) {
+                    $filterInfo[] = $plugin->get_lang('SessionName').': <strong>'
+                        .Security::remove_XSS($sessionOptions[$sessionId] ?? $sessionId).'</strong>';
+                } else {
+                    $filterInfo[] = $plugin->get_lang('SessionName').': <strong>'
+                        .$plugin->get_lang('AllSessions').'</strong>';
+                }
+                if (!empty($dateFrom)) {
+                    $filterInfo[] = $plugin->get_lang('DateFrom').': <strong>'.api_format_date($dateFrom).'</strong>';
+                }
+                if (!empty($dateTo)) {
+                    $filterInfo[] = $plugin->get_lang('DateTo').': <strong>'.api_format_date($dateTo).'</strong>';
+                }
+                $tpl->assign('report_filter_info', implode(' | ', $filterInfo));
+            } else {
+                $message = Display::return_message($plugin->get_lang('NoDataFound'), 'warning');
+            }
+        } else {
+            $message = Display::return_message($plugin->get_lang('SelectReportFilters'), 'info');
+        }
+
+        $tpl->assign('form_report', $form->returnForm());
+        break;
         default;
 }
 $tpl->assign(
@@ -126,3 +288,75 @@ $tpl->assign('message', $message);
 $content = $tpl->fetch('proikos/view/proikos_users.tpl');
 $tpl->assign('content', $content);
 $tpl->display_one_col_template();
+
+/**
+ * Exporta a Excel la lista de usuarios inscritos en sesiones.
+ */
+function exportUsersSessionReport($data, $sessionId, $dateFrom, $dateTo)
+{
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+    $sheet->setTitle('Usuarios por Sesión');
+
+    $headers = [
+        '#',
+        'Apellidos y Nombres',
+        'Correo',
+        'Usuario',
+        'RUC Empresa',
+        'Nombre Empresa',
+        'Sesión',
+        'Fecha de Inscripción',
+    ];
+    $sheet->fromArray($headers, null, 'A1');
+
+    $headerStyle = [
+        'font' => ['bold' => true],
+        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+        'fill' => [
+            'fillType' => Fill::FILL_SOLID,
+            'startColor' => ['rgb' => 'CCCCCC'],
+        ],
+    ];
+    $sheet->getStyle('A1:H1')->applyFromArray($headerStyle);
+    foreach (range('A', 'H') as $col) {
+        $sheet->getColumnDimension($col)->setAutoSize(true);
+    }
+
+    $row = 2;
+    foreach ($data as $index => $item) {
+        $sheet->fromArray([
+            $index + 1,
+            $item['lastname'].' '.$item['firstname'],
+            $item['email'],
+            $item['username'],
+            $item['ruc_company'] ?: '-',
+            $item['name_company'] ?: '-',
+            $item['session_name'],
+            $item['registered_at']
+                ? api_convert_and_format_date($item['registered_at'], DATE_TIME_FORMAT_SHORT)
+                : '-',
+        ], null, 'A'.$row);
+        $row++;
+    }
+
+    $filenameParts = ['usuarios_sesion'];
+    if ($sessionId > 0) {
+        $filenameParts[] = 'sesion_'.$sessionId;
+    }
+    if (!empty($dateFrom)) {
+        $filenameParts[] = 'desde_'.str_replace('-', '', $dateFrom);
+    }
+    if (!empty($dateTo)) {
+        $filenameParts[] = 'hasta_'.str_replace('-', '', $dateTo);
+    }
+    $filenameParts[] = date('Ymd_His');
+    $filename = implode('_', $filenameParts).'.xlsx';
+
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment;filename="'.$filename.'"');
+    header('Cache-Control: max-age=0');
+
+    $writer = new Xlsx($spreadsheet);
+    $writer->save('php://output');
+}

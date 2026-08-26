@@ -1,5 +1,19 @@
 {{ form_edit }}
 
+{% if form_report %}
+{{ form_report }}
+{% if report_filter_info %}
+<div class="alert alert-info">{{ report_filter_info }}</div>
+<p class="text-muted">{{ report_total }} registro(s)</p>
+{% endif %}
+{% if report_table %}
+<div class="table-responsive">
+    {{ report_table }}
+</div>
+{% endif %}
+{{ js_content }}
+{% endif %}
+
 {% if current_page %}
 <form method="get" action="{{ list_url }}" class="form-inline" style="margin-bottom: 15px;">
     <input type="hidden" name="action" value="list">

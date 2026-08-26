@@ -1,0 +1,1382 @@
+[2025-11-28 13:43:16] === INICIO DEL CRON: Desuscripción de usuarios desaprobados ===
+[2025-11-28 13:43:16] Buscando desaprobados desde: 2025-11-21 hasta: 2025-11-28
+[2025-11-28 13:43:16] Total de usuarios desaprobados encontrados: 0
+[2025-11-28 13:43:16] No hay usuarios para procesar. Finalizando.
+[2025-11-28 13:47:44] === INICIO DEL CRON: Desuscripción de usuarios desaprobados ===
+[2025-11-28 13:47:44] Buscando desaprobados desde: 2025-11-21 hasta: 2025-11-28
+[2025-11-28 13:47:44] Total de usuarios desaprobados encontrados: 0
+[2025-11-28 13:47:44] No hay usuarios para procesar. Finalizando.
+[2025-11-28 13:48:48] === INICIO DEL CRON: Desuscripción de usuarios desaprobados ===
+[2025-11-28 13:48:48] Buscando desaprobados desde: 2025-11-21 hasta: 2025-11-28
+[2025-11-28 13:48:48] Total de usuarios desaprobados encontrados: 0
+[2025-11-28 13:48:48] No hay usuarios para procesar. Finalizando.
+[2025-11-28 13:50:11] === INICIO DEL CRON: Desuscripción de usuarios desaprobados ===
+[2025-11-28 13:50:11] Buscando desaprobados desde: 2025-10-29 hasta: 2025-11-28
+[2025-11-28 13:50:11] Total de usuarios desaprobados encontrados: 171
+[2025-11-28 13:50:11] Verificando usuario: FERMIN CISNEROS VELA (ID: 3597, DNI: 05389779) - Sesión: 107
+[2025-11-28 13:50:11]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:11]   - LPs eliminados: 2
+[2025-11-28 13:50:11]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:11]   - Usuario desuscrito de la sesión 107
+[2025-11-28 13:50:11]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:11] Verificando usuario: JESUS LORENZO CHACALIAZA SOTO (ID: 3101, DNI: 22298856) - Sesión: 107
+[2025-11-28 13:50:11]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:11]   - LPs eliminados: 2
+[2025-11-28 13:50:11]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:11]   - Usuario desuscrito de la sesión 107
+[2025-11-28 13:50:11]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:11] Verificando usuario: DARWIN HUANCAS FARCEQUE (ID: 3797, DNI: 74125828) - Sesión: 107
+[2025-11-28 13:50:11]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:11]   - LPs eliminados: 2
+[2025-11-28 13:50:12]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:12]   - Usuario desuscrito de la sesión 107
+[2025-11-28 13:50:12]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:12] Verificando usuario: CARMEN DEL PILAR YUMBATO CHAVEZ (ID: 3938, DNI: 73969438) - Sesión: 107
+[2025-11-28 13:50:12]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:12]   - LPs eliminados: 2
+[2025-11-28 13:50:12]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:12]   - Usuario desuscrito de la sesión 107
+[2025-11-28 13:50:12]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:12] Verificando usuario: Abel Fernando Chavez Villanueva (ID: 1995, DNI: 73004361) - Sesión: 107
+[2025-11-28 13:50:12]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:12]   - LPs eliminados: 2
+[2025-11-28 13:50:12]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:12]   - Usuario desuscrito de la sesión 107
+[2025-11-28 13:50:12]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:12] Verificando usuario: Oscar Machaca Luque (ID: 3736, DNI: 29707621) - Sesión: 107
+[2025-11-28 13:50:12]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:12]   - LPs eliminados: 2
+[2025-11-28 13:50:12]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:12]   - Usuario desuscrito de la sesión 107
+[2025-11-28 13:50:12]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:12] Verificando usuario: WALDIR NASHNATO PACAYA (ID: 3600, DNI: 45060568) - Sesión: 107
+[2025-11-28 13:50:12]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:12]   - LPs eliminados: 2
+[2025-11-28 13:50:12]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:12]   - Usuario desuscrito de la sesión 107
+[2025-11-28 13:50:12]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:12] Verificando usuario: YEFRI YAMPIER YARLEQUE MARQUEZ (ID: 3866, DNI: 76150679) - Sesión: 107
+[2025-11-28 13:50:12]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:12]   - LPs eliminados: 2
+[2025-11-28 13:50:12]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:12]   - Usuario desuscrito de la sesión 107
+[2025-11-28 13:50:12]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:12] Verificando usuario: Carlos Ernesto Ccollatupa Tantani (ID: 3978, DNI: 74212451) - Sesión: 107
+[2025-11-28 13:50:12]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:12]   - LPs eliminados: 2
+[2025-11-28 13:50:12]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:12]   - Usuario desuscrito de la sesión 107
+[2025-11-28 13:50:12]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:12] Verificando usuario: ROGER ENRIQUE JARA ALFARO (ID: 3116, DNI: 73067750) - Sesión: 15
+[2025-11-28 13:50:12]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:13]   - LPs eliminados: 16
+[2025-11-28 13:50:14]   - Ejercicios eliminados: 15
+[2025-11-28 13:50:14]   - Usuario desuscrito de la sesión 15
+[2025-11-28 13:50:14]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:14] Verificando usuario: Kobi Loja Rengifo (ID: 3712, DNI: 75868028) - Sesión: 15
+[2025-11-28 13:50:14]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:50:14] Verificando usuario: Percy Mechato Sánchez (ID: 3610, DNI: 03900003) - Sesión: 109
+[2025-11-28 13:50:14]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:14]   - LPs eliminados: 2
+[2025-11-28 13:50:14]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:14]   - Usuario desuscrito de la sesión 109
+[2025-11-28 13:50:14]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:14] Verificando usuario: RUFINO DAVID JANAMPA PARIONA (ID: 1048, DNI: 47839876) - Sesión: 109
+[2025-11-28 13:50:14]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:14]   - LPs eliminados: 2
+[2025-11-28 13:50:15]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:15]   - Usuario desuscrito de la sesión 109
+[2025-11-28 13:50:15]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:15] Verificando usuario: DAVID FERNANDO CALLA ESCALANTE (ID: 3283, DNI: 46621695) - Sesión: 109
+[2025-11-28 13:50:15]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:15]   - LPs eliminados: 2
+[2025-11-28 13:50:15]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:15]   - Usuario desuscrito de la sesión 109
+[2025-11-28 13:50:15]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:15] Verificando usuario: emmanuel benjamin loayza arias (ID: 3727, DNI: 47235966) - Sesión: 109
+[2025-11-28 13:50:15]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:15]   - LPs eliminados: 2
+[2025-11-28 13:50:15]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:16]   - Usuario desuscrito de la sesión 109
+[2025-11-28 13:50:16]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:16] Verificando usuario: JORGE ARMANDO CANCHO ALZAMORA (ID: 3684, DNI: 45627962) - Sesión: 109
+[2025-11-28 13:50:16]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:16]   - LPs eliminados: 2
+[2025-11-28 13:50:16]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:16]   - Usuario desuscrito de la sesión 109
+[2025-11-28 13:50:16]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:16] Verificando usuario: Daniel Reategui Reategui (ID: 1549, DNI: 72422477) - Sesión: 109
+[2025-11-28 13:50:16]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:16]   - LPs eliminados: 2
+[2025-11-28 13:50:16]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:16]   - Usuario desuscrito de la sesión 109
+[2025-11-28 13:50:16]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:16] Verificando usuario: juan klein mendoza fernandez (ID: 2800, DNI: 40401002) - Sesión: 109
+[2025-11-28 13:50:16]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:16]   - LPs eliminados: 2
+[2025-11-28 13:50:17]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:17]   - Usuario desuscrito de la sesión 109
+[2025-11-28 13:50:17]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:17] Verificando usuario: RODRIGO IVAN ALEJOS GALLO (ID: 492, DNI: 71332073) - Sesión: 109
+[2025-11-28 13:50:17]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:17]   - LPs eliminados: 2
+[2025-11-28 13:50:17]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:17]   - Usuario desuscrito de la sesión 109
+[2025-11-28 13:50:17]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:17] Verificando usuario: JIMMY JOEL ESTRADA IDROGO (ID: 1647, DNI: 42404799) - Sesión: 109
+[2025-11-28 13:50:17]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:17]   - LPs eliminados: 2
+[2025-11-28 13:50:18]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:18]   - Usuario desuscrito de la sesión 109
+[2025-11-28 13:50:18]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:18] Verificando usuario: CESAR HENRY MAMANI DIAZ (ID: 3641, DNI: 41422094) - Sesión: 109
+[2025-11-28 13:50:18]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:18]   - LPs eliminados: 2
+[2025-11-28 13:50:18]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:18]   - Usuario desuscrito de la sesión 109
+[2025-11-28 13:50:18]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:18] Verificando usuario: juan klein mendoza fernandez (ID: 2800, DNI: 40401002) - Sesión: 15
+[2025-11-28 13:50:18]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:50:18] Verificando usuario: JACKSON PIZANGO RODRIGUEZ (ID: 3731, DNI: 43442407) - Sesión: 106
+[2025-11-28 13:50:18]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:18]   - LPs eliminados: 2
+[2025-11-28 13:50:18]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:19]   - Usuario desuscrito de la sesión 106
+[2025-11-28 13:50:19]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:19] Verificando usuario: emmanuel benjamin loayza arias (ID: 3727, DNI: 47235966) - Sesión: 106
+[2025-11-28 13:50:19]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:19]   - LPs eliminados: 2
+[2025-11-28 13:50:19]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:19]   - Usuario desuscrito de la sesión 106
+[2025-11-28 13:50:19]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:19] Verificando usuario: José Francisco Rosas Cairo (ID: 2216, DNI: 002963293) - Sesión: 106
+[2025-11-28 13:50:19]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:19]   - LPs eliminados: 2
+[2025-11-28 13:50:19]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:19]   - Usuario desuscrito de la sesión 106
+[2025-11-28 13:50:19]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:19] Verificando usuario: GUSTAVO MARTIN TRILLO HUARANCA (ID: 2386, DNI: 45112598) - Sesión: 106
+[2025-11-28 13:50:19]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:19]   - LPs eliminados: 2
+[2025-11-28 13:50:20]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:20]   - Usuario desuscrito de la sesión 106
+[2025-11-28 13:50:20]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:20] Verificando usuario: RENE EDGAR PACHO CRUZ (ID: 1906, DNI: 04652064) - Sesión: 106
+[2025-11-28 13:50:20]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:20]   - LPs eliminados: 2
+[2025-11-28 13:50:20]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:20]   - Usuario desuscrito de la sesión 106
+[2025-11-28 13:50:20]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:20] Verificando usuario: DAVID FERNANDO CALLA ESCALANTE (ID: 3283, DNI: 46621695) - Sesión: 106
+[2025-11-28 13:50:20]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:20]   - LPs eliminados: 2
+[2025-11-28 13:50:20]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:21]   - Usuario desuscrito de la sesión 106
+[2025-11-28 13:50:21]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:21] Verificando usuario: Percy Mechato Sánchez (ID: 3610, DNI: 03900003) - Sesión: 106
+[2025-11-28 13:50:21]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:21]   - LPs eliminados: 2
+[2025-11-28 13:50:21]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:21]   - Usuario desuscrito de la sesión 106
+[2025-11-28 13:50:21]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:21] Verificando usuario: EDGAR SEBASTIAN SANTISTEBAN GRANADOS (ID: 3571, DNI: 44464781) - Sesión: 106
+[2025-11-28 13:50:21]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:21]   - LPs eliminados: 2
+[2025-11-28 13:50:21]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:21]   - Usuario desuscrito de la sesión 106
+[2025-11-28 13:50:21]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:21] Verificando usuario: Ian Branco Salas Torres (ID: 3532, DNI: 70280941) - Sesión: 106
+[2025-11-28 13:50:21]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:21]   - LPs eliminados: 2
+[2025-11-28 13:50:22]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:22]   - Usuario desuscrito de la sesión 106
+[2025-11-28 13:50:22]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:22] Verificando usuario: juan klein mendoza fernandez (ID: 2800, DNI: 40401002) - Sesión: 15
+[2025-11-28 13:50:22]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:50:22] Verificando usuario: ANDY ROBINSON PLASENCIA ORIBE (ID: 284, DNI: 70017192) - Sesión: 108
+[2025-11-28 13:50:22]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:22]   - LPs eliminados: 2
+[2025-11-28 13:50:22]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:22]   - Usuario desuscrito de la sesión 108
+[2025-11-28 13:50:22]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:22] Verificando usuario: HENRY RODRIGUEZ BOHORQUEZ (ID: 3156, DNI: 001587174) - Sesión: 108
+[2025-11-28 13:50:22]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:22]   - LPs eliminados: 2
+[2025-11-28 13:50:22]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:23]   - Usuario desuscrito de la sesión 108
+[2025-11-28 13:50:23]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:23] Verificando usuario: MILENKA NARBAIZA CHANDUCAS (ID: 3311, DNI: 40931779) - Sesión: 108
+[2025-11-28 13:50:23]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:23]   - LPs eliminados: 2
+[2025-11-28 13:50:23]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:23]   - Usuario desuscrito de la sesión 108
+[2025-11-28 13:50:23]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:23] Verificando usuario: wilder ROVALINO PINEDO (ID: 3406, DNI: 42266963) - Sesión: 108
+[2025-11-28 13:50:23]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:23]   - LPs eliminados: 2
+[2025-11-28 13:50:23]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:23]   - Usuario desuscrito de la sesión 108
+[2025-11-28 13:50:23]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:23] Verificando usuario: Cesar Agusto Vega Yanayaco (ID: 3572, DNI: 43083771) - Sesión: 108
+[2025-11-28 13:50:23]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:23]   - LPs eliminados: 2
+[2025-11-28 13:50:24]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:24]   - Usuario desuscrito de la sesión 108
+[2025-11-28 13:50:24]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:24] Verificando usuario: CHRISTIAN ROY CAMPOS ZURITA (ID: 3109, DNI: 72311456) - Sesión: 108
+[2025-11-28 13:50:24]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:24]   - LPs eliminados: 2
+[2025-11-28 13:50:24]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:24]   - Usuario desuscrito de la sesión 108
+[2025-11-28 13:50:24]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:24] Verificando usuario: Edwinson Smith Cordova Chavez (ID: 2732, DNI: 47305322) - Sesión: 108
+[2025-11-28 13:50:24]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:24]   - LPs eliminados: 2
+[2025-11-28 13:50:24]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:25]   - Usuario desuscrito de la sesión 108
+[2025-11-28 13:50:25]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:25] Verificando usuario: JOSE ANTONIO PANTA BAYONA (ID: 2710, DNI: 40446198) - Sesión: 108
+[2025-11-28 13:50:25]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:25]   - LPs eliminados: 2
+[2025-11-28 13:50:25]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:25]   - Usuario desuscrito de la sesión 108
+[2025-11-28 13:50:25]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:25] Verificando usuario: OSCAR ANDERSON SANCHEZ TUCNO (ID: 3335, DNI: 76565054) - Sesión: 108
+[2025-11-28 13:50:25]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:25]   - LPs eliminados: 2
+[2025-11-28 13:50:25]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:25]   - Usuario desuscrito de la sesión 108
+[2025-11-28 13:50:25]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:25] Verificando usuario: alex chaucca bacilio (ID: 3493, DNI: 70188533) - Sesión: 108
+[2025-11-28 13:50:25]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:25]   - LPs eliminados: 2
+[2025-11-28 13:50:25]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:25]   - Usuario desuscrito de la sesión 108
+[2025-11-28 13:50:25]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:25] Verificando usuario: CESAR MANUEL RUIZ ADRIANZEN (ID: 2451, DNI: 45999661) - Sesión: 108
+[2025-11-28 13:50:25]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:25]   - LPs eliminados: 2
+[2025-11-28 13:50:25]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:25]   - Usuario desuscrito de la sesión 108
+[2025-11-28 13:50:25]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:25] Verificando usuario: JOSE MANUEL RAMIREZ ERAZO (ID: 1339, DNI: 71243624) - Sesión: 105
+[2025-11-28 13:50:25]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:25]   - LPs eliminados: 2
+[2025-11-28 13:50:25]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:25]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:25]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:25] Verificando usuario: bryan bernardo carrasco pilco (ID: 190, DNI: 61168411) - Sesión: 105
+[2025-11-28 13:50:25]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:25]   - LPs eliminados: 2
+[2025-11-28 13:50:26]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:26]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:26]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:26] Verificando usuario: GERMOLAR HITLER PANDURO VELA (ID: 3370, DNI: 41108915) - Sesión: 105
+[2025-11-28 13:50:26]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:26]   - LPs eliminados: 2
+[2025-11-28 13:50:26]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:26]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:26]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:26] Verificando usuario: ALVARO JUNIOR TEJADA AREVALO (ID: 3407, DNI: 46918184) - Sesión: 105
+[2025-11-28 13:50:26]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:26]   - LPs eliminados: 2
+[2025-11-28 13:50:26]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:26]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:26]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:26] Verificando usuario: JULISSA RENGIFO TELLO (ID: 3353, DNI: 45262873) - Sesión: 105
+[2025-11-28 13:50:26]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:26]   - LPs eliminados: 2
+[2025-11-28 13:50:26]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:26]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:26]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:26] Verificando usuario: NOE JESUS PARIONA TARAZONA (ID: 3096, DNI: 09813170) - Sesión: 105
+[2025-11-28 13:50:26]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:26]   - LPs eliminados: 2
+[2025-11-28 13:50:26]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:26]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:26]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:26] Verificando usuario: FRANK JOVANNI DOSSANTOS MACEDO (ID: 724, DNI: 70747331) - Sesión: 105
+[2025-11-28 13:50:26]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:26]   - LPs eliminados: 2
+[2025-11-28 13:50:26]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:26]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:26]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:26] Verificando usuario: alex chaucca bacilio (ID: 3493, DNI: 70188533) - Sesión: 105
+[2025-11-28 13:50:26]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:26]   - LPs eliminados: 2
+[2025-11-28 13:50:26]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:26]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:26]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:26] Verificando usuario: CHRISTIAN ROY CAMPOS ZURITA (ID: 3109, DNI: 72311456) - Sesión: 105
+[2025-11-28 13:50:26]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:26]   - LPs eliminados: 2
+[2025-11-28 13:50:26]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:26]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:26]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:26] Verificando usuario: CARLOS ALFREDO ARGUIS TACO (ID: 3333, DNI: 46236084) - Sesión: 105
+[2025-11-28 13:50:26]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:26]   - LPs eliminados: 2
+[2025-11-28 13:50:26]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:26]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:26]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:26] Verificando usuario: JOSE LUIS ALVA RONDON (ID: 3423, DNI: 25427101) - Sesión: 105
+[2025-11-28 13:50:26]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:26]   - LPs eliminados: 2
+[2025-11-28 13:50:26]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:26]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:26]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:26] Verificando usuario: JOSE GIANCARLO CASTRO SALAZAR (ID: 2296, DNI: 43632594) - Sesión: 105
+[2025-11-28 13:50:26]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:26]   - LPs eliminados: 2
+[2025-11-28 13:50:26]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:26]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:26]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:26] Verificando usuario: RODRIGO IVAN ALEJOS GALLO (ID: 492, DNI: 71332073) - Sesión: 105
+[2025-11-28 13:50:26]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:26]   - LPs eliminados: 2
+[2025-11-28 13:50:26]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:26]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:26]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:26] Verificando usuario: ANTONY BRAYAN ROMERO OMONTE (ID: 3354, DNI: 72710953) - Sesión: 105
+[2025-11-28 13:50:26]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:26]   - LPs eliminados: 2
+[2025-11-28 13:50:26]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:26]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:26]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:26] Verificando usuario: PABLO ENRIQUE CASTILLO MEDINA (ID: 2449, DNI: 46449025) - Sesión: 105
+[2025-11-28 13:50:26]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:26]   - LPs eliminados: 2
+[2025-11-28 13:50:26]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:26]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:26]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:26] Verificando usuario: martin sanchez siancas (ID: 3441, DNI: 46422666) - Sesión: 15
+[2025-11-28 13:50:26]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:26]   - LPs eliminados: 16
+[2025-11-28 13:50:26]   - Ejercicios eliminados: 15
+[2025-11-28 13:50:26]   - Usuario desuscrito de la sesión 15
+[2025-11-28 13:50:26]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:26] Verificando usuario: ARBILDO SHUPINGAHUA SANGAMA (ID: 3090, DNI: 71700646) - Sesión: 105
+[2025-11-28 13:50:26]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:26]   - LPs eliminados: 2
+[2025-11-28 13:50:26]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:26]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:26]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:26] Verificando usuario: Edwinson Smith Cordova Chavez (ID: 2732, DNI: 47305322) - Sesión: 105
+[2025-11-28 13:50:26]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:26]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: Ronald Quispe Gonzales (ID: 3008, DNI: 46511288) - Sesión: 105
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: JOSE ANTONIO PANTA BAYONA (ID: 2710, DNI: 40446198) - Sesión: 105
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 105
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: martin sanchez siancas (ID: 3441, DNI: 46422666) - Sesión: 11
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 10
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 20
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 11
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: Andre Marcelo Pereyra Anco (ID: 27, DNI: 73300821) - Sesión: 40
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 40
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: Paola Jimena Ñahuinrripa Garcia (ID: 28, DNI: 76039769) - Sesión: 39
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 39
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: Gricelda Judith Bohorquez De Los Rios (ID: 39, DNI: 40117455) - Sesión: 39
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 39
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: Milagros Yaninna Martinez Bastiand (ID: 41, DNI: 40279560) - Sesión: 40
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 40
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: Gerardo Rodrigo Ortiz Alburqueque (ID: 43, DNI: 72399618) - Sesión: 40
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 40
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: Giannino Walter Fernandez Medina (ID: 46, DNI: 30837481) - Sesión: 39
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 39
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: Juan Manuel Vizcarra Rodríguez (ID: 51, DNI: 41421396) - Sesión: 40
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 40
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: HUGO JOAQUIN ANTICONA MESTANZA (ID: 100, DNI: 41124292) - Sesión: 63
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 63
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: Carmen Leon Brack (ID: 220, DNI: 45343472) - Sesión: 46
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 46
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: JESUS GERMAN LOZANO GARCIA (ID: 223, DNI: 40058919) - Sesión: 51
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 51
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: CRISTIAN QUISPE ARBIETO (ID: 251, DNI: 42502639) - Sesión: 46
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 46
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: ROBERTO ANTENOR BALDEON ICOCHEA (ID: 264, DNI: 15281352) - Sesión: 64
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 64
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: Armando Guillermo Gamarra Diaz (ID: 269, DNI: 45161164) - Sesión: 60
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 60
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: Armando Guillermo Gamarra Diaz (ID: 269, DNI: 45161164) - Sesión: 46
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 46
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: Carlos Palomino Ludeña (ID: 273, DNI: 09781576) - Sesión: 95
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 95
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: vania terrones terrones campos (ID: 295, DNI: 47780473) - Sesión: 83
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 83
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: Winder Barrera Paredes (ID: 437, DNI: 44351718) - Sesión: 51
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 51
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: Alexandra Jackeline Chambergo Purisaca (ID: 450, DNI: 72610598) - Sesión: 48
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 48
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: Darwin Romero (ID: 470, DNI: 29239297) - Sesión: 11
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 10
+[2025-11-28 13:50:27]   - Ejercicios eliminados: 20
+[2025-11-28 13:50:27]   - Usuario desuscrito de la sesión 11
+[2025-11-28 13:50:27]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:27] Verificando usuario: ALEX VICENTE MACHARE CHUNA (ID: 488, DNI: 42717657) - Sesión: 44
+[2025-11-28 13:50:27]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:27]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 44
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: JAKE HOLGUIN MORI (ID: 511, DNI: 73777063) - Sesión: 83
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 83
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: Daniel Alfredo Callirgos Collantes (ID: 544, DNI: 71768876) - Sesión: 94
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 94
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: MELVIN LORENZO VILLARREAL VILLANUEVA (ID: 579, DNI: 31823051) - Sesión: 47
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 47
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: PEDRO SAMUEL PALACIOS NUNURA (ID: 600, DNI: 75601032) - Sesión: 64
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 64
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: MILTON NAPUCHE MELENDEZ (ID: 633, DNI: 00112581) - Sesión: 60
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 60
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: NEIL MARTIN RIVAS SANCHEZ (ID: 638, DNI: 05357051) - Sesión: 60
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 60
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: ALEXANDER GEORGE VILCAPOMA JANAMPA (ID: 665, DNI: 42081538) - Sesión: 83
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 83
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: ALEXANDER GEORGE VILCAPOMA JANAMPA (ID: 665, DNI: 42081538) - Sesión: 48
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 48
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: CARLOS QUILER RAMIREZ MANUYAMA (ID: 703, DNI: 45049196) - Sesión: 90
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 90
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: CARLOS QUILER RAMIREZ MANUYAMA (ID: 703, DNI: 45049196) - Sesión: 64
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 64
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: CARLOS QUILER RAMIREZ MANUYAMA (ID: 703, DNI: 45049196) - Sesión: 63
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 63
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: JUAN CARLOS CORONADO RETAMOZO (ID: 731, DNI: 73786396) - Sesión: 60
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 60
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: PAUL ROBERTD MENDIZABAL CONTRERAS (ID: 734, DNI: 44544216) - Sesión: 84
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 84
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: Andrea Nicolle Catacora Flores (ID: 775, DNI: 73092517) - Sesión: 94
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 94
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: Jorge Antonio Garay Vilchez (ID: 846, DNI: 40653565) - Sesión: 82
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 82
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: Jorge Antonio Garay Vilchez (ID: 846, DNI: 40653565) - Sesión: 60
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 60
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: LUIS MIGUEL FRANCO HUALINGA (ID: 848, DNI: 43249814) - Sesión: 61
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 61
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: LUIS MIGUEL FRANCO HUALINGA (ID: 848, DNI: 43249814) - Sesión: 60
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 60
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: ANDY ROBINSON AGUSTIN SAENZ (ID: 855, DNI: 70659912) - Sesión: 84
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 84
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: JHORDAN STIB CABALLERO TEJEDA (ID: 978, DNI: 48671451) - Sesión: 61
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 61
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: DANNY CHRYSTIAN CHIGNE MARTINEZ (ID: 987, DNI: 40653597) - Sesión: 81
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 81
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: ELISA JANNET TAVARA CRUZ (ID: 999, DNI: 43319001) - Sesión: 63
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:28]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:28]   - Usuario desuscrito de la sesión 63
+[2025-11-28 13:50:28]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:28] Verificando usuario: Eduardo Pereyra Aguirre (ID: 1284, DNI: 41103985) - Sesión: 82
+[2025-11-28 13:50:28]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:28]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 82
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: Maria Elena Apacclla Palacios (ID: 1294, DNI: 48165850) - Sesión: 82
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 82
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: DIEGO ARMANDO ROBLES LOAYZA (ID: 1306, DNI: 70596241) - Sesión: 82
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 82
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: JOSE MANUEL RAMIREZ ERAZO (ID: 1339, DNI: 71243624) - Sesión: 64
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 64
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: CARLOS JOEL ELCORROBARRUTIA RAMOS (ID: 1374, DNI: 40668008) - Sesión: 82
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 82
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: RONY ALAN RODRIGUEZ ALTAMIRANO (ID: 1387, DNI: 44028819) - Sesión: 79
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 79
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: RONY ALAN RODRIGUEZ ALTAMIRANO (ID: 1387, DNI: 44028819) - Sesión: 64
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 64
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: Richar Mechill Machaca Vargas (ID: 1388, DNI: 71830057) - Sesión: 82
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 82
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: Joselin Katerin Monterola Astorayme (ID: 1392, DNI: 72215035) - Sesión: 64
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 64
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: ESLEITER ZOCIMO MATTA QUEZADA (ID: 1481, DNI: 74425341) - Sesión: 82
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 82
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: ESLEITER ZOCIMO MATTA QUEZADA (ID: 1481, DNI: 74425341) - Sesión: 79
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 79
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: Johan Eddy Ccosi Vilca (ID: 1486, DNI: 71594365) - Sesión: 82
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 82
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: PAOLA JARINA ESPINOZA LEÓN (ID: 1499, DNI: 74249594) - Sesión: 83
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 83
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: PAOLA JARINA ESPINOZA LEÓN (ID: 1499, DNI: 74249594) - Sesión: 82
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 82
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: Miguel Ángel García Olivares (ID: 1555, DNI: 70870765) - Sesión: 80
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 80
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: Ubaldo Martin Mora Galegos (ID: 1557, DNI: 44938309) - Sesión: 84
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 84
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: Ubaldo Martin Mora Galegos (ID: 1557, DNI: 44938309) - Sesión: 83
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 83
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: Vilchez Huancas Pedro Pablo (ID: 1559, DNI: 32988509) - Sesión: 84
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 84
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: Agustín Nicandro Zamora Cerna (ID: 1561, DNI: 10121514) - Sesión: 93
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 93
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: Terry Alexander Cruzado Montoya (ID: 1575, DNI: 77277048) - Sesión: 82
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 82
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: Jorge Luis Merma Bondia (ID: 1576, DNI: 76270323) - Sesión: 82
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:29]   - LPs eliminados: 2
+[2025-11-28 13:50:29]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:29]   - Usuario desuscrito de la sesión 82
+[2025-11-28 13:50:29]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:29] Verificando usuario: Rudy Alexander Carlos Duarte (ID: 1577, DNI: 73060282) - Sesión: 64
+[2025-11-28 13:50:29]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 2
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 64
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: Jhonatan Oscar Muñoz Albornoz (ID: 1578, DNI: 41907219) - Sesión: 82
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 2
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 82
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: Jose Gilberto Gonzales Tafur (ID: 1644, DNI: 05257879) - Sesión: 82
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 2
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 82
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: JIMMY JOEL ESTRADA IDROGO (ID: 1647, DNI: 42404799) - Sesión: 93
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 2
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 93
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: DIEGO FERNANDO URIBE PEREZ (ID: 1665, DNI: 72839707) - Sesión: 82
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 2
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 82
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: JOSSIE MADELEN GUZMAN LOZANO (ID: 1692, DNI: 71880433) - Sesión: 83
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 2
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 83
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: BRANDO GEORGE ANGELES CUEVA (ID: 1693, DNI: 70537598) - Sesión: 83
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 2
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 83
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: Jaime Alberto Anaya Córdova (ID: 1694, DNI: 42592457) - Sesión: 83
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 2
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 83
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: Noe Cordova Macedo (ID: 1750, DNI: 43448314) - Sesión: 93
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 2
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 93
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: Noe Cordova Macedo (ID: 1750, DNI: 43448314) - Sesión: 84
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 2
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 84
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: ALDER AUGUSTO GRIMALDO YAURICASA SANCHEZ (ID: 1793, DNI: 72965767) - Sesión: 84
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 2
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 84
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: EDSON GIORDANO JUAREZ ORDINOLA (ID: 1825, DNI: 47601864) - Sesión: 84
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 2
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 84
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: WALTER NICOLAS ARICA SANCHEZ (ID: 1885, DNI: 41198747) - Sesión: 90
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 2
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 90
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: TAYLOR ROLANDO TAPIA FLORIAN (ID: 1927, DNI: 46566356) - Sesión: 11
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 10
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 20
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 11
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: RICHARD JUAN ESQUICHA COLQUE (ID: 2002, DNI: 73497351) - Sesión: 84
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 2
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 84
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: Emanuel Antonio Molleda Mendizabal (ID: 2071, DNI: 73116316) - Sesión: 84
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 2
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 84
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: Frank Edwar Torres Flores (ID: 2078, DNI: 75663594) - Sesión: 84
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:30]   - LPs eliminados: 2
+[2025-11-28 13:50:30]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:30]   - Usuario desuscrito de la sesión 84
+[2025-11-28 13:50:30]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:30] Verificando usuario: WILLIANS BERNABE APONTE ARQUIÑEGO (ID: 2092, DNI: 43211050) - Sesión: 15
+[2025-11-28 13:50:30]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 16
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 15
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 15
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: WILLIANS BERNABE APONTE ARQUIÑEGO (ID: 2092, DNI: 43211050) - Sesión: 81
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 81
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: IGOR ARANA AGUILAR (ID: 2165, DNI: 46949721) - Sesión: 90
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 90
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: ANGEL JOSUE AGREDA SANGUINETTI (ID: 2167, DNI: 42675938) - Sesión: 84
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 84
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: OSWALDO MALAGA MIRANDA (ID: 2308, DNI: 29529253) - Sesión: 92
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 92
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: OSWALDO MALAGA MIRANDA (ID: 2308, DNI: 29529253) - Sesión: 90
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 90
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: RAUL JHEFFERSON DIAZ FLORES (ID: 2419, DNI: 40235000) - Sesión: 90
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 90
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: Waksman Gerles Abad Yzquierdo (ID: 2458, DNI: 73068069) - Sesión: 93
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 93
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: Antonio Tito Chagua Chagua (ID: 2496, DNI: 72177727) - Sesión: 93
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 93
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: GUARDIA BOSMEDIANO JOHN RILEY (ID: 2514, DNI: 43893561) - Sesión: 90
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 90
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: Elwin Ruiz Matos (ID: 2643, DNI: 43878934) - Sesión: 95
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 95
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: Elwin Ruiz Matos (ID: 2643, DNI: 43878934) - Sesión: 91
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 91
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: BEDILBERTO MARCHAN ABAD (ID: 2673, DNI: 43320533) - Sesión: 90
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 90
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: Adriano Jose Vargas Callapina (ID: 2727, DNI: 48536536) - Sesión: 95
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 95
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: Carlos Enrique Quepuy Quispe (ID: 2730, DNI: 75146801) - Sesión: 95
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 95
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: Edwinson Smith Cordova Chavez (ID: 2732, DNI: 47305322) - Sesión: 92
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 92
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: Edwinson Smith Cordova Chavez (ID: 2732, DNI: 47305322) - Sesión: 91
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 91
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: Sergio Francisco Barrios Callirgos (ID: 2736, DNI: 09674959) - Sesión: 94
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 94
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: Orlando Limahuaya Cusilayme (ID: 2737, DNI: 47029403) - Sesión: 94
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 94
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: juan klein mendoza fernandez (ID: 2800, DNI: 40401002) - Sesión: 92
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 92
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: SANDY JIMENEZ RIOS (ID: 2815, DNI: 47780531) - Sesión: 91
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:31]   - LPs eliminados: 2
+[2025-11-28 13:50:31]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:31]   - Usuario desuscrito de la sesión 91
+[2025-11-28 13:50:31]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:31] Verificando usuario: MARCOS ALBERTO ADANAQUE VALENCIA (ID: 3083, DNI: 41010113) - Sesión: 11
+[2025-11-28 13:50:31]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:32]   - LPs eliminados: 10
+[2025-11-28 13:50:32]   - Ejercicios eliminados: 20
+[2025-11-28 13:50:32]   - Usuario desuscrito de la sesión 11
+[2025-11-28 13:50:32]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:32] Verificando usuario: MARCOS ALBERTO ADANAQUE VALENCIA (ID: 3083, DNI: 41010113) - Sesión: 92
+[2025-11-28 13:50:32]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:32]   - LPs eliminados: 2
+[2025-11-28 13:50:32]   - Ejercicios eliminados: 9
+[2025-11-28 13:50:32]   - Usuario desuscrito de la sesión 92
+[2025-11-28 13:50:32]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:32] Verificando usuario: DIEGO EDHER PACHECO CASTRO (ID: 3095, DNI: 44651051) - Sesión: 15
+[2025-11-28 13:50:32]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:32]   - LPs eliminados: 16
+[2025-11-28 13:50:32]   - Ejercicios eliminados: 15
+[2025-11-28 13:50:32]   - Usuario desuscrito de la sesión 15
+[2025-11-28 13:50:32]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:32] Verificando usuario: JUAN EDUARDO QUICAÑO FLORES (ID: 3098, DNI: 09920846) - Sesión: 11
+[2025-11-28 13:50:32]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:32]   - LPs eliminados: 10
+[2025-11-28 13:50:32]   - Ejercicios eliminados: 20
+[2025-11-28 13:50:32]   - Usuario desuscrito de la sesión 11
+[2025-11-28 13:50:32]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:32] Verificando usuario: WALTER ALEJANDRO FARFAN RIVERA (ID: 3104, DNI: 70869927) - Sesión: 95
+[2025-11-28 13:50:32]   → Usuario inscrito. Procediendo a procesar...
+[2025-11-28 13:50:32]   - LPs eliminados: 2
+[2025-11-28 13:50:32]   - Ejercicios eliminados: 12
+[2025-11-28 13:50:32]   - Usuario desuscrito de la sesión 95
+[2025-11-28 13:50:32]   ✓ Usuario procesado correctamente
+[2025-11-28 13:50:32] Verificando usuario: oswaldo segundo olivares cifre (ID: 3160, DNI: 42607706) - Sesión: 15
+[2025-11-28 13:50:32]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:50:32] === RESUMEN ===
+[2025-11-28 13:50:32] Total encontrados: 171
+[2025-11-28 13:50:32] Procesados correctamente: 167
+[2025-11-28 13:50:32] Saltados (no inscritos): 4
+[2025-11-28 13:50:32] Con errores: 0
+[2025-11-28 13:50:32] === FIN DEL CRON ===
+[2025-11-28 13:54:52] === INICIO DEL CRON: Desuscripción de usuarios desaprobados ===
+[2025-11-28 13:54:52] Buscando desaprobados desde: 2025-10-29 hasta: 2025-11-28
+[2025-11-28 13:54:52] Total de usuarios desaprobados encontrados: 171
+[2025-11-28 13:54:52] Verificando usuario: FERMIN CISNEROS VELA (ID: 3597, DNI: 05389779) - Sesión: 107
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JESUS LORENZO CHACALIAZA SOTO (ID: 3101, DNI: 22298856) - Sesión: 107
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: DARWIN HUANCAS FARCEQUE (ID: 3797, DNI: 74125828) - Sesión: 107
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: CARMEN DEL PILAR YUMBATO CHAVEZ (ID: 3938, DNI: 73969438) - Sesión: 107
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Abel Fernando Chavez Villanueva (ID: 1995, DNI: 73004361) - Sesión: 107
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Oscar Machaca Luque (ID: 3736, DNI: 29707621) - Sesión: 107
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: WALDIR NASHNATO PACAYA (ID: 3600, DNI: 45060568) - Sesión: 107
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: YEFRI YAMPIER YARLEQUE MARQUEZ (ID: 3866, DNI: 76150679) - Sesión: 107
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Carlos Ernesto Ccollatupa Tantani (ID: 3978, DNI: 74212451) - Sesión: 107
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: ROGER ENRIQUE JARA ALFARO (ID: 3116, DNI: 73067750) - Sesión: 15
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Kobi Loja Rengifo (ID: 3712, DNI: 75868028) - Sesión: 15
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Percy Mechato Sánchez (ID: 3610, DNI: 03900003) - Sesión: 109
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: RUFINO DAVID JANAMPA PARIONA (ID: 1048, DNI: 47839876) - Sesión: 109
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: DAVID FERNANDO CALLA ESCALANTE (ID: 3283, DNI: 46621695) - Sesión: 109
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: emmanuel benjamin loayza arias (ID: 3727, DNI: 47235966) - Sesión: 109
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JORGE ARMANDO CANCHO ALZAMORA (ID: 3684, DNI: 45627962) - Sesión: 109
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Daniel Reategui Reategui (ID: 1549, DNI: 72422477) - Sesión: 109
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: juan klein mendoza fernandez (ID: 2800, DNI: 40401002) - Sesión: 109
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: RODRIGO IVAN ALEJOS GALLO (ID: 492, DNI: 71332073) - Sesión: 109
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JIMMY JOEL ESTRADA IDROGO (ID: 1647, DNI: 42404799) - Sesión: 109
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: CESAR HENRY MAMANI DIAZ (ID: 3641, DNI: 41422094) - Sesión: 109
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: juan klein mendoza fernandez (ID: 2800, DNI: 40401002) - Sesión: 15
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JACKSON PIZANGO RODRIGUEZ (ID: 3731, DNI: 43442407) - Sesión: 106
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: emmanuel benjamin loayza arias (ID: 3727, DNI: 47235966) - Sesión: 106
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: José Francisco Rosas Cairo (ID: 2216, DNI: 002963293) - Sesión: 106
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: GUSTAVO MARTIN TRILLO HUARANCA (ID: 2386, DNI: 45112598) - Sesión: 106
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: RENE EDGAR PACHO CRUZ (ID: 1906, DNI: 04652064) - Sesión: 106
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: DAVID FERNANDO CALLA ESCALANTE (ID: 3283, DNI: 46621695) - Sesión: 106
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Percy Mechato Sánchez (ID: 3610, DNI: 03900003) - Sesión: 106
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: EDGAR SEBASTIAN SANTISTEBAN GRANADOS (ID: 3571, DNI: 44464781) - Sesión: 106
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Ian Branco Salas Torres (ID: 3532, DNI: 70280941) - Sesión: 106
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: juan klein mendoza fernandez (ID: 2800, DNI: 40401002) - Sesión: 15
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: ANDY ROBINSON PLASENCIA ORIBE (ID: 284, DNI: 70017192) - Sesión: 108
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: HENRY RODRIGUEZ BOHORQUEZ (ID: 3156, DNI: 001587174) - Sesión: 108
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: MILENKA NARBAIZA CHANDUCAS (ID: 3311, DNI: 40931779) - Sesión: 108
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: wilder ROVALINO PINEDO (ID: 3406, DNI: 42266963) - Sesión: 108
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Cesar Agusto Vega Yanayaco (ID: 3572, DNI: 43083771) - Sesión: 108
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: CHRISTIAN ROY CAMPOS ZURITA (ID: 3109, DNI: 72311456) - Sesión: 108
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Edwinson Smith Cordova Chavez (ID: 2732, DNI: 47305322) - Sesión: 108
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JOSE ANTONIO PANTA BAYONA (ID: 2710, DNI: 40446198) - Sesión: 108
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: OSCAR ANDERSON SANCHEZ TUCNO (ID: 3335, DNI: 76565054) - Sesión: 108
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: alex chaucca bacilio (ID: 3493, DNI: 70188533) - Sesión: 108
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: CESAR MANUEL RUIZ ADRIANZEN (ID: 2451, DNI: 45999661) - Sesión: 108
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JOSE MANUEL RAMIREZ ERAZO (ID: 1339, DNI: 71243624) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: bryan bernardo carrasco pilco (ID: 190, DNI: 61168411) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: GERMOLAR HITLER PANDURO VELA (ID: 3370, DNI: 41108915) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: ALVARO JUNIOR TEJADA AREVALO (ID: 3407, DNI: 46918184) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JULISSA RENGIFO TELLO (ID: 3353, DNI: 45262873) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: NOE JESUS PARIONA TARAZONA (ID: 3096, DNI: 09813170) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: FRANK JOVANNI DOSSANTOS MACEDO (ID: 724, DNI: 70747331) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: alex chaucca bacilio (ID: 3493, DNI: 70188533) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: CHRISTIAN ROY CAMPOS ZURITA (ID: 3109, DNI: 72311456) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: CARLOS ALFREDO ARGUIS TACO (ID: 3333, DNI: 46236084) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JOSE LUIS ALVA RONDON (ID: 3423, DNI: 25427101) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JOSE GIANCARLO CASTRO SALAZAR (ID: 2296, DNI: 43632594) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: RODRIGO IVAN ALEJOS GALLO (ID: 492, DNI: 71332073) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: ANTONY BRAYAN ROMERO OMONTE (ID: 3354, DNI: 72710953) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: PABLO ENRIQUE CASTILLO MEDINA (ID: 2449, DNI: 46449025) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: martin sanchez siancas (ID: 3441, DNI: 46422666) - Sesión: 15
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: ARBILDO SHUPINGAHUA SANGAMA (ID: 3090, DNI: 71700646) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Edwinson Smith Cordova Chavez (ID: 2732, DNI: 47305322) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Ronald Quispe Gonzales (ID: 3008, DNI: 46511288) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JOSE ANTONIO PANTA BAYONA (ID: 2710, DNI: 40446198) - Sesión: 105
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: martin sanchez siancas (ID: 3441, DNI: 46422666) - Sesión: 11
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Andre Marcelo Pereyra Anco (ID: 27, DNI: 73300821) - Sesión: 40
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Paola Jimena Ñahuinrripa Garcia (ID: 28, DNI: 76039769) - Sesión: 39
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Gricelda Judith Bohorquez De Los Rios (ID: 39, DNI: 40117455) - Sesión: 39
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Milagros Yaninna Martinez Bastiand (ID: 41, DNI: 40279560) - Sesión: 40
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Gerardo Rodrigo Ortiz Alburqueque (ID: 43, DNI: 72399618) - Sesión: 40
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Giannino Walter Fernandez Medina (ID: 46, DNI: 30837481) - Sesión: 39
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Juan Manuel Vizcarra Rodríguez (ID: 51, DNI: 41421396) - Sesión: 40
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: HUGO JOAQUIN ANTICONA MESTANZA (ID: 100, DNI: 41124292) - Sesión: 63
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Carmen Leon Brack (ID: 220, DNI: 45343472) - Sesión: 46
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JESUS GERMAN LOZANO GARCIA (ID: 223, DNI: 40058919) - Sesión: 51
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: CRISTIAN QUISPE ARBIETO (ID: 251, DNI: 42502639) - Sesión: 46
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: ROBERTO ANTENOR BALDEON ICOCHEA (ID: 264, DNI: 15281352) - Sesión: 64
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Armando Guillermo Gamarra Diaz (ID: 269, DNI: 45161164) - Sesión: 60
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Armando Guillermo Gamarra Diaz (ID: 269, DNI: 45161164) - Sesión: 46
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Carlos Palomino Ludeña (ID: 273, DNI: 09781576) - Sesión: 95
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: vania terrones terrones campos (ID: 295, DNI: 47780473) - Sesión: 83
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Winder Barrera Paredes (ID: 437, DNI: 44351718) - Sesión: 51
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Alexandra Jackeline Chambergo Purisaca (ID: 450, DNI: 72610598) - Sesión: 48
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Darwin Romero (ID: 470, DNI: 29239297) - Sesión: 11
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: ALEX VICENTE MACHARE CHUNA (ID: 488, DNI: 42717657) - Sesión: 44
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JAKE HOLGUIN MORI (ID: 511, DNI: 73777063) - Sesión: 83
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Daniel Alfredo Callirgos Collantes (ID: 544, DNI: 71768876) - Sesión: 94
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: MELVIN LORENZO VILLARREAL VILLANUEVA (ID: 579, DNI: 31823051) - Sesión: 47
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: PEDRO SAMUEL PALACIOS NUNURA (ID: 600, DNI: 75601032) - Sesión: 64
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: MILTON NAPUCHE MELENDEZ (ID: 633, DNI: 00112581) - Sesión: 60
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: NEIL MARTIN RIVAS SANCHEZ (ID: 638, DNI: 05357051) - Sesión: 60
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: ALEXANDER GEORGE VILCAPOMA JANAMPA (ID: 665, DNI: 42081538) - Sesión: 83
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: ALEXANDER GEORGE VILCAPOMA JANAMPA (ID: 665, DNI: 42081538) - Sesión: 48
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: CARLOS QUILER RAMIREZ MANUYAMA (ID: 703, DNI: 45049196) - Sesión: 90
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: CARLOS QUILER RAMIREZ MANUYAMA (ID: 703, DNI: 45049196) - Sesión: 64
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: CARLOS QUILER RAMIREZ MANUYAMA (ID: 703, DNI: 45049196) - Sesión: 63
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JUAN CARLOS CORONADO RETAMOZO (ID: 731, DNI: 73786396) - Sesión: 60
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: PAUL ROBERTD MENDIZABAL CONTRERAS (ID: 734, DNI: 44544216) - Sesión: 84
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Andrea Nicolle Catacora Flores (ID: 775, DNI: 73092517) - Sesión: 94
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Jorge Antonio Garay Vilchez (ID: 846, DNI: 40653565) - Sesión: 82
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Jorge Antonio Garay Vilchez (ID: 846, DNI: 40653565) - Sesión: 60
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: LUIS MIGUEL FRANCO HUALINGA (ID: 848, DNI: 43249814) - Sesión: 61
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: LUIS MIGUEL FRANCO HUALINGA (ID: 848, DNI: 43249814) - Sesión: 60
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: ANDY ROBINSON AGUSTIN SAENZ (ID: 855, DNI: 70659912) - Sesión: 84
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JHORDAN STIB CABALLERO TEJEDA (ID: 978, DNI: 48671451) - Sesión: 61
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: DANNY CHRYSTIAN CHIGNE MARTINEZ (ID: 987, DNI: 40653597) - Sesión: 81
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: ELISA JANNET TAVARA CRUZ (ID: 999, DNI: 43319001) - Sesión: 63
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Eduardo Pereyra Aguirre (ID: 1284, DNI: 41103985) - Sesión: 82
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Maria Elena Apacclla Palacios (ID: 1294, DNI: 48165850) - Sesión: 82
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: DIEGO ARMANDO ROBLES LOAYZA (ID: 1306, DNI: 70596241) - Sesión: 82
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JOSE MANUEL RAMIREZ ERAZO (ID: 1339, DNI: 71243624) - Sesión: 64
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: CARLOS JOEL ELCORROBARRUTIA RAMOS (ID: 1374, DNI: 40668008) - Sesión: 82
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: RONY ALAN RODRIGUEZ ALTAMIRANO (ID: 1387, DNI: 44028819) - Sesión: 79
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: RONY ALAN RODRIGUEZ ALTAMIRANO (ID: 1387, DNI: 44028819) - Sesión: 64
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Richar Mechill Machaca Vargas (ID: 1388, DNI: 71830057) - Sesión: 82
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Joselin Katerin Monterola Astorayme (ID: 1392, DNI: 72215035) - Sesión: 64
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: ESLEITER ZOCIMO MATTA QUEZADA (ID: 1481, DNI: 74425341) - Sesión: 82
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: ESLEITER ZOCIMO MATTA QUEZADA (ID: 1481, DNI: 74425341) - Sesión: 79
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Johan Eddy Ccosi Vilca (ID: 1486, DNI: 71594365) - Sesión: 82
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: PAOLA JARINA ESPINOZA LEÓN (ID: 1499, DNI: 74249594) - Sesión: 83
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: PAOLA JARINA ESPINOZA LEÓN (ID: 1499, DNI: 74249594) - Sesión: 82
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Miguel Ángel García Olivares (ID: 1555, DNI: 70870765) - Sesión: 80
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Ubaldo Martin Mora Galegos (ID: 1557, DNI: 44938309) - Sesión: 84
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Ubaldo Martin Mora Galegos (ID: 1557, DNI: 44938309) - Sesión: 83
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Vilchez Huancas Pedro Pablo (ID: 1559, DNI: 32988509) - Sesión: 84
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Agustín Nicandro Zamora Cerna (ID: 1561, DNI: 10121514) - Sesión: 93
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Terry Alexander Cruzado Montoya (ID: 1575, DNI: 77277048) - Sesión: 82
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Jorge Luis Merma Bondia (ID: 1576, DNI: 76270323) - Sesión: 82
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Rudy Alexander Carlos Duarte (ID: 1577, DNI: 73060282) - Sesión: 64
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Jhonatan Oscar Muñoz Albornoz (ID: 1578, DNI: 41907219) - Sesión: 82
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Jose Gilberto Gonzales Tafur (ID: 1644, DNI: 05257879) - Sesión: 82
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JIMMY JOEL ESTRADA IDROGO (ID: 1647, DNI: 42404799) - Sesión: 93
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: DIEGO FERNANDO URIBE PEREZ (ID: 1665, DNI: 72839707) - Sesión: 82
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JOSSIE MADELEN GUZMAN LOZANO (ID: 1692, DNI: 71880433) - Sesión: 83
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: BRANDO GEORGE ANGELES CUEVA (ID: 1693, DNI: 70537598) - Sesión: 83
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Jaime Alberto Anaya Córdova (ID: 1694, DNI: 42592457) - Sesión: 83
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Noe Cordova Macedo (ID: 1750, DNI: 43448314) - Sesión: 93
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Noe Cordova Macedo (ID: 1750, DNI: 43448314) - Sesión: 84
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: ALDER AUGUSTO GRIMALDO YAURICASA SANCHEZ (ID: 1793, DNI: 72965767) - Sesión: 84
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: EDSON GIORDANO JUAREZ ORDINOLA (ID: 1825, DNI: 47601864) - Sesión: 84
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: WALTER NICOLAS ARICA SANCHEZ (ID: 1885, DNI: 41198747) - Sesión: 90
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: TAYLOR ROLANDO TAPIA FLORIAN (ID: 1927, DNI: 46566356) - Sesión: 11
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: RICHARD JUAN ESQUICHA COLQUE (ID: 2002, DNI: 73497351) - Sesión: 84
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Emanuel Antonio Molleda Mendizabal (ID: 2071, DNI: 73116316) - Sesión: 84
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Frank Edwar Torres Flores (ID: 2078, DNI: 75663594) - Sesión: 84
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: WILLIANS BERNABE APONTE ARQUIÑEGO (ID: 2092, DNI: 43211050) - Sesión: 15
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: WILLIANS BERNABE APONTE ARQUIÑEGO (ID: 2092, DNI: 43211050) - Sesión: 81
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: IGOR ARANA AGUILAR (ID: 2165, DNI: 46949721) - Sesión: 90
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: ANGEL JOSUE AGREDA SANGUINETTI (ID: 2167, DNI: 42675938) - Sesión: 84
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: OSWALDO MALAGA MIRANDA (ID: 2308, DNI: 29529253) - Sesión: 92
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: OSWALDO MALAGA MIRANDA (ID: 2308, DNI: 29529253) - Sesión: 90
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: RAUL JHEFFERSON DIAZ FLORES (ID: 2419, DNI: 40235000) - Sesión: 90
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Waksman Gerles Abad Yzquierdo (ID: 2458, DNI: 73068069) - Sesión: 93
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Antonio Tito Chagua Chagua (ID: 2496, DNI: 72177727) - Sesión: 93
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: GUARDIA BOSMEDIANO JOHN RILEY (ID: 2514, DNI: 43893561) - Sesión: 90
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Elwin Ruiz Matos (ID: 2643, DNI: 43878934) - Sesión: 95
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Elwin Ruiz Matos (ID: 2643, DNI: 43878934) - Sesión: 91
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: BEDILBERTO MARCHAN ABAD (ID: 2673, DNI: 43320533) - Sesión: 90
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Adriano Jose Vargas Callapina (ID: 2727, DNI: 48536536) - Sesión: 95
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Carlos Enrique Quepuy Quispe (ID: 2730, DNI: 75146801) - Sesión: 95
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Edwinson Smith Cordova Chavez (ID: 2732, DNI: 47305322) - Sesión: 92
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Edwinson Smith Cordova Chavez (ID: 2732, DNI: 47305322) - Sesión: 91
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Sergio Francisco Barrios Callirgos (ID: 2736, DNI: 09674959) - Sesión: 94
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: Orlando Limahuaya Cusilayme (ID: 2737, DNI: 47029403) - Sesión: 94
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: juan klein mendoza fernandez (ID: 2800, DNI: 40401002) - Sesión: 92
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: SANDY JIMENEZ RIOS (ID: 2815, DNI: 47780531) - Sesión: 91
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: MARCOS ALBERTO ADANAQUE VALENCIA (ID: 3083, DNI: 41010113) - Sesión: 11
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: MARCOS ALBERTO ADANAQUE VALENCIA (ID: 3083, DNI: 41010113) - Sesión: 92
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: DIEGO EDHER PACHECO CASTRO (ID: 3095, DNI: 44651051) - Sesión: 15
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: JUAN EDUARDO QUICAÑO FLORES (ID: 3098, DNI: 09920846) - Sesión: 11
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: WALTER ALEJANDRO FARFAN RIVERA (ID: 3104, DNI: 70869927) - Sesión: 95
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] Verificando usuario: oswaldo segundo olivares cifre (ID: 3160, DNI: 42607706) - Sesión: 15
+[2025-11-28 13:54:52]   ⊘ Usuario NO está inscrito en la sesión. Saltando...
+[2025-11-28 13:54:52] === RESUMEN ===
+[2025-11-28 13:54:52] Total encontrados: 171
+[2025-11-28 13:54:52] Procesados correctamente: 0
+[2025-11-28 13:54:52] Saltados (no inscritos): 171
+[2025-11-28 13:54:52] Con errores: 0
+[2025-11-28 13:54:52] === FIN DEL CRON ===
