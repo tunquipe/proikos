@@ -87,7 +87,9 @@ class ProikosPlugin extends Plugin
                 'cache_data_manager'  => 'text',
                 'session_selector_days'  => 'text',
                 self::TOOL_ENABLED => 'boolean',
-                'force_results_view' => 'boolean'
+                'force_results_view' => 'boolean',
+                'enable_libro_reclamaciones' => 'boolean',
+                'libro_reclamaciones_url' => 'text'
             ]
         );
         $this->isAdminPlugin = true;
