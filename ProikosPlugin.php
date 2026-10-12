@@ -4728,7 +4728,6 @@ EOT;
         $tbl_session = Database::get_main_table(TABLE_MAIN_SESSION);
         $tbl_session_category = Database::get_main_table(TABLE_MAIN_SESSION_CATEGORY);
         $tbl_proikos_user = Database::get_main_table(self::TABLE_PROIKOS_USERS);
-        $table_plugin_easycertificate_send = Database::get_main_table(self::TABLE_PLUGIN_EASY_CERTIFICATE_SEND);
 
         // Calcular el offset para la paginación
         $offset = ($page - 1) * $perPage;
@@ -4756,23 +4755,7 @@ EOT;
                 ppu.ruc_company,
                 ppu.stakeholders,
                 IF(ppu.area = -1, 'No registrado', ppu.area) as area,
-                IF(ppu.metadata IS NOT NULL AND ppu.metadata != '', 'true', 'false') as metadata_exists,
-                COALESCE((
-                        SELECT
-                            CASE
-                                WHEN pecs.certificate_id IS NOT NULL
-                                    AND CURRENT_DATE >= DATE(pecs.created_at)
-                                    AND (pecs.reminder_15_sent_at IS NULL OR CURRENT_DATE <= pecs.reminder_15_sent_at)
-                                THEN '1'
-                                ELSE '2'
-                            END
-                        FROM {$table_plugin_easycertificate_send} pecs
-                        WHERE pecs.user_id = u.id
-                            AND pecs.session_id = s.id
-                            AND pecs.course_id = srcu.c_id
-                        ORDER BY pecs.id DESC
-                        LIMIT 1
-                    ), '3') AS certificate_status
+                IF(ppu.metadata IS NOT NULL AND ppu.metadata != '', 'true', 'false') as metadata_exists
             FROM
                 $tbl_session_course_user srcu
             INNER JOIN
@@ -4788,8 +4771,9 @@ EOT;
             WHERE
                 srcu.status = 0 ";
 
+        $dni = trim((string) $dni);
         if(!empty($dni)){
-            $sql.= " AND u.username = $dni ";
+            $sql.= " AND u.username = '".Database::escape_string($dni)."' ";
         }
 
         // Solo filtrar si llega un id numérico válido (> 0). Antes se usaba
@@ -4805,7 +4789,7 @@ EOT;
 
         if (api_is_contractor_admin()) {
             $rucCompany = self::getUserRucCompany();
-            $sql.= " AND ppu.ruc_company = $rucCompany ";
+            $sql.= " AND ppu.ruc_company = '".Database::escape_string($rucCompany)."' ";
         } else {
             if(is_numeric($ruc) && (int)$ruc > 0){
                 $sql.= " AND ppu.ruc_company = ".(int)$ruc." ";
@@ -4836,9 +4820,20 @@ EOT;
         }
 
         $result = Database::query($sql);
+        $rows = [];
+        while ($row = Database::fetch_assoc($result)) {
+            $rows[] = $row;
+        }
+
+        // El estado del certificado se calcula aparte y solo para las filas devueltas.
+        // Como subconsulta correlacionada dentro del SELECT DISTINCT, MySQL la ejecutaba
+        // para todas las inscripciones antes de aplicar el LIMIT (~12 s).
+        $certificateStatus = $this->getCertificateSendStatusMap($rows);
+
         $users = [];
-        if (Database::num_rows($result) > 0) {
-            while ($row = Database::fetch_assoc($result)) {
+        if (!empty($rows)) {
+            foreach ($rows as $row) {
+                $row['certificate_status'] = $certificateStatus[$row['id'].'_'.$row['session_id'].'_'.$row['c_id']] ?? '3';
 
                 $date = date("Y/m/d", strtotime($row['registration_date']));
                 $row['registration_date_normal'] = $date;
@@ -4985,7 +4980,7 @@ EOT;
 
         // Agregar las mismas condiciones de búsqueda
         if (!empty($dni)) {
-            $sqlTotal .= " AND u.username = '$dni' ";
+            $sqlTotal .= " AND u.username = '".Database::escape_string($dni)."' ";
         }
 
         if (is_numeric($courseId) && (int)$courseId > 0) {
@@ -4998,7 +4993,7 @@ EOT;
 
         if (api_is_contractor_admin()) {
             $rucCompany = self::getUserRucCompany();
-            $sqlTotal .= " AND ppu.ruc_company = $rucCompany ";
+            $sqlTotal .= " AND ppu.ruc_company = '".Database::escape_string($rucCompany)."' ";
         } else {
             if (is_numeric($ruc) && (int)$ruc > 0) {
                 $sqlTotal .= " AND ppu.ruc_company = ".(int)$ruc." ";
@@ -5035,6 +5030,51 @@ EOT;
         ];
 
     }
+
+    /**
+     * Estado del último envío de certificado por usuario/sesión/curso:
+     * '1' vigente, '2' enviado pero no vigente. Las combinaciones sin envío
+     * no aparecen en el mapa (el reporte las trata como '3').
+     *
+     * @param array $rows Filas con id (usuario), session_id y c_id
+     * @return array ['userId_sessionId_courseId' => '1'|'2']
+     */
+    public function getCertificateSendStatusMap(array $rows): array
+    {
+        if (empty($rows)) {
+            return [];
+        }
+
+        $table = Database::get_main_table(self::TABLE_PLUGIN_EASY_CERTIFICATE_SEND);
+        $userIds = array_unique(array_map('intval', array_column($rows, 'id')));
+        $map = [];
+
+        foreach (array_chunk($userIds, 1000) as $chunk) {
+            $sql = "SELECT
+                    user_id, session_id, course_id,
+                    CASE
+                        WHEN certificate_id IS NOT NULL
+                            AND CURRENT_DATE >= DATE(created_at)
+                            AND (reminder_15_sent_at IS NULL OR CURRENT_DATE <= reminder_15_sent_at)
+                        THEN '1'
+                        ELSE '2'
+                    END AS status
+                FROM $table
+                WHERE user_id IN (".implode(',', $chunk).")
+                ORDER BY id DESC";
+            $result = Database::query($sql);
+            while ($row = Database::fetch_assoc($result)) {
+                $key = $row['user_id'].'_'.$row['session_id'].'_'.$row['course_id'];
+                // Orden DESC: el primero que aparece es el envío más reciente
+                if (!isset($map[$key])) {
+                    $map[$key] = $row['status'];
+                }
+            }
+        }
+
+        return $map;
+    }
+
     public function checkDocuments($userId, $sessionId)
     {
         $tableCheck = Database::get_main_table(self::TABLE_PROIKOS_CHECK_DOCS);
