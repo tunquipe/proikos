@@ -1081,10 +1081,11 @@ if ($action) {
                         'relative' => 'justo ahora',
                         'from_cache' => false
                     ],
-                    'time_left' => [
-                        'seconds' => 3600,
-                        'formatted' => '60:00',
-                        'expires_at' => date('H:i:s', time() + 3600)
+                    // Duración real configurada para el rol (antes fija en 1 hora)
+                    'time_left' => $cacheManager->getTimeUntilExpiration($cacheParams) ?? [
+                        'seconds' => $cacheManager->getCacheLifetime(),
+                        'formatted' => sprintf('%d:00', $cacheManager->getCacheLifetime() / 60),
+                        'expires_at' => date('H:i:s', time() + $cacheManager->getCacheLifetime())
                     ]
                 ];
             }

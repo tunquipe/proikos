@@ -73,6 +73,18 @@ class ProikosPlugin extends Plugin
     const EVENT_USER_SUBSCRIPTION_TO_COURSE = 'user_subscription_to_course';
 
     public $isCoursePlugin = true;
+
+    /** @var array Ítems del gradebook por "cursoId_sesionId" (no dependen del alumno) */
+    private $gradebookItemsCache = [];
+    /** @var array|null Alumnos del reporte en curso por sesión, para precargar notas en lote */
+    private $reportUsersBySession = null;
+    /** @var array Intentos de examen precargados: [sesion][exoId_userId] => filas */
+    private $exerciseAttemptsCache = [];
+    /** @var array Resultados de evaluaciones precargados: [evalId_sesion][userId] => score */
+    private $evaluationResultsCache = [];
+    /** @var array Categorías que generan certificado por sesión */
+    private $certificateCategoriesCache = [];
+
     protected function __construct()
     {
         parent::__construct(
@@ -1585,6 +1597,71 @@ class ProikosPlugin extends Plugin
 
     public function getResultExerciseStudent($user_id, $courseId, $session_id = 0, $showEmpty = false, $view_result = false)
     {
+        $visibleItems = $this->getGradebookVisibleItems($user_id, $courseId, $session_id);
+        if (null === $visibleItems) {
+            return null;
+        }
+
+        $defaultData = [];
+        /** @var GradebookItem $item */
+        foreach ($visibleItems as $item) {
+            $itemType = get_class($item);
+            switch ($itemType) {
+                case 'Evaluation':
+                    $score = $this->getPreloadedEvaluationScore($item, $session_id, $user_id)
+                        ?? self::getFormatScore($item,$user_id);
+                    if($showEmpty){
+                        if($score==0){
+                            $defaultData=[];
+                        } else {
+                            $name = str_replace(' ', '_', strtolower($item->get_name()));
+                            $defaultData[$name] = round($score,1);
+                        }
+                    } else{
+                        $name = str_replace(' ', '_', strtolower($item->get_name()));
+                        $defaultData[$name] = round($score,1);
+                    }
+                    break;
+                case 'ExerciseLink':
+                    /** @var ExerciseLink $item */
+                    if($view_result){
+                        $score = self::getScoreExercise($item->get_ref_id(),$session_id,$user_id,-1);
+                    } else {
+                        $score = self::getScoreExercise($item->get_ref_id(),$session_id,$user_id,0);
+                    }
+
+                    if($showEmpty){
+                        if($score==0){
+                            $defaultData=[];
+                        }else{
+                            $name = str_replace(' ', '_', strtolower($item->get_name()));
+                            $defaultData[$name] = round($score,1);
+                        }
+                    } else {
+                        $name = str_replace(' ', '_', strtolower($item->get_name()));
+                        $defaultData[$name] = round($score,1);
+                    }
+                    break;
+            }
+        }
+        return $defaultData;
+    }
+
+    /**
+     * Ítems visibles del gradebook (primera categoría del curso en la sesión).
+     * No dependen del alumno: durante un reporte en lote se calculan una sola
+     * vez por curso/sesión en lugar de una vez por fila.
+     *
+     * @return array|null null si el curso no tiene gradebook en la sesión
+     */
+    private function getGradebookVisibleItems($user_id, $courseId, $session_id): ?array
+    {
+        $useCache = null !== $this->reportUsersBySession;
+        $cacheKey = $courseId.'_'.$session_id;
+        if ($useCache && array_key_exists($cacheKey, $this->gradebookItemsCache)) {
+            return $this->gradebookItemsCache[$cacheKey];
+        }
+
         $course_code = self::getCourseCode($courseId);
         $cats = Category::load(
             null,
@@ -1596,81 +1673,124 @@ class ProikosPlugin extends Plugin
             false
         );
 
-        foreach ($cats as $cat){
-            $cats = $cat->get_subcategories($user_id, $course_code, $session_id);
+        $visibleItems = null;
+        if (!empty($cats)) {
+            $cat = $cats[0];
+            $subcats = $cat->get_subcategories($user_id, $course_code, $session_id);
             $evals = $cat->get_evaluations($user_id, false, $course_code, $session_id);
             $links = $cat->get_links($user_id, true, $course_code, $session_id);
 
             $evals_links = array_merge($evals, $links);
-            $all_items = new GradebookDataGenerator($cats, $evals, $links);
+            $all_items = new GradebookDataGenerator($subcats, $evals, $links);
             usort($all_items->items, ['GradebookDataGenerator', 'sort_by_name']);
             $visibleItems = array_merge($all_items->items, $evals_links);
-            $defaultData = [];
-            /** @var GradebookItem $item */
-            foreach ($visibleItems as $item) {
-                $itemType = get_class($item);
-                switch ($itemType) {
-                    case 'Evaluation':
-                        $score = self::getFormatScore($item,$user_id);
-                        if($showEmpty){
-                            if($score==0){
-                                $defaultData=[];
-                            } else {
-                                $name = str_replace(' ', '_', strtolower($item->get_name()));
-                                $defaultData[$name] = round($score,1);
-                            }
-                        } else{
-                            $name = str_replace(' ', '_', strtolower($item->get_name()));
-                            $defaultData[$name] = round($score,1);
-                        }
-                        break;
-                    case 'ExerciseLink':
-                        /** @var ExerciseLink $item */
-                        if($view_result){
-                            $score = self::getScoreExercise($item->get_ref_id(),$session_id,$user_id,-1);
-                        } else {
-                            $score = self::getScoreExercise($item->get_ref_id(),$session_id,$user_id,0);
-                        }
-
-                        if($showEmpty){
-                            if($score==0){
-                                $defaultData=[];
-                            }else{
-                                $name = str_replace(' ', '_', strtolower($item->get_name()));
-                                $defaultData[$name] = round($score,1);
-                            }
-                        } else {
-                            $name = str_replace(' ', '_', strtolower($item->get_name()));
-                            $defaultData[$name] = round($score,1);
-                        }
-                        break;
-                }
-            }
-            return $defaultData;
         }
 
+        if ($useCache) {
+            $this->gradebookItemsCache[$cacheKey] = $visibleItems;
+        }
+
+        return $visibleItems;
     }
 
     public function getScoreExercise($id_exercise, $session_id, $user_id, $score = 0)
     {
-        $table_exercise_log = Database::get_main_table(TABLE_STATISTIC_TRACK_E_EXERCISES);
-        $sql = "SELECT * FROM $table_exercise_log tee WHERE tee.exe_exo_id = $id_exercise AND tee.session_id = $session_id AND tee.exe_user_id = $user_id;";
-        $result = Database::query($sql);
-        if (Database::num_rows($result) > 0) {
+        $rows = $this->getPreloadedExerciseAttempts($id_exercise, $session_id, $user_id);
+        if (null === $rows) {
+            $table_exercise_log = Database::get_main_table(TABLE_STATISTIC_TRACK_E_EXERCISES);
+            $sql = "SELECT * FROM $table_exercise_log tee WHERE tee.exe_exo_id = $id_exercise AND tee.session_id = $session_id AND tee.exe_user_id = $user_id;";
+            $result = Database::query($sql);
+            $rows = [];
             while ($row = Database::fetch_assoc($result)) {
-                $scoreMax = ($this->get('highest_score_exercise') == 'true');
-                if($row['status'] == 'incomplete'){
-                    continue;
-                }
-                if ($scoreMax) {
-                        $score = max($score, doubleval($row['exe_result']));
-                } else {
-                    $score = doubleval($row['exe_result']);
-                }
+                $rows[] = $row;
+            }
+        }
 
+        $scoreMax = ($this->get('highest_score_exercise') == 'true');
+        foreach ($rows as $row) {
+            if($row['status'] == 'incomplete'){
+                continue;
+            }
+            if ($scoreMax) {
+                    $score = max($score, doubleval($row['exe_result']));
+            } else {
+                $score = doubleval($row['exe_result']);
             }
         }
         return $score;
+    }
+
+    /**
+     * Intentos de un examen desde la precarga del reporte en curso. La primera vez
+     * que se pide una sesión se traen en una sola consulta los intentos de todos
+     * sus alumnos del reporte.
+     *
+     * @return array|null null si no hay reporte en lote o el alumno no está en él
+     */
+    private function getPreloadedExerciseAttempts($exerciseId, $sessionId, $userId): ?array
+    {
+        $sessionId = (int) $sessionId;
+        $userId = (int) $userId;
+        if (null === $this->reportUsersBySession || !isset($this->reportUsersBySession[$sessionId][$userId])) {
+            return null;
+        }
+
+        if (!isset($this->exerciseAttemptsCache[$sessionId])) {
+            $table = Database::get_main_table(TABLE_STATISTIC_TRACK_E_EXERCISES);
+            $userIds = implode(',', array_keys($this->reportUsersBySession[$sessionId]));
+            $sql = "SELECT exe_exo_id, exe_user_id, status, exe_result
+                FROM $table
+                WHERE session_id = $sessionId AND exe_user_id IN ($userIds)
+                ORDER BY exe_id";
+            $result = Database::query($sql);
+            $attempts = [];
+            while ($row = Database::fetch_assoc($result)) {
+                $attempts[$row['exe_exo_id'].'_'.$row['exe_user_id']][] = $row;
+            }
+            $this->exerciseAttemptsCache[$sessionId] = $attempts;
+        }
+
+        return $this->exerciseAttemptsCache[$sessionId][(int) $exerciseId.'_'.$userId] ?? [];
+    }
+
+    /**
+     * Nota de una evaluación manual desde la precarga del reporte en curso
+     * (equivale a getFormatScore(): el último resultado del alumno, 0 si no hay).
+     *
+     * @return float|null null si no aplica la precarga (se usa calc_score)
+     */
+    private function getPreloadedEvaluationScore(GradebookItem $evaluation, $sessionId, $userId): ?float
+    {
+        $sessionId = (int) $sessionId;
+        $userId = (int) $userId;
+        if (null === $this->reportUsersBySession
+            || !isset($this->reportUsersBySession[$sessionId][$userId])
+            || api_get_configuration_value('allow_gradebook_stats')
+        ) {
+            return null;
+        }
+
+        $cacheKey = (int) $evaluation->get_id().'_'.$sessionId;
+        if (!isset($this->evaluationResultsCache[$cacheKey])) {
+            $tableResult = Database::get_main_table(TABLE_MAIN_GRADEBOOK_RESULT);
+            $tableUser = Database::get_main_table(TABLE_MAIN_USER);
+            $userIds = implode(',', array_keys($this->reportUsersBySession[$sessionId]));
+            // Mismo orden que Result::load(); gana el último resultado de cada alumno
+            $sql = "SELECT gr.user_id, gr.score
+                FROM $tableResult gr
+                INNER JOIN $tableUser u ON gr.user_id = u.user_id
+                WHERE gr.evaluation_id = ".(int) $evaluation->get_id()."
+                    AND gr.user_id IN ($userIds)
+                ORDER BY u.lastname, u.firstname, gr.id";
+            $result = Database::query($sql);
+            $scores = [];
+            while ($row = Database::fetch_assoc($result)) {
+                $scores[$row['user_id']] = $row['score'];
+            }
+            $this->evaluationResultsCache[$cacheKey] = $scores;
+        }
+
+        return floatval($this->evaluationResultsCache[$cacheKey][$userId] ?? null);
     }
 
     public function getFormatScore(GradebookItem $item, $user_id): float
@@ -4830,9 +4950,14 @@ EOT;
         // para todas las inscripciones antes de aplicar el LIMIT (~12 s).
         $certificateStatus = $this->getCertificateSendStatusMap($rows);
 
+        // Datos por fila precargados en lote (antes ~40 consultas por fila)
+        $preload = $this->preloadReportRowData($rows, $isExport);
+        $courseHasNoLinks = [];
+
         $users = [];
         if (!empty($rows)) {
             foreach ($rows as $row) {
+                $rowKey = $row['id'].'_'.$row['session_id'];
                 $row['certificate_status'] = $certificateStatus[$row['id'].'_'.$row['session_id'].'_'.$row['c_id']] ?? '3';
 
                 $date = date("Y/m/d", strtotime($row['registration_date']));
@@ -4899,7 +5024,7 @@ EOT;
 
                 $row['user_id'] = $row['id'];
 
-                $certificateDates = $this->getCertificateDates($row['id'], $row['session_id']);
+                $certificateDates = $preload['certificate_dates'][$rowKey] ?? [];
                 $row['certificate_date'] = [
                     'created_at' => !empty($certificateDates['created_at'])
                         ? date('d-m-Y', strtotime($certificateDates['created_at']))
@@ -4909,31 +5034,39 @@ EOT;
                         : '-',
                 ];
 
-                $timeSpent = api_time_to_hms(
-                    Tracking::get_time_spent_on_the_course(
+                if (null === $preload['time_spent']) {
+                    $timeSeconds = Tracking::get_time_spent_on_the_course(
                         $row['id'],
                         $row['c_id'],
                         $row['session_id']
-                    )
-                );
+                    );
+                } else {
+                    $timeSeconds = $preload['time_spent'][$row['id'].'_'.$row['c_id'].'_'.$row['session_id']] ?? null;
+                }
+                $timeSpent = api_time_to_hms($timeSeconds);
                 $row['time_course'] = $timeSpent;
 
                 if (!$isExport) {
-                    $cats = Category::load(
-                        null,
-                        null,
-                        $row['code'],
-                        null,
-                        null,
-                        $row['session_id'],
-                        'ORDER By id'
-                    );
-                    $userLinks = !empty($cats)
-                        ? $cats[0]->get_links($row['id'], false, $row['code'], $row['session_id'])
-                        : null;
-                    $row['links'] = empty($userLinks);
+                    // Los links del gradebook no dependen del alumno: una vez por curso/sesión
+                    $linksKey = $row['code'].'_'.$row['session_id'];
+                    if (!isset($courseHasNoLinks[$linksKey])) {
+                        $cats = Category::load(
+                            null,
+                            null,
+                            $row['code'],
+                            null,
+                            null,
+                            $row['session_id'],
+                            'ORDER By id'
+                        );
+                        $userLinks = !empty($cats)
+                            ? $cats[0]->get_links($row['id'], false, $row['code'], $row['session_id'])
+                            : null;
+                        $courseHasNoLinks[$linksKey] = empty($userLinks);
+                    }
+                    $row['links'] = $courseHasNoLinks[$linksKey];
 
-                    $registerCodeSession = $this->registerCodeSessionRelUser($row['id'], $row['session_id']);
+                    $registerCodeSession = $preload['session_rel_user'][$rowKey] ?? 0;
                     $row['registration_session_user'] = $registerCodeSession;
 
                     $downloadCertUploadedLink = $this->generateDownloadLinkAttachCertificates($row['id'], $row['student'], $row['session_id']);
@@ -4943,19 +5076,22 @@ EOT;
                     $iconCertificate_na = $this->get_icon('certificate_na');
                     $row['download'] = Display::img($iconCertificate_na, $this->get_lang('CertificateNotGenerated'), ['width' => '32px']);
                     if ($status_id == 2) {
-                        $urlCertificate = $this->getUserCertificateSession($row['id'], $row['session_id']);
+                        $urlCertificate = $this->getPreloadedUserCertificateUrl($row['id'], $row['session_id'], $preload['certificates']);
                         $row['download'] = '<a href="' . $urlCertificate . '" target="_blank">' .
                             Display::img($iconCertificate, $this->get_lang('DownloadCertificate'), ['width' => '32px']) .
                             '</a>';
                     }
 
-                    $checkDocument = $this->checkDocuments($row['id'], $row['session_id']);
+                    $checkDocument = $this->renderCheckDocumentIcon((int) ($preload['check_docs'][$rowKey] ?? 0));
                     $row['check_document'] = $checkDocument;
 
-                    $row['sustenance'] = $this->getSustenanceIconFA($row['id'], $row['c_id'], $row['session_id'], true);
+                    $row['sustenance'] = $this->renderSustenanceIcon(
+                        $preload['sustenance_first'][$row['id'].'_'.$row['c_id'].'_'.$row['session_id']] ?? null,
+                        true
+                    );
                 } else {
                     // Para export: obtener datos de sustento directamente (evita llamada duplicada en el loop de export)
-                    $row['sustenance_export'] = $this->getSustenanceByUserAndSession($row['id'], $row['session_id']);
+                    $row['sustenance_export'] = $this->formatSustenanceDescriptions($preload['sustenance_codes'][$rowKey] ?? []);
                     $row['links'] = true;
                     $row['cert'] = '';
                     $row['download'] = '';
@@ -4966,6 +5102,7 @@ EOT;
                 $users[] = $row;
             }
         }
+        $this->endReportBatch();
         ///var_dump($users); exit;
         // Contar el total de registros sin LIMIT
         $sqlTotal = "
@@ -5075,6 +5212,180 @@ EOT;
         return $map;
     }
 
+    /**
+     * Precarga en lote los datos por fila de getDataReport (una consulta por tipo
+     * de dato en vez de una por fila) y activa la precarga de notas por sesión.
+     * Cada mapa conserva el registro que devolvía la consulta individual original
+     * (el primero o el último por id).
+     */
+    private function preloadReportRowData(array $rows, bool $isExport): array
+    {
+        $data = [
+            'certificate_dates' => [],
+            'certificates' => [],
+            'time_spent' => [],
+            'session_rel_user' => [],
+            'check_docs' => [],
+            'sustenance_first' => [],
+            'sustenance_codes' => [],
+        ];
+
+        $this->reportUsersBySession = [];
+        foreach ($rows as $row) {
+            $this->reportUsersBySession[(int) $row['session_id']][(int) $row['id']] = true;
+        }
+
+        if (empty($rows)) {
+            return $data;
+        }
+
+        // Con lp_minimum_time el tiempo se calcula distinto: se deja a Tracking por fila
+        if (api_get_configuration_value('lp_minimum_time')) {
+            $data['time_spent'] = null;
+        }
+
+        $tableCertificate = Database::get_main_table(TABLE_MAIN_GRADEBOOK_CERTIFICATE);
+        $tableCategory = Database::get_main_table(TABLE_MAIN_GRADEBOOK_CATEGORY);
+        $tableCourseAccess = Database::get_main_table(TABLE_STATISTIC_TRACK_E_COURSE_ACCESS);
+        $tableSessionUser = Database::get_main_table(TABLE_MAIN_SESSION_USER);
+        $tableCheckDocs = Database::get_main_table(self::TABLE_PROIKOS_CHECK_DOCS);
+        $tableSustenance = Database::get_main_table('plugin_proikos_sustenance');
+
+        $userIds = array_unique(array_map('intval', array_column($rows, 'id')));
+        foreach (array_chunk($userIds, 1000) as $chunk) {
+            $inUsers = implode(',', $chunk);
+
+            // Certificados: fechas por sesión (getCertificateDates, gana el último) y
+            // certificado por categoría (get_certificate_by_user_id, gana el primero)
+            $result = Database::query("SELECT cert.*, cat.session_id AS cat_session_id
+                FROM $tableCertificate cert
+                LEFT JOIN $tableCategory cat ON cat.id = cert.cat_id
+                WHERE cert.user_id IN ($inUsers)
+                ORDER BY cert.id");
+            while ($row = Database::fetch_assoc($result)) {
+                $sessionId = $row['cat_session_id'];
+                unset($row['cat_session_id']);
+                if (null !== $sessionId) {
+                    $data['certificate_dates'][$row['user_id'].'_'.$sessionId] = $row;
+                }
+                $certKey = $row['cat_id'].'_'.$row['user_id'];
+                if (!isset($data['certificates'][$certKey])) {
+                    $data['certificates'][$certKey] = $row;
+                }
+            }
+
+            // Tiempo en el curso (Tracking::get_time_spent_on_the_course)
+            if (null !== $data['time_spent']) {
+                $result = Database::query("SELECT user_id, c_id, session_id,
+                        SUM(UNIX_TIMESTAMP(logout_course_date) - UNIX_TIMESTAMP(login_course_date)) AS nb_seconds
+                    FROM $tableCourseAccess
+                    WHERE UNIX_TIMESTAMP(logout_course_date) > UNIX_TIMESTAMP(login_course_date)
+                        AND user_id IN ($inUsers)
+                    GROUP BY user_id, c_id, session_id");
+                while ($row = Database::fetch_assoc($result)) {
+                    $data['time_spent'][$row['user_id'].'_'.$row['c_id'].'_'.$row['session_id']] = $row['nb_seconds'];
+                }
+            }
+
+            if ($isExport) {
+                // Incidencias para el Excel (getSustenanceByUserAndSession)
+                $result = Database::query("SELECT user_id, session_id, sustenance_codes
+                    FROM $tableSustenance
+                    WHERE user_id IN ($inUsers)
+                    ORDER BY id");
+                while ($row = Database::fetch_assoc($result)) {
+                    $data['sustenance_codes'][$row['user_id'].'_'.$row['session_id']][] = $row['sustenance_codes'];
+                }
+                continue;
+            }
+
+            // Código de inscripción a la sesión (registerCodeSessionRelUser, gana el último)
+            $result = Database::query("SELECT id, user_id, session_id
+                FROM $tableSessionUser
+                WHERE user_id IN ($inUsers)
+                ORDER BY id");
+            while ($row = Database::fetch_assoc($result)) {
+                $data['session_rel_user'][$row['user_id'].'_'.$row['session_id']] = $row['id'];
+            }
+
+            // Verificación de documentos (checkDocuments, gana el último)
+            $result = Database::query("SELECT user_id, session_id, check_document
+                FROM $tableCheckDocs
+                WHERE user_id IN ($inUsers)
+                ORDER BY id");
+            while ($row = Database::fetch_assoc($result)) {
+                $data['check_docs'][$row['user_id'].'_'.$row['session_id']] = $row['check_document'];
+            }
+
+            // Ícono de sustento (getSustenanceIconFA, gana el primero)
+            $result = Database::query("SELECT id, user_id, course_id, session_id, sustenance_codes
+                FROM $tableSustenance
+                WHERE user_id IN ($inUsers)
+                ORDER BY id");
+            while ($row = Database::fetch_assoc($result)) {
+                $key = $row['user_id'].'_'.$row['course_id'].'_'.$row['session_id'];
+                if (!isset($data['sustenance_first'][$key])) {
+                    $data['sustenance_first'][$key] = $row;
+                }
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Libera las precargas del reporte para que otras llamadas usen las consultas normales.
+     */
+    private function endReportBatch(): void
+    {
+        $this->reportUsersBySession = null;
+        $this->gradebookItemsCache = [];
+        $this->exerciseAttemptsCache = [];
+        $this->evaluationResultsCache = [];
+        $this->certificateCategoriesCache = [];
+    }
+
+    /**
+     * Equivale a getUserCertificateSession() usando los certificados precargados.
+     * Las categorías con certificado de cada sesión se calculan una sola vez.
+     */
+    private function getPreloadedUserCertificateUrl($userId, $sessionId, array $certificates): string
+    {
+        if (!isset($this->certificateCategoriesCache[$sessionId])) {
+            $categoryIds = [];
+            $sessionCourses = SessionManager::get_course_list_by_session_id($sessionId);
+            foreach ($sessionCourses as $course) {
+                $category = Category::load(
+                    null,
+                    null,
+                    $course['code'],
+                    null,
+                    null,
+                    $sessionId
+                );
+                if (empty($category) || !isset($category[0])) {
+                    continue;
+                }
+                if (empty($category[0]->getGenerateCertificates())) {
+                    continue;
+                }
+                $categoryIds[] = (int) $category[0]->get_id();
+            }
+            $this->certificateCategoriesCache[$sessionId] = $categoryIds;
+        }
+
+        foreach ($this->certificateCategoriesCache[$sessionId] as $categoryId) {
+            $certificateInfo = $certificates[$categoryId.'_'.$userId] ?? null;
+            if (empty($certificateInfo)) {
+                continue;
+            }
+
+            return api_get_path(WEB_PATH)."certificates/index.php?id={$certificateInfo['id']}&user_id={$userId}&action=export";
+        }
+
+        return '';
+    }
+
     public function checkDocuments($userId, $sessionId)
     {
         $tableCheck = Database::get_main_table(self::TABLE_PROIKOS_CHECK_DOCS);
@@ -5087,6 +5398,12 @@ EOT;
                 $documentCheck = intval($row['check_document']);
             }
         }
+
+        return $this->renderCheckDocumentIcon($documentCheck);
+    }
+
+    private function renderCheckDocumentIcon(int $documentCheck): string
+    {
         if($documentCheck == 1){
             $checkImg = Display::img(api_get_path(WEB_IMG_PATH)."icons/22/check.png",$this->get_lang('VerifiedDocuments'));
         } else {
@@ -5195,13 +5512,7 @@ EOT;
                 ];
             }
 
-            // Generar mensaje con todas las descripciones
-            $allDescriptions = [];
-            foreach ($incidencias as $inc) {
-                $allDescriptions = array_merge($allDescriptions, $inc['sustenance_descriptions']);
-            }
-            $allDescriptions = array_unique($allDescriptions);
-            return implode(', ', $allDescriptions);
+            return $this->formatSustenanceDescriptions(array_column($incidencias, 'sustenance_codes'));
 
             /*return [
                 'message' => $message,
@@ -5214,6 +5525,25 @@ EOT;
             error_log('Error en getSustenanceByUserAndSession: ' . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Texto de incidencias a partir de los códigos de cada registro de sustento.
+     *
+     * @param array $codesList Lista de strings "1,2,3" (uno por registro)
+     */
+    private function formatSustenanceDescriptions(array $codesList): string
+    {
+        if (empty($codesList)) {
+            return 'Sin incidencia';
+        }
+
+        $allDescriptions = [];
+        foreach ($codesList as $codes) {
+            $allDescriptions = array_merge($allDescriptions, $this->getCodesDescriptions($codes));
+        }
+        $allDescriptions = array_unique($allDescriptions);
+        return implode(', ', $allDescriptions);
     }
 
 
@@ -5438,15 +5768,26 @@ EOT;
         }
 
         $result = Database::query($sql);
-        $hasRecord = Database::num_rows($result) > 0;
+        $row = Database::num_rows($result) > 0 ? Database::fetch_assoc($result) : null;
 
+        return $this->renderSustenanceIcon($row, $typeIconImg);
+    }
+
+    /**
+     * @param array|null $row Registro de sustento (id, sustenance_codes) o null si no existe
+     */
+    private function renderSustenanceIcon(?array $row, bool $typeIconImg): string
+    {
+        // Las imágenes son siempre las mismas: se generan una vez por petición
+        static $bookmarkIcons = null;
+
+        $hasRecord = null !== $row;
         $idSustenance = 0;
         $sustenanceCodes = '';
         $hasIncidents = false;
         $code = 0;
 
         if ($hasRecord) {
-            $row = Database::fetch_assoc($result);
             $idSustenance = $row['id'];
             $sustenanceCodes = $row['sustenance_codes'];
             if (!empty($sustenanceCodes)) {
@@ -5466,8 +5807,14 @@ EOT;
 
         // Generar íconos según el tipo y la existencia de incidencias
         if ($typeIconImg) {
-            $iconRed = Display::url(Display::return_icon('bookmark_red.png',$this->get_lang('WithReportedIncidence')),'#',['data-sustenance-id' => $idSustenance, 'class'=>'viewModalSustenance']);
-            $iconGreen = Display::url(Display::return_icon('bookmark_green.png',$this->get_lang('NoIncidents')),'#', ['data-sustenance-id' => 0, 'class'=>'viewModalSustenance']);
+            if (null === $bookmarkIcons) {
+                $bookmarkIcons = [
+                    'red' => Display::return_icon('bookmark_red.png',$this->get_lang('WithReportedIncidence')),
+                    'green' => Display::return_icon('bookmark_green.png',$this->get_lang('NoIncidents')),
+                ];
+            }
+            $iconRed = Display::url($bookmarkIcons['red'],'#',['data-sustenance-id' => $idSustenance, 'class'=>'viewModalSustenance']);
+            $iconGreen = Display::url($bookmarkIcons['green'],'#', ['data-sustenance-id' => 0, 'class'=>'viewModalSustenance']);
         } else {
             $iconRed = '<i class="fa fa-bookmark" style="color: #dc3545; "
                        title="Sustento registrado"></i> ';

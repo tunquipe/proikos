@@ -9,6 +9,7 @@ class ProikosCacheManager
     private $cacheDir;
     private $cacheLifetime = 3600; // 1 hora en segundos
     private $enabled = true;
+    private $userIdentifier = null;
 
     public function __construct()
     {
@@ -108,6 +109,10 @@ class ProikosCacheManager
      */
     private function getUserCacheIdentifier()
     {
+        if (null !== $this->userIdentifier) {
+            return $this->userIdentifier;
+        }
+
         $identifier = [];
 
         // Si es gestor de cupo (contractor admin), el caché es por RUC
@@ -134,7 +139,48 @@ class ProikosCacheManager
             ];
         }
 
+        $this->userIdentifier = $identifier;
+
         return $identifier;
+    }
+
+    /**
+     * Prefijo del archivo según el rol: "admin", "c<RUC>" o "u<userId>".
+     * Permite contar y limpiar el caché por rol/RUC sin abrir los archivos.
+     */
+    private function getFilePrefix(?array $identifier = null)
+    {
+        $identifier = $identifier ?? $this->getUserCacheIdentifier();
+
+        switch ($identifier['role'] ?? null) {
+            case 'admin':
+                return 'admin';
+            case 'contractor':
+                return 'c' . preg_replace('/[^0-9A-Za-z]/', '', (string) ($identifier['ruc'] ?? ''));
+            default:
+                return 'u' . (int) ($identifier['user_id'] ?? 0);
+        }
+    }
+
+    /**
+     * Obtiene rol/RUC/usuario a partir del nombre del archivo de caché.
+     *
+     * @return array|null null si es un archivo con el formato anterior (sin prefijo)
+     */
+    private function parseCacheFilename($file)
+    {
+        if (!preg_match('/^data_(admin|c([0-9A-Za-z]*)|u(\d+))_[a-f0-9]{32}\.json$/', basename($file), $m)) {
+            return null;
+        }
+
+        if ('admin' === $m[1]) {
+            return ['role' => 'admin'];
+        }
+        if ('c' === $m[1][0]) {
+            return ['role' => 'contractor', 'ruc' => $m[2]];
+        }
+
+        return ['role' => 'user', 'user_id' => (int) $m[3]];
     }
 
     /**
@@ -172,7 +218,7 @@ class ProikosCacheManager
      */
     private function getCacheFilename($key)
     {
-        return $this->cacheDir . 'data_' . $key . '.json';
+        return $this->cacheDir . 'data_' . $this->getFilePrefix() . '_' . $key . '.json';
     }
 
     /**
@@ -348,52 +394,16 @@ class ProikosCacheManager
         }
 
         try {
-            $files = glob($this->cacheDir . 'data_*.json');
+            // El rol/RUC/usuario va en el nombre del archivo: no hace falta abrirlos
+            $files = glob($this->cacheDir . 'data_' . $this->getFilePrefix() . '_*.json');
             if ($files === false) {
                 return 0;
             }
 
-            $userIdentifier = $this->getUserCacheIdentifier();
             $count = 0;
-
             foreach ($files as $file) {
-                $content = @file_get_contents($file);
-                if ($content !== false) {
-                    $decoded = json_decode($content, true);
-                    if (isset($decoded['user_identifier'])) {
-                        // Comparar por rol
-                        $fileRole = $decoded['user_identifier']['role'] ?? null;
-                        $currentRole = $userIdentifier['role'] ?? null;
-
-                        // Si son administradores, coincide por rol
-                        if ($currentRole === 'admin' && $fileRole === 'admin') {
-                            if (@unlink($file)) {
-                                $count++;
-                            }
-                        }
-                        // Si son contractors, coincide por RUC
-                        else if ($currentRole === 'contractor' && $fileRole === 'contractor') {
-                            $fileRuc = $decoded['user_identifier']['ruc'] ?? null;
-                            $currentRuc = $userIdentifier['ruc'] ?? null;
-
-                            if ($fileRuc === $currentRuc) {
-                                if (@unlink($file)) {
-                                    $count++;
-                                }
-                            }
-                        }
-                        // Usuarios normales por user_id
-                        else if ($currentRole === 'user' && $fileRole === 'user') {
-                            $fileUserId = $decoded['user_identifier']['user_id'] ?? null;
-                            $currentUserId = $userIdentifier['user_id'] ?? null;
-
-                            if ($fileUserId === $currentUserId) {
-                                if (@unlink($file)) {
-                                    $count++;
-                                }
-                            }
-                        }
-                    }
+                if (@unlink($file)) {
+                    $count++;
                 }
             }
 
@@ -414,23 +424,16 @@ class ProikosCacheManager
         }
 
         try {
-            $files = glob($this->cacheDir . 'data_*.json');
+            $prefix = $this->getFilePrefix(['role' => 'contractor', 'ruc' => $ruc]);
+            $files = glob($this->cacheDir . 'data_' . $prefix . '_*.json');
             if ($files === false) {
                 return 0;
             }
 
             $count = 0;
-
             foreach ($files as $file) {
-                $content = @file_get_contents($file);
-                if ($content !== false) {
-                    $decoded = json_decode($content, true);
-                    if (isset($decoded['user_identifier']['ruc']) &&
-                        $decoded['user_identifier']['ruc'] == $ruc) {
-                        if (@unlink($file)) {
-                            $count++;
-                        }
-                    }
+                if (@unlink($file)) {
+                    $count++;
                 }
             }
 
@@ -513,9 +516,7 @@ class ProikosCacheManager
             }
 
             $currentTime = time();
-            $userIdentifier = $this->getUserCacheIdentifier();
-            $currentRole = $userIdentifier['role'] ?? null;
-            $currentRuc = $userIdentifier['ruc'] ?? null;
+            $currentPrefix = $this->getFilePrefix();
 
             foreach ($files as $file) {
                 $info['total_files']++;
@@ -527,41 +528,31 @@ class ProikosCacheManager
                     $info['total_size'] += $fileSize;
                 }
 
-                // Analizar contenido del archivo
-                $content = @file_get_contents($file);
-                if ($content !== false) {
-                    $decoded = json_decode($content, true);
-                    if (isset($decoded['user_identifier'])) {
-                        $fileRole = $decoded['user_identifier']['role'] ?? null;
-                        $fileRuc = $decoded['user_identifier']['ruc'] ?? null;
+                // Rol/RUC desde el nombre del archivo (sin leer ni decodificar el JSON).
+                // Los archivos con el formato anterior solo cuentan en los totales.
+                $fileIdentifier = $this->parseCacheFilename($file);
+                if (null !== $fileIdentifier) {
+                    $fileRole = $fileIdentifier['role'];
+                    $fileRuc = $fileIdentifier['ruc'] ?? null;
 
-                        // Contar por rol
-                        if ($fileRole === 'admin') {
-                            $info['admin_files']++;
-                        } else if ($fileRole === 'contractor') {
-                            $info['contractor_files']++;
+                    // Contar por rol
+                    if ($fileRole === 'admin') {
+                        $info['admin_files']++;
+                    } else if ($fileRole === 'contractor') {
+                        $info['contractor_files']++;
 
-                            // Contar por RUC
-                            if ($fileRuc) {
-                                if (!isset($info['by_ruc'][$fileRuc])) {
-                                    $info['by_ruc'][$fileRuc] = 0;
-                                }
-                                $info['by_ruc'][$fileRuc]++;
+                        // Contar por RUC
+                        if ($fileRuc) {
+                            if (!isset($info['by_ruc'][$fileRuc])) {
+                                $info['by_ruc'][$fileRuc] = 0;
                             }
+                            $info['by_ruc'][$fileRuc]++;
                         }
+                    }
 
-                        // Verificar si es del rol/RUC actual
-                        if ($currentRole === 'admin' && $fileRole === 'admin') {
-                            $info['role_files']++;
-                        } else if ($currentRole === 'contractor' && $fileRole === 'contractor' && $fileRuc === $currentRuc) {
-                            $info['role_files']++;
-                        } else if ($currentRole === 'user' && $fileRole === 'user') {
-                            $fileUserId = $decoded['user_identifier']['user_id'] ?? null;
-                            $currentUserId = $userIdentifier['user_id'] ?? null;
-                            if ($fileUserId === $currentUserId) {
-                                $info['role_files']++;
-                            }
-                        }
+                    // Verificar si es del rol/RUC/usuario actual
+                    if ($this->getFilePrefix($fileIdentifier) === $currentPrefix) {
+                        $info['role_files']++;
                     }
                 }
 
@@ -598,8 +589,7 @@ class ProikosCacheManager
         }
 
         if (api_is_contractor_admin()) {
-            $plugin = ProikosPlugin::create();
-            $ruc = $plugin::getUserRucCompany();
+            $ruc = $this->getUserCacheIdentifier()['ruc'] ?? '';
             return 'Gestor de Cupo - RUC: ' . $ruc;
         }
 
@@ -612,6 +602,11 @@ class ProikosCacheManager
     public function setCacheLifetime($seconds)
     {
         $this->cacheLifetime = (int)$seconds;
+    }
+
+    public function getCacheLifetime()
+    {
+        return $this->cacheLifetime;
     }
 
     /**
