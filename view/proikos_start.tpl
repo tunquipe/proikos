@@ -88,6 +88,28 @@
     {% if is_platform_admin %}
     <div class="col-md-3">
         <div class="tool-box">
+            <a href="{{ src_plugin }}src/registration_forms.php" class="tool">
+                <img src="{{ src_plugin }}/images/registration_forms.png" alt="">
+                <div class="tool-title">Formularios de inscripción</div>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="tool-box">
+            {% if appearance_customizer_enabled %}
+            <a href="{{ web_path }}user_portal.php?pk_customize=1" class="tool">
+            {% else %}
+            <a href="{{ web_path }}main/admin/configure_plugin.php?name=proikos" class="tool" title="Active primero la barra de personalización en la configuración del plugin">
+            {% endif %}
+                <img src="{{ src_plugin }}/images/appearance.png" alt="">
+                <div class="tool-title">Personalizar apariencia</div>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+    {% if is_platform_admin %}
+    <div class="col-md-3">
+        <div class="tool-box">
             <a href="{{ src_plugin }}src/security_monitor.php" class="tool">
                 <img src="{{ src_plugin }}/images/firewall.png" alt="">
                 <div class="tool-title" style="color:#c0392b;">Monitor de Seguridad</div>

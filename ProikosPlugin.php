@@ -32,6 +32,7 @@ class ProikosPlugin extends Plugin
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET = 'plugin_proikos_contrating_companies_quota_det';
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION = 'plugin_proikos_contrating_companies_quota_session';
     const TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_SESSION_DET = 'plugin_proikos_contrating_companies_quota_session_det';
+    const TABLE_PROIKOS_QUIZ_BLOCK = 'plugin_proikos_quiz_block';
     const TABLE_PLUGIN_EASY_CERTIFICATE_SEND = 'plugin_easycertificate_send';
     const CATEGORY_ASINCRONO = 1;
     const CATEGORY_SINCRONO = 2;
@@ -101,7 +102,8 @@ class ProikosPlugin extends Plugin
                 self::TOOL_ENABLED => 'boolean',
                 'force_results_view' => 'boolean',
                 'enable_libro_reclamaciones' => 'boolean',
-                'libro_reclamaciones_url' => 'text'
+                'libro_reclamaciones_url' => 'text',
+                'enable_appearance_customizer' => 'boolean'
             ]
         );
         $this->isAdminPlugin = true;
@@ -133,6 +135,11 @@ class ProikosPlugin extends Plugin
 
     public function install()
     {
+        require_once __DIR__.'/src/RegistrationFormManager.php';
+        \src\RegistrationFormManager::createTables();
+        require_once __DIR__.'/src/AppearanceManager.php';
+        \src\AppearanceManager::ensureTable();
+
         $schemaManager = Database::getManager()->getConnection()->getSchemaManager();
 
         $tablesExists = $schemaManager->tablesExist(
@@ -326,6 +333,17 @@ class ProikosPlugin extends Plugin
             created_user_id INT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP
+        );";
+        Database::query($sql);
+
+        $sql = "CREATE TABLE IF NOT EXISTS " . self::TABLE_PROIKOS_QUIZ_BLOCK . " (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            user_id INT NOT NULL COMMENT 'ID del alumno',
+            course_id INT NOT NULL COMMENT 'ID del curso',
+            session_id INT NOT NULL DEFAULT 0 COMMENT 'ID de la sesión',
+            exam_ids TEXT NOT NULL COMMENT 'IDs de exámenes bloqueados separados por comas',
+            created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         );";
         Database::query($sql);
 

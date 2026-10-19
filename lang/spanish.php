@@ -241,3 +241,5 @@ $strings['UsersSessionReport'] = 'Reporte de usuarios inscritos en sesiones';
 $strings['AllSessions'] = 'Todas las sesiones';
 $strings['RegisteredAt'] = 'Fecha de inscripción';
 $strings['SelectReportFilters'] = 'Por favor seleccione al menos un filtro (sesión o rango de fechas de inscripción)';
+$strings['enable_appearance_customizer'] = 'Activar barra de personalización de apariencia';
+$strings['enable_appearance_customizer_help'] = 'Muestra a los administradores un botón flotante "Personalizar" en todo el portal, que abre una barra lateral para cambiar colores, tipografía, cabecera, menú, pie de página, login, formulario de registro y logo.';

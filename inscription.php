@@ -6,6 +6,14 @@ if (!empty($_POST['language'])) {
     $_GET['language'] = $_POST['language'];
 }
 require_once __DIR__ . '../../../main/inc/global.inc.php';
+require_once __DIR__.'/src/RegistrationFormManager.php';
+
+// Si el administrador eligió un formulario de inscripción dinámico, se usa ese.
+if (\src\RegistrationFormManager::getActiveRegistrationFormId() > 0) {
+    $query = isset($_GET['language']) ? '?language='.urlencode($_GET['language']) : '';
+    header('Location: '.api_get_path(WEB_PLUGIN_PATH).'proikos/registration.php'.$query);
+    exit;
+}
 
 $plugin = ProikosPlugin::create();
 $hideHeaders = isset($_GET['hide_headers']);

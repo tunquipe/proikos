@@ -139,3 +139,5 @@ $strings['UsersSessionReport'] = 'Report of users registered in sessions';
 $strings['AllSessions'] = 'All sessions';
 $strings['RegisteredAt'] = 'Registration date';
 $strings['SelectReportFilters'] = 'Please select at least one filter (session or registration date range)';
+$strings['enable_appearance_customizer'] = 'Enable appearance customizer sidebar';
+$strings['enable_appearance_customizer_help'] = 'Shows administrators a floating "Customize" button across the portal that opens a sidebar to change colors, fonts, header, menu, footer, login, registration form and logo.';

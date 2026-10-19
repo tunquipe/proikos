@@ -16,6 +16,8 @@ if ($enable) {
         $tpl->assign('is_platform_admin', api_is_platform_admin());
         $tpl->assign('is_drh', api_is_drh());
         $tpl->assign('is_contractor_admin', api_is_contractor_admin());
+        $tpl->assign('appearance_customizer_enabled', $plugin->get('enable_appearance_customizer') == 'true');
+        $tpl->assign('web_path', api_get_path(WEB_PATH));
         $content = $tpl->fetch('proikos/view/proikos_start.tpl');
         $tpl->assign('content', $content);
         $tpl->display_one_col_template();

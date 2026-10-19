@@ -1,0 +1,587 @@
+/* Formularios de inscripción dinámicos — plugin Proikos */
+
+/* ---------- Formulario público ---------- */
+/*
+ * Acotado a .proikos-reg-form y con la especificidad suficiente para ganar a
+ * las reglas del tema (.custompage .form-control…), sin tocar el tema.
+ */
+.proikos-reg-form {
+    --pk-accent: var(--primary-color, #008AD1);
+    --pk-border: #d5dde6;
+    --pk-text: #1f2d3d;
+    --pk-muted: #6b7a8c;
+    --pk-soft: #f6f8fb;
+    --pk-danger: #d93250;
+    width: 100%;
+    text-align: left;
+}
+.proikos-reg-form .pk-rf-description {
+    margin-bottom: 18px;
+    color: var(--pk-muted);
+    line-height: 1.5;
+}
+
+/* Tarjetas: una por sección */
+.proikos-reg-form .pk-rf-block {
+    margin: 0 0 18px;
+    padding: 20px 20px 4px;
+    background: #fff;
+    border: 1px solid #e3e9f0;
+    border-radius: 12px;
+}
+.proikos-reg-form .pk-rf-section {
+    margin: 0 0 18px;
+    padding: 0 0 12px;
+    border-bottom: 1px solid #edf1f5;
+}
+.proikos-reg-form .pk-rf-section h4 {
+    margin: 0;
+    padding-left: 10px;
+    border-left: 4px solid var(--pk-accent);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--pk-text);
+}
+.proikos-reg-form .pk-rf-section p {
+    margin: 6px 0 0 14px;
+    font-size: 13px;
+    color: var(--pk-muted);
+}
+
+/*
+ * Filas flexibles: cada campo parte de su ancho (completo, mitad, tercio) y la
+ * fila se completa repartiendo el espacio sobrante, así no quedan huecos.
+ */
+.proikos-reg-form .pk-rf-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 16px;
+    margin: 0;
+}
+.proikos-reg-form .pk-rf-row > .pk-rf-col {
+    float: none;
+    min-width: 0;
+    padding: 0;
+    width: auto;
+}
+.proikos-reg-form .pk-rf-w12 { flex: 12 1 100%; }
+.proikos-reg-form .pk-rf-w6 { flex: 6 1 calc(50% - 8px); }
+.proikos-reg-form .pk-rf-w4 { flex: 4 1 calc(33.333% - 11px); }
+@media (max-width: 767px) {
+    .proikos-reg-form .pk-rf-row > .pk-rf-col { flex: 1 1 100%; }
+    .proikos-reg-form .pk-rf-block { padding: 16px 14px 2px; }
+    .custompage .width-register:has(.proikos-reg-form) {
+        width: 100%;
+        padding: 20px 16px;
+    }
+}
+
+/* Etiquetas, ayuda y errores */
+.proikos-reg-form .form-group {
+    display: block;
+    width: 100%;
+    margin: 0 0 18px;
+}
+.proikos-reg-form .pk-rf-group > .control-label,
+.width-register .proikos-reg-form .form-group label.control-label {
+    display: block;
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--pk-text);
+}
+.proikos-reg-form .form_required {
+    color: var(--pk-danger);
+}
+.proikos-reg-form .pk-rf-group .pk-rf-help {
+    margin: 6px 0 0;
+    padding: 0;
+    font-size: 12px;
+    text-align: left;
+    color: var(--pk-muted);
+}
+.proikos-reg-form .pk-rf-group .pk-rf-error,
+.proikos-reg-form .has-error .help-block {
+    display: block;
+    margin: 6px 0 0;
+    padding: 0;
+    font-size: 12px;
+    text-align: left;
+    color: var(--pk-danger);
+}
+
+/* Controles: texto, número, fecha, teléfono, contraseña y párrafo */
+.proikos-reg-form .pk-rf-group .form-control:not(.bootstrap-select) {
+    width: 100%;
+    height: 44px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--pk-text);
+    background: #fff;
+    border: 1px solid var(--pk-border);
+    border-radius: 8px;
+    box-shadow: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.proikos-reg-form .pk-rf-group textarea.form-control {
+    height: auto;
+    min-height: 96px;
+    resize: vertical;
+}
+.proikos-reg-form .pk-rf-group .form-control::placeholder {
+    color: #a3afbd;
+}
+.proikos-reg-form .pk-rf-group .form-control:not(.bootstrap-select):focus {
+    border-color: var(--pk-accent);
+    box-shadow: 0 0 0 3px rgba(0, 138, 209, .15);
+    outline: 0;
+}
+.proikos-reg-form .has-error .form-control:not(.bootstrap-select),
+.proikos-reg-form .has-error .bootstrap-select > .dropdown-toggle.btn.btn-default {
+    border-color: var(--pk-danger);
+}
+
+/* Listas (bootstrap-select de Chamilo) con el mismo aspecto */
+.proikos-reg-form .pk-rf-group .bootstrap-select.form-control {
+    width: 100%;
+    height: auto;
+    padding: 0;
+    border: 0;
+}
+.proikos-reg-form .pk-rf-group .bootstrap-select > .dropdown-toggle.btn.btn-default {
+    height: 44px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--pk-text);
+    background: #fff;
+    border: 1px solid var(--pk-border);
+    border-radius: 8px;
+    box-shadow: none;
+}
+.proikos-reg-form .pk-rf-group .bootstrap-select.open > .dropdown-toggle.btn.btn-default,
+.proikos-reg-form .pk-rf-group .bootstrap-select > .dropdown-toggle.btn.btn-default:focus {
+    border-color: var(--pk-accent);
+    box-shadow: 0 0 0 3px rgba(0, 138, 209, .15);
+    outline: 0 !important;
+}
+.proikos-reg-form .pk-rf-group .bootstrap-select > .dropdown-toggle.bs-placeholder {
+    color: #a3afbd;
+}
+/* Deshabilitada (cascada sin elegir el campo anterior): suave, no gris oscuro */
+.proikos-reg-form .pk-rf-group .bootstrap-select.disabled > .dropdown-toggle.btn.btn-default,
+.proikos-reg-form .pk-rf-group .bootstrap-select > .dropdown-toggle.btn.btn-default.disabled,
+.proikos-reg-form .pk-rf-group .form-control:disabled {
+    color: #a3afbd;
+    background: var(--pk-soft);
+    border-color: #e3e9f0;
+    opacity: 1;
+    cursor: not-allowed;
+}
+.proikos-reg-form .pk-rf-group .bootstrap-select .dropdown-menu {
+    border-radius: 8px;
+    border-color: var(--pk-border);
+    box-shadow: 0 8px 24px rgba(15, 35, 60, .12);
+}
+
+/* Opción única y casillas: opciones como botones que se resaltan al elegir */
+.proikos-reg-form .pk-rf-type-radio .pk-rf-group .radio,
+.proikos-reg-form .pk-rf-type-checkbox .pk-rf-group .checkbox {
+    display: inline-block;
+    margin: 0 8px 8px 0;
+}
+.proikos-reg-form .pk-rf-type-radio .pk-rf-group .radio label,
+.proikos-reg-form .pk-rf-type-checkbox .pk-rf-group .checkbox label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: auto;
+    margin: 0;
+    padding: 9px 14px;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--pk-text);
+    background: #fff;
+    border: 1px solid var(--pk-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color .15s ease, background-color .15s ease;
+}
+.proikos-reg-form .pk-rf-type-radio .pk-rf-group .radio label:hover,
+.proikos-reg-form .pk-rf-type-checkbox .pk-rf-group .checkbox label:hover {
+    border-color: var(--pk-accent);
+}
+.proikos-reg-form .pk-rf-type-radio .pk-rf-group .radio label:has(input:checked),
+.proikos-reg-form .pk-rf-type-checkbox .pk-rf-group .checkbox label:has(input:checked) {
+    border-color: var(--pk-accent);
+    background: rgba(0, 138, 209, .07);
+}
+.proikos-reg-form .pk-rf-group .radio input,
+.proikos-reg-form .pk-rf-group .checkbox input {
+    position: static;
+    margin: 0;
+    accent-color: var(--pk-accent);
+}
+
+/* Aceptación de términos: casilla con su texto, en un recuadro suave */
+.proikos-reg-form .pk-rf-type-terms .pk-rf-group .checkbox {
+    margin: 0;
+    padding: 12px 14px;
+    background: var(--pk-soft);
+    border-radius: 8px;
+}
+.proikos-reg-form .pk-rf-type-terms .pk-rf-group .checkbox label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    font-weight: 400;
+    color: var(--pk-text);
+}
+.proikos-reg-form .pk-rf-type-terms .pk-rf-group .checkbox input {
+    margin-top: 3px;
+}
+.proikos-reg-form .pk-rf-type-terms .pk-rf-group .checkbox {
+    display: block;
+}
+.proikos-reg-form .pk-rf-type-terms .pk-rf-group .checkbox a {
+    color: var(--pk-accent);
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+/* Archivo adjunto */
+.proikos-reg-form .pk-rf-type-file input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    font-size: 13px;
+    color: var(--pk-muted);
+    background: var(--pk-soft);
+    border: 1px dashed var(--pk-border);
+    border-radius: 8px;
+}
+.proikos-reg-form .pk-rf-type-file input[type="file"]::file-selector-button {
+    margin-right: 10px;
+    padding: 6px 12px;
+    color: var(--pk-text);
+    background: #fff;
+    border: 1px solid var(--pk-border);
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* Botón de envío */
+.proikos-reg-form .pk-rf-submit {
+    margin-top: 6px;
+}
+
+/* Campo trampa anti-bots */
+.proikos-reg-form .pk-rf-hp {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+/* ---------- Administración ---------- */
+.pk-rf-admin .pk-rf-empty {
+    padding: 50px 20px;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+}
+.pk-rf-admin .pk-rf-link {
+    margin-top: 6px;
+    max-width: 480px;
+}
+.pk-rf-admin .pk-rf-link input {
+    font-size: 12px;
+    color: #666;
+}
+.pk-rf-admin .pk-rf-actions {
+    white-space: nowrap;
+}
+.pk-rf-admin .pk-rf-responses td {
+    max-width: 260px;
+    word-wrap: break-word;
+}
+
+/* ---------- Constructor ---------- */
+.pk-rf-builder-page {
+    max-width: 960px;
+    margin: 0 auto;
+}
+.pk-rf-builder-header h3 .label {
+    font-size: 11px;
+    vertical-align: middle;
+}
+.pk-rf-fields {
+    margin: 20px 0;
+}
+.pk-rf-card {
+    background: #fff;
+    border: 1px solid #dadce0;
+    border-left: 5px solid #8ab4f8;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 2px rgba(60, 64, 67, .15);
+    transition: box-shadow .15s;
+}
+.pk-rf-card:hover {
+    box-shadow: 0 2px 6px rgba(60, 64, 67, .2);
+}
+.pk-rf-card.pk-rf-open {
+    border-left-color: #1a73e8;
+    box-shadow: 0 3px 10px rgba(60, 64, 67, .25);
+}
+.pk-rf-card.pk-rf-core {
+    border-left-color: #5bc0de;
+}
+.pk-rf-card.pk-rf-section-card {
+    border-left-color: #673ab7;
+    background: #faf8ff;
+}
+.pk-rf-card-placeholder {
+    border: 2px dashed #1a73e8;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    background: #f1f6fe;
+}
+.pk-rf-card-head {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    cursor: pointer;
+}
+.pk-rf-handle {
+    cursor: move;
+    color: #aaa;
+    padding: 0 10px 0 0;
+}
+.pk-rf-card-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.pk-rf-card-title .fa {
+    color: #1a73e8;
+    margin-right: 4px;
+}
+.pk-rf-card-title .label {
+    font-size: 10px;
+}
+.pk-rf-card-tools {
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+.pk-rf-card-body {
+    padding: 5px 15px 10px;
+    border-top: 1px solid #eee;
+}
+.pk-rf-card-body .form-group {
+    margin-bottom: 10px;
+}
+.pk-rf-card-body .control-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+}
+.pk-rf-card-foot {
+    margin-top: 5px;
+    padding-top: 8px;
+    border-top: 1px dashed #eee;
+}
+.pk-rf-options {
+    margin: 0 0 12px;
+}
+.pk-rf-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+.pk-rf-option .fa {
+    margin-right: 6px;
+}
+.pk-rf-option .pk-rf-option-label {
+    flex: 2;
+    margin-right: 6px;
+}
+.pk-rf-option .pk-rf-option-value {
+    flex: 1;
+    margin-right: 4px;
+    color: #777;
+}
+.pk-rf-validations {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+}
+.pk-rf-validations-title {
+    font-weight: 600;
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 6px;
+}
+.pk-rf-validations .checkbox {
+    margin: 4px 0;
+}
+.pk-rf-add-bar {
+    background: #fff;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 15px;
+}
+.pk-rf-add-title {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+.pk-rf-add-buttons .btn {
+    margin: 0 4px 6px 0;
+}
+.pk-rf-save-bar {
+    position: sticky;
+    bottom: 0;
+    background: rgba(255, 255, 255, .95);
+    padding: 12px 0;
+    border-top: 1px solid #eee;
+    z-index: 5;
+}
+.pk-rf-save-bar #pk-rf-dirty {
+    margin-left: 12px;
+}
+
+@media (max-width: 767px) {
+    .pk-rf-card-tools .btn {
+        padding: 1px 4px;
+    }
+}
+
+/* Contraseña: barra de seguridad y requisitos */
+.proikos-reg-form .pk-rf-pass-meter {
+    margin: -6px 0 14px;
+}
+.proikos-reg-form .pk-rf-pass-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: #e9ecef;
+    overflow: hidden;
+}
+.proikos-reg-form .pk-rf-pass-bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    transition: width .25s ease, background-color .25s ease;
+}
+.proikos-reg-form .pk-rf-pass-label {
+    min-height: 16px;
+    margin-top: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+}
+.proikos-reg-form .pk-rf-pass-checks {
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+    font-size: 12px;
+    color: #888;
+}
+.proikos-reg-form .pk-rf-pass-checks li.pk-ok {
+    color: #2e7d32;
+}
+.pk-rf-pass-summary {
+    margin-top: 28px;
+}
+/* Requisitos de la contraseña en ventana emergente (al enfocar el campo) */
+.proikos-reg-form .pk-rf-pass-meter {
+    position: relative;
+}
+.proikos-reg-form .pk-rf-pass-popup .pk-rf-pass-checks {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 20;
+    min-width: 240px;
+    margin-top: 6px;
+    padding: 8px 12px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
+}
+.proikos-reg-form .pk-rf-pass-popup .pk-rf-pass-checks::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 16px;
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border-left: 1px solid #ddd;
+    border-top: 1px solid #ddd;
+    transform: rotate(45deg);
+}
+.proikos-reg-form .pk-rf-pass-popup.pk-open .pk-rf-pass-checks {
+    display: block;
+}
+/* Términos y condiciones en ventana emergente */
+.pk-rf-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, .5);
+}
+.pk-rf-modal[hidden] {
+    display: none;
+}
+.pk-rf-modal-box {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 720px;
+    max-height: 90vh;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+}
+.pk-rf-modal-head,
+.pk-rf-modal-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+}
+.pk-rf-modal-foot {
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid #eee;
+    border-bottom: 0;
+}
+.pk-rf-modal-x {
+    border: 0;
+    background: none;
+    font-size: 24px;
+    line-height: 1;
+    color: #666;
+    cursor: pointer;
+}
+.pk-rf-modal-body {
+    padding: 16px;
+    overflow-y: auto;
+    text-align: left;
+}
+body.pk-rf-modal-open {
+    overflow: hidden;
+}
