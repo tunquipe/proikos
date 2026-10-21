@@ -140,30 +140,6 @@ class ProikosPlugin extends Plugin
         require_once __DIR__.'/src/AppearanceManager.php';
         \src\AppearanceManager::ensureTable();
 
-        $schemaManager = Database::getManager()->getConnection()->getSchemaManager();
-
-        $tablesExists = $schemaManager->tablesExist(
-            [
-                'plugin_proikos_area',
-                'plugin_proikos_area_ref_management	',
-                'plugin_proikos_companies',
-                'plugin_proikos_entity',
-                'plugin_proikos_headquarters',
-                'plugin_proikos_management',
-                'plugin_proikos_managers',
-                'plugin_proikos_position',
-                'plugin_proikos_sector',
-                'plugin_proikos_users',
-                self::TABLE_PROIKOS_CONTRATING_COMPANIES,
-                self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_CAB,
-                self::TABLE_PROIKOS_CONTRATING_COMPANIES_QUOTA_DET
-            ]
-        );
-
-        if ($tablesExists) {
-            return;
-        }
-
         $sql = "CREATE TABLE IF NOT EXISTS ".self::TABLE_PROIKOS_USERS." (
             id INT unsigned NOT NULL auto_increment PRIMARY KEY,
             user_id INT NULL,
@@ -171,18 +147,25 @@ class ProikosPlugin extends Plugin
             firstname VARCHAR(250) NULL,
             phone VARCHAR(250) NULL,
             type_document INT NULL,
-            number_document INT NULL,
+            number_document VARCHAR(100) NULL,
             age INT NULL,
             gender VARCHAR(1) NULL,
             instruction VARCHAR(250) NULL,
             name_company VARCHAR(250) NULL,
             contact_manager VARCHAR(250) NULL,
             position_company VARCHAR(250) NULL,
+            record_number VARCHAR(250) NULL,
             stakeholders VARCHAR(250) NULL,
             area VARCHAR(250) NULL,
             department VARCHAR(250) NULL,
             headquarters VARCHAR(250) NULL,
-            code_reference VARCHAR(250) NULL
+            company_headquarter VARCHAR(250) NULL,
+            ruc_company VARCHAR(11) NULL,
+            terms_conditions VARCHAR(1) NULL DEFAULT '0',
+            metadata LONGTEXT NULL,
+            code_reference VARCHAR(250) NULL,
+            KEY idx_ppu_user_id (user_id),
+            KEY idx_ppu_ruc_company (ruc_company)
         )";
         Database::query($sql);
 
@@ -213,6 +196,7 @@ class ProikosPlugin extends Plugin
         $sql = "CREATE TABLE IF NOT EXISTS ".self::TABLE_PROIKOS_POSITION." (
             id INT unsigned NOT NULL auto_increment PRIMARY KEY,
             name_position VARCHAR(250) NULL,
+            id_stakeholder INT NULL,
             status INT NULL
         )";
         Database::query($sql);
@@ -286,6 +270,7 @@ class ProikosPlugin extends Plugin
             admin_name VARCHAR(50) NOT NULL,
             admin_email VARCHAR(100) NULL,
             status VARCHAR(1) NOT NULL,
+            company_code VARCHAR(5) NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         );";
@@ -347,10 +332,148 @@ class ProikosPlugin extends Plugin
         );";
         Database::query($sql);
 
+        $sql = "CREATE TABLE IF NOT EXISTS " . self::TABLE_PROIKOS_CHECK_DOCS . " (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            user_id INT NOT NULL,
+            session_id INT NOT NULL,
+            check_document INT DEFAULT 0,
+            user_id_check INT NOT NULL,
+            created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            KEY idx_ppcd_user_session (user_id, session_id)
+        );";
+        Database::query($sql);
+
+        $sql = "CREATE TABLE IF NOT EXISTS plugin_proikos_sustenance (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            user_id INT NOT NULL COMMENT 'ID del alumno',
+            course_id INT NOT NULL COMMENT 'ID del curso',
+            session_id INT NOT NULL COMMENT 'ID de la sesión de formación',
+            sustenance_codes TEXT NOT NULL COMMENT 'Códigos de sustento separados por comas',
+            comment TEXT NULL COMMENT 'Comentario adicional',
+            created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            KEY idx_pps_user_session (user_id, session_id)
+        );";
+        Database::query($sql);
+
+        $sql = "CREATE TABLE IF NOT EXISTS " . self::TABLE_PROIKOS_DATA_LOG . " (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            username VARCHAR(20) NULL,
+            user_id INT NULL,
+            registration_session_user INT NULL,
+            course_id INT NULL,
+            session_id INT NULL,
+            course_code VARCHAR(255) NULL,
+            session_name VARCHAR(255) NULL,
+            session_category_id INT NULL,
+            session_category_name VARCHAR(255) NULL,
+            email VARCHAR(255) NULL,
+            last_name VARCHAR(255) NULL,
+            first_name VARCHAR(255) NULL,
+            dni VARCHAR(20) NULL,
+            company_ruc VARCHAR(20) NULL,
+            company_name VARCHAR(255) NULL,
+            stakeholders INT NULL,
+            area VARCHAR(100) NULL,
+            metadata_exists TINYINT(1) NULL,
+            entrance_exam DECIMAL(5,2) NULL,
+            workshop DECIMAL(5,2) NULL,
+            exit_exam DECIMAL(5,2) NULL,
+            score DECIMAL(5,2) NULL,
+            status VARCHAR(50) NULL,
+            status_id INT NULL,
+            time_course TIME NULL,
+            certificate_status VARCHAR(50) NULL,
+            observations TEXT NULL,
+            certificate_issue_date DATE NULL,
+            certificate_expiration_date DATE NULL,
+            created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        );";
+        Database::query($sql);
+
+        // Tables created by previous versions may be missing newer columns
+        $this->upgradeSchema();
+    }
+
+    /**
+     * Adds the columns and indexes added after the first versions of the plugin
+     * when they don't exist yet, so existing installations keep their data.
+     */
+    public function upgradeSchema()
+    {
+        $columns = [
+            self::TABLE_PROIKOS_USERS => [
+                'record_number' => 'VARCHAR(250) NULL',
+                'company_headquarter' => 'VARCHAR(250) NULL',
+                'ruc_company' => 'VARCHAR(11) NULL',
+                'terms_conditions' => "VARCHAR(1) NULL DEFAULT '0'",
+                'metadata' => 'LONGTEXT NULL',
+            ],
+            self::TABLE_PROIKOS_POSITION => [
+                'id_stakeholder' => 'INT NULL',
+            ],
+            self::TABLE_PROIKOS_CONTRATING_COMPANIES => [
+                'company_code' => 'VARCHAR(5) NULL',
+            ],
+        ];
+
+        foreach ($columns as $table => $tableColumns) {
+            $table = Database::get_main_table($table);
+            foreach ($tableColumns as $column => $definition) {
+                $sql = "SHOW COLUMNS FROM $table LIKE '$column'";
+                if (Database::num_rows(Database::query($sql)) === 0) {
+                    Database::query("ALTER TABLE $table ADD COLUMN $column $definition");
+                }
+            }
+        }
+
+        // The document can be a DNI with leading zeros or an alphanumeric CE/passport
+        $table = Database::get_main_table(self::TABLE_PROIKOS_USERS);
+        $row = Database::fetch_assoc(Database::query("SHOW COLUMNS FROM $table LIKE 'number_document'"));
+        if ($row && stripos($row['Type'], 'int') === 0) {
+            Database::query("ALTER TABLE $table MODIFY number_document VARCHAR(100) NULL");
+        }
+
+        $indexes = [
+            self::TABLE_PROIKOS_USERS => [
+                'idx_ppu_user_id' => 'user_id',
+                'idx_ppu_ruc_company' => 'ruc_company',
+            ],
+            self::TABLE_PROIKOS_CHECK_DOCS => [
+                'idx_ppcd_user_session' => 'user_id, session_id',
+            ],
+            'plugin_proikos_sustenance' => [
+                'idx_pps_user_session' => 'user_id, session_id',
+            ],
+        ];
+
+        foreach ($indexes as $table => $tableIndexes) {
+            $table = Database::get_main_table($table);
+            foreach ($tableIndexes as $index => $indexColumns) {
+                $sql = "SHOW INDEX FROM $table WHERE Key_name = '$index'";
+                if (Database::num_rows(Database::query($sql)) === 0) {
+                    Database::query("ALTER TABLE $table ADD INDEX $index ($indexColumns)");
+                }
+            }
+        }
+    }
+
+    /**
+     * Updates the schema of an existing installation (see update.php).
+     */
+    public function update()
+    {
+        $this->install();
     }
 
     public function uninstall()
     {
+        // The plugin data (users, quotas, logs) is kept on purpose, only the
+        // links added to the courses by performActionsAfterConfigure() are removed.
+        $this->deleteCourseToolLinks();
+
        /* $tablesToBeDeleted = [
             self::TABLE_PROIKOS_USERS
         ];
