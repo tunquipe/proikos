@@ -21,7 +21,7 @@ AppearanceManager::ensureTable();
 $action = $_REQUEST['a'] ?? '';
 
 // Todo lo que no sea lectura exige POST con token.
-if ('get' !== $action) {
+if (!in_array($action, ['get', 'export'], true)) {
     if ('POST' !== $_SERVER['REQUEST_METHOD'] || !Security::check_token('post', null, 'pk_appearance')) {
         $respond(['error' => 'La sesión expiró. Recargue la página.'], 403);
     }
@@ -66,6 +66,33 @@ switch ($action) {
     case 'upload':
         $result = AppearanceManager::uploadImage($_FILES['image'] ?? []);
         $respond($result, isset($result['error']) ? 400 : 200);
+        break;
+
+    case 'export':
+        $path = AppearanceManager::exportPackage();
+        $host = preg_replace('/[^a-z0-9.-]/i', '', (string) parse_url(api_get_path(WEB_PATH), PHP_URL_HOST));
+        header('Content-Type: application/zip');
+        header('Content-Disposition: attachment; filename="apariencia-'.$host.'-'.date('Ymd-His').'.zip"');
+        header('Content-Length: '.filesize($path));
+        readfile($path);
+        unlink($path);
+        exit;
+
+    case 'import':
+        $result = AppearanceManager::importPackage($_FILES['package'] ?? []);
+        if (isset($result['error'])) {
+            $respond($result, 400);
+        }
+        $message = 'Configuración importada como borrador. Revísela y pulse «Guardar y publicar».';
+        if ($result['ignored'] > 0) {
+            $message .= ' Se omitieron '.$result['ignored'].' opciones que no existen o no son válidas en esta versión.';
+        }
+        $respond([
+            'ok' => true,
+            'settings' => (object) $result['settings'],
+            'errors' => $result['errors'],
+            'message' => $message,
+        ]);
         break;
 
     default:

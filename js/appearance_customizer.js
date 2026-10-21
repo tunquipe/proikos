@@ -450,6 +450,10 @@
                 el('button', {type: 'button', className: 'pk-cz-btn pk-cz-btn-primary pk-cz-save', onclick: save}, [icon('fa-check'), ' Guardar y publicar']),
                 el('button', {type: 'button', className: 'pk-cz-btn pk-cz-btn-light pk-cz-discard', onclick: discard}, ['Descartar']),
                 el('button', {type: 'button', className: 'pk-cz-btn pk-cz-btn-link', onclick: resetAll}, ['Restaurar tema original'])
+            ]),
+            el('div', {className: 'pk-cz-transfer'}, [
+                el('button', {type: 'button', className: 'pk-cz-btn pk-cz-btn-light', title: 'Descargar la configuración publicada y sus imágenes en un ZIP', onclick: exportSettings}, [icon('fa-download'), ' Exportar']),
+                el('button', {type: 'button', className: 'pk-cz-btn pk-cz-btn-light', title: 'Cargar un ZIP exportado desde otro campus', onclick: importSettings}, [icon('fa-upload'), ' Importar'])
             ])
         ]);
         root.appendChild(footer);
@@ -502,6 +506,40 @@
         }).catch(function (error) {
             toast(error.message, 'error');
         });
+    }
+
+    function exportSettings() {
+        if (isDirty() && !confirm('Hay cambios sin publicar. Se exportará la configuración publicada, sin esos cambios. ¿Continuar?')) {
+            return;
+        }
+        window.location.href = cfg.ajax + '?a=export';
+    }
+
+    function importSettings() {
+        var input = el('input', {type: 'file', accept: '.zip,application/zip'});
+        input.addEventListener('change', function () {
+            if (!input.files.length) {
+                return;
+            }
+            if (isDirty() && !confirm('La configuración importada reemplazará los cambios sin publicar. ¿Continuar?')) {
+                return;
+            }
+            var data = new FormData();
+            data.append('package', input.files[0]);
+            request('import', data, true).then(function (result) {
+                draft = asObject(result.settings);
+                storage(STORAGE_DRAFT, JSON.stringify(draft));
+                rebuild();
+                applyPreview();
+                toast(result.message);
+                if (result.errors && result.errors.length) {
+                    toast('No se importaron algunas imágenes: ' + result.errors.join(' '), 'error');
+                }
+            }).catch(function (error) {
+                toast(error.message, 'error');
+            });
+        });
+        input.click();
     }
 
     function open() {

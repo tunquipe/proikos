@@ -897,19 +897,9 @@ CSS,
             return ['error' => 'No se pudo subir la imagen.'];
         }
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!in_array($extension, self::IMAGE_EXTENSIONS, true)) {
-            return ['error' => 'Formato no permitido. Use: '.implode(', ', self::IMAGE_EXTENSIONS).'.'];
-        }
-        if ($file['size'] > self::MAX_IMAGE_MB * 1024 * 1024) {
-            return ['error' => 'La imagen no debe superar '.self::MAX_IMAGE_MB.' MB.'];
-        }
-        if ('svg' === $extension) {
-            $content = (string) file_get_contents($file['tmp_name']);
-            if (preg_match('/<script|on[a-z]+\s*=|javascript:|<foreignObject/i', $content)) {
-                return ['error' => 'El SVG contiene código no permitido.'];
-            }
-        } elseif ('ico' !== $extension && false === @getimagesize($file['tmp_name'])) {
-            return ['error' => 'El archivo no es una imagen válida.'];
+        $error = self::checkImage((string) file_get_contents($file['tmp_name']), $extension);
+        if ('' !== $error) {
+            return ['error' => $error];
         }
 
         $name = 'img-'.bin2hex(random_bytes(8)).'.'.$extension;
@@ -918,5 +908,159 @@ CSS,
         }
 
         return ['url' => self::getWebDir().$name];
+    }
+
+    /**
+     * Valida una imagen (subida o importada).
+     *
+     * @return string Mensaje de error, vacío si la imagen es válida
+     */
+    private static function checkImage(string $content, string $extension): string
+    {
+        if (!in_array($extension, self::IMAGE_EXTENSIONS, true)) {
+            return 'Formato no permitido. Use: '.implode(', ', self::IMAGE_EXTENSIONS).'.';
+        }
+        if (strlen($content) > self::MAX_IMAGE_MB * 1024 * 1024) {
+            return 'La imagen no debe superar '.self::MAX_IMAGE_MB.' MB.';
+        }
+        if ('svg' === $extension) {
+            if (preg_match('/<script|on[a-z]+\s*=|javascript:|<foreignObject/i', $content)) {
+                return 'El SVG contiene código no permitido.';
+            }
+        } elseif ('ico' !== $extension && false === @getimagesizefromstring($content)) {
+            return 'El archivo no es una imagen válida.';
+        }
+
+        return '';
+    }
+
+    /* ---------------------------------------------------------------------
+     * Exportar / importar
+     * ------------------------------------------------------------------- */
+
+    const EXPORT_FORMAT = 'proikos-appearance';
+    const EXPORT_VERSION = 1;
+    const EXPORT_JSON = 'appearance.json';
+    const IMPORT_MAX_MB = 30;
+
+    /**
+     * Crea un ZIP con la configuración publicada y sus imágenes. Las imágenes se
+     * guardan como rutas relativas (images/...) para poder usarlas en otro campus.
+     *
+     * @return string Ruta del ZIP temporal (el llamador debe borrarlo)
+     */
+    public static function exportPackage(): string
+    {
+        $settings = self::getSettings();
+        $dir = self::getDir();
+        $webDir = self::getWebDir();
+        $images = [];
+
+        foreach (self::controls() as $key => $control) {
+            if ('image' !== $control['type'] || empty($settings[$key])) {
+                continue;
+            }
+            $name = basename($settings[$key]);
+            if (0 === strpos($settings[$key], $webDir) && is_file($dir.$name)) {
+                $images[$name] = $dir.$name;
+                $settings[$key] = 'images/'.$name;
+            } else {
+                unset($settings[$key]);
+            }
+        }
+
+        $manifest = [
+            'format' => self::EXPORT_FORMAT,
+            'format_version' => self::EXPORT_VERSION,
+            'exported_at' => gmdate('c'),
+            'source' => api_get_path(WEB_PATH),
+            'settings' => (object) $settings,
+        ];
+
+        $path = tempnam(sys_get_temp_dir(), 'pk-appearance-');
+        $zip = new \ZipArchive();
+        $zip->open($path, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+        $zip->addFromString(self::EXPORT_JSON, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        foreach ($images as $name => $file) {
+            $zip->addFile($file, 'images/'.$name);
+        }
+        $zip->close();
+
+        return $path;
+    }
+
+    /**
+     * Lee un ZIP exportado por exportPackage(). Las imágenes se validan y se copian
+     * con un nombre nuevo; la configuración se devuelve saneada, sin guardarla, para
+     * que el administrador la revise en la vista previa antes de publicar.
+     *
+     * @return array ['settings' => [...], 'ignored' => n] o ['error' => ...]
+     */
+    public static function importPackage(array $file): array
+    {
+        if (UPLOAD_ERR_OK !== ($file['error'] ?? UPLOAD_ERR_NO_FILE) || !is_uploaded_file($file['tmp_name'])) {
+            return ['error' => 'No se pudo subir el archivo.'];
+        }
+        if ($file['size'] > self::IMPORT_MAX_MB * 1024 * 1024) {
+            return ['error' => 'El archivo no debe superar '.self::IMPORT_MAX_MB.' MB.'];
+        }
+
+        $zip = new \ZipArchive();
+        if (true !== $zip->open($file['tmp_name'])) {
+            return ['error' => 'El archivo no es un ZIP válido.'];
+        }
+
+        // Los archivos se leen por nombre desde el ZIP, nunca se extraen a disco.
+        $stat = $zip->statName(self::EXPORT_JSON);
+        $manifest = $stat && $stat['size'] < 1024 * 1024 ? json_decode((string) $zip->getFromName(self::EXPORT_JSON), true) : null;
+        if (!is_array($manifest) || self::EXPORT_FORMAT !== ($manifest['format'] ?? '') || !is_array($manifest['settings'] ?? null)) {
+            $zip->close();
+
+            return ['error' => 'El ZIP no contiene una configuración de apariencia exportada desde este plugin.'];
+        }
+        if ((int) ($manifest['format_version'] ?? 0) > self::EXPORT_VERSION) {
+            $zip->close();
+
+            return ['error' => 'La configuración se exportó con una versión más nueva del plugin. Actualice el plugin e intente de nuevo.'];
+        }
+
+        $settings = $manifest['settings'];
+        $errors = [];
+        foreach (self::controls() as $key => $control) {
+            if ('image' !== $control['type'] || !isset($settings[$key])) {
+                continue;
+            }
+            $entry = (string) $settings[$key];
+            unset($settings[$key]);
+            if (!preg_match('#^images/img-[a-f0-9]{16}\.([a-z]{3,4})$#', $entry, $match)) {
+                continue;
+            }
+            $stat = $zip->statName($entry);
+            if (!$stat || $stat['size'] > self::MAX_IMAGE_MB * 1024 * 1024) {
+                $errors[] = $control['label'].': imagen no encontrada o demasiado grande.';
+                continue;
+            }
+            $content = (string) $zip->getFromName($entry);
+            $error = self::checkImage($content, $match[1]);
+            if ('' !== $error) {
+                $errors[] = $control['label'].': '.$error;
+                continue;
+            }
+            $name = 'img-'.bin2hex(random_bytes(8)).'.'.$match[1];
+            if (false === file_put_contents(self::getDir().$name, $content)) {
+                $errors[] = $control['label'].': no se pudo guardar la imagen.';
+                continue;
+            }
+            $settings[$key] = self::getWebDir().$name;
+        }
+        $zip->close();
+
+        $clean = self::sanitize($settings);
+
+        return [
+            'settings' => $clean,
+            'ignored' => max(0, count($manifest['settings']) - count($clean) - count($errors)),
+            'errors' => $errors,
+        ];
     }
 }

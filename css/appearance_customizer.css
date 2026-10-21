@@ -326,6 +326,17 @@ html:not(.pk-customizer-open) #pk-customizer {
     gap: 6px;
     align-items: center;
 }
+#pk-customizer .pk-cz-transfer {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed #dcdcde;
+}
+#pk-customizer .pk-cz-transfer .pk-cz-btn {
+    flex: 1;
+    font-size: 12px;
+}
 
 .pk-cz-toast {
     position: fixed;
