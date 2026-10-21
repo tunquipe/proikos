@@ -162,6 +162,7 @@ class RegistrationFormManager
         'user.username' => 'Chamilo: nombre de usuario (login)',
         'user.official_code' => 'Chamilo: código oficial',
         'user.phone' => 'Chamilo: teléfono',
+        'user.language' => 'Chamilo: idioma de la plataforma (valor: spanish, english…)',
         'pk.type_document' => 'Proikos: tipo de documento (valor numérico)',
         'pk.number_document' => 'Proikos: número de documento',
         'pk.age' => 'Proikos: edad (valor numérico)',
@@ -594,6 +595,182 @@ JS;
         }
 
         return $newId;
+    }
+
+    /**
+     * Campos del formulario predeterminado: datos personales, domicilio, salud,
+     * documentos y acceso. Usa los campos predefinidos (FIELD_PRESETS) para que
+     * queden vinculados a las columnas de Proikos; el administrador puede editarlo
+     * como cualquier otro formulario.
+     */
+    public static function defaultTemplate(): array
+    {
+        $preset = function ($key, array $override = []) {
+            return array_replace_recursive(['field_key' => $key], self::FIELD_PRESETS[$key]['field'], $override);
+        };
+        $yesNo = [['value' => 'si', 'label' => 'Sí'], ['value' => 'no', 'label' => 'No']];
+        $documents = ['extensions' => 'pdf,jpg,jpeg,png', 'max_size_mb' => 5];
+
+        // Idiomas activos de la plataforma, con el idioma por defecto primero.
+        $languages = api_get_languages();
+        $platformLanguage = api_get_setting('platformLanguage');
+        $languageOptions = [];
+        foreach ($languages['folder'] as $index => $folder) {
+            // Chamilo guarda los nombres con entidades HTML (Espa&ntilde;ol).
+            $option = ['value' => $folder, 'label' => html_entity_decode($languages['name'][$index], ENT_QUOTES, 'UTF-8')];
+            if ($folder === $platformLanguage) {
+                array_unshift($languageOptions, $option);
+            } else {
+                $languageOptions[] = $option;
+            }
+        }
+
+        return [
+            ['type' => 'section', 'label' => 'Datos personales'],
+            ['type' => 'lastname', 'label' => 'Apellidos', 'validations' => ['pattern' => 'letters', 'max_length' => 60], 'config' => ['width' => 6]],
+            ['type' => 'firstname', 'label' => 'Nombres', 'validations' => ['pattern' => 'letters', 'max_length' => 60], 'config' => ['width' => 6]],
+            [
+                'type' => 'select', 'field_key' => 'idioma', 'label' => 'Idioma', 'required' => true,
+                'options' => $languageOptions,
+                'config' => ['width' => 6, 'map_to' => 'user.language', 'help' => 'Idioma en el que verá la plataforma.'],
+            ],
+            ['type' => 'email', 'label' => 'Correo electrónico', 'config' => ['width' => 6]],
+            $preset('celular'),
+            $preset('tipo_documento'),
+            $preset('numero_documento'),
+            $preset('sexo'),
+            $preset('grado_instruccion'),
+
+            ['type' => 'section', 'label' => 'Domicilio'],
+            [
+                'type' => 'text', 'field_key' => 'direccion', 'label' => 'Dirección', 'required' => true,
+                'validations' => ['max_length' => 250],
+                'config' => ['width' => 12, 'placeholder' => 'Av. / Jr. / Calle, número, urbanización'],
+            ],
+            $preset('region'),
+            $preset('provincia'),
+            $preset('distrito'),
+            [
+                'type' => 'text', 'field_key' => 'referencia', 'label' => 'Referencia', 'required' => false,
+                'validations' => ['max_length' => 250],
+                'config' => ['width' => 12, 'placeholder' => 'Ej.: frente al parque, a media cuadra del mercado'],
+            ],
+
+            ['type' => 'section', 'label' => 'Datos de salud', 'config' => ['help' => 'Esta información solo se usa en caso de emergencia.']],
+            [
+                'type' => 'select', 'field_key' => 'tipo_sangre', 'label' => 'Tipo de sangre', 'required' => true,
+                'options' => array_map(function ($type) {
+                    return ['value' => $type, 'label' => $type];
+                }, ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'No sé']),
+                'config' => ['width' => 6],
+            ],
+            [
+                'type' => 'radio', 'field_key' => 'seguro', 'label' => 'Seguro de salud', 'required' => true,
+                'options' => [
+                    ['value' => 'essalud', 'label' => 'EsSalud'],
+                    ['value' => 'particular', 'label' => 'Particular (EPS / seguro privado)'],
+                    ['value' => 'sis', 'label' => 'SIS'],
+                    ['value' => 'ninguno', 'label' => 'No tengo seguro'],
+                ],
+                'config' => ['width' => 6],
+            ],
+            [
+                'type' => 'radio', 'field_key' => 'tiene_alergias', 'label' => '¿Tiene alguna alergia?', 'required' => true,
+                'options' => $yesNo,
+                'config' => ['width' => 6],
+            ],
+            [
+                'type' => 'textarea', 'field_key' => 'alergias', 'label' => 'Indique sus alergias', 'required' => true,
+                'validations' => ['max_length' => 1000],
+                'config' => ['width' => 12, 'placeholder' => 'Medicamentos, alimentos, otros', 'show_if' => ['field' => 'tiene_alergias', 'values' => ['si']]],
+            ],
+            [
+                'type' => 'radio', 'field_key' => 'discapacidad', 'label' => '¿Tiene alguna discapacidad?', 'required' => true,
+                'options' => $yesNo,
+                'config' => ['width' => 6],
+            ],
+            [
+                'type' => 'file', 'field_key' => 'carnet_conadis', 'label' => 'Carnet de CONADIS', 'required' => true,
+                'validations' => $documents,
+                'config' => ['width' => 12, 'help' => 'PDF o imagen, máximo 5 MB.', 'show_if' => ['field' => 'discapacidad', 'values' => ['si']]],
+            ],
+
+            ['type' => 'section', 'label' => 'Documentos'],
+            [
+                'type' => 'file', 'field_key' => 'dni_escaneado', 'label' => 'DNI escaneado (ambas caras)', 'required' => true,
+                'validations' => $documents,
+                'config' => ['width' => 12, 'help' => 'PDF o imagen, máximo 5 MB.'],
+            ],
+
+            ['type' => 'section', 'label' => 'Datos de acceso'],
+            ['type' => 'password', 'label' => 'Contraseña', 'validations' => ['password_level' => 'medium'], 'config' => ['width' => 12]],
+
+            [
+                'type' => 'terms', 'field_key' => 'terminos',
+                'label' => 'He leído y acepto los términos y condiciones, y autorizo el tratamiento de mis datos personales, incluidos mis datos de salud y discapacidad.',
+                'config' => ['width' => 12, 'terms_mode' => 'modal', 'link_text' => 'Leer términos y condiciones', 'terms_text' => self::DEFAULT_TERMS_TEXT],
+            ],
+        ];
+    }
+
+    /** Texto de ejemplo de los términos del formulario predeterminado (los datos entre corchetes se reemplazan). */
+    const DEFAULT_TERMS_TEXT = <<<'HTML'
+<h4>1. Objeto</h4>
+<p>Estos términos regulan el registro y el uso de la plataforma de capacitación virtual de <strong>[NOMBRE DE LA EMPRESA]</strong>, con RUC <strong>[RUC]</strong> y domicilio en <strong>[DIRECCIÓN]</strong> (en adelante, «la Empresa»). Al registrarse, usted acepta estos términos.</p>
+
+<h4>2. Registro y cuenta de usuario</h4>
+<ul>
+    <li>Los datos que registra deben ser verdaderos, completos y actualizados. La Empresa puede anular la inscripción si comprueba que son falsos.</li>
+    <li>Su usuario y contraseña son personales e intransferibles. Usted es responsable de su custodia y de toda actividad realizada con su cuenta.</li>
+    <li>Si sospecha que alguien más usa su cuenta, cambie su contraseña y avísenos a <strong>[CORREO DE CONTACTO]</strong>.</li>
+</ul>
+
+<h4>3. Uso de la plataforma</h4>
+<ul>
+    <li>La plataforma se usa solo con fines de capacitación. No está permitido compartir la cuenta, rendir evaluaciones en nombre de otra persona ni intentar acceder a información de otros usuarios.</li>
+    <li>Los cursos, videos, documentos y evaluaciones son propiedad de la Empresa o de sus autores. No pueden copiarse, distribuirse ni publicarse sin autorización.</li>
+    <li>Los certificados se emiten solo a quienes cumplen los requisitos de aprobación de cada curso.</li>
+</ul>
+
+<h4>4. Protección de datos personales</h4>
+<p>En cumplimiento de la Ley N.° 29733, Ley de Protección de Datos Personales, y su Reglamento, le informamos lo siguiente:</p>
+<ul>
+    <li><strong>Responsable:</strong> la Empresa, con los datos indicados en el punto 1. Sus datos se almacenan en el banco de datos <strong>[NOMBRE DEL BANCO DE DATOS]</strong>, inscrito ante la Autoridad Nacional de Protección de Datos Personales con código <strong>[CÓDIGO DE INSCRIPCIÓN]</strong>.</li>
+    <li><strong>Datos que recogemos:</strong> nombres y apellidos, documento de identidad y su copia, correo, celular, sexo, grado de instrucción, idioma, domicilio y, de forma opcional según sus respuestas, datos de salud (tipo de sangre, seguro y alergias) y la condición de discapacidad con su carnet de CONADIS.</li>
+    <li><strong>Finalidades:</strong> gestionar su inscripción y su cuenta, dictar los cursos, registrar su avance y sus notas, emitir y validar certificados, comunicarnos con usted, atenderlo en caso de emergencia y ofrecerle los ajustes razonables que su condición requiera.</li>
+    <li><strong>Datos sensibles:</strong> sus datos de salud y de discapacidad son datos sensibles. Solo se tratan con su consentimiento expreso, que otorga al marcar la casilla de aceptación, y solo para atención en emergencias y ajustes razonables. No se usan para ninguna otra finalidad.</li>
+    <li><strong>Conservación:</strong> conservamos sus datos mientras mantenga su cuenta y, después, durante los plazos que exijan las normas aplicables, por ejemplo para validar los certificados emitidos.</li>
+    <li><strong>Transferencias:</strong> no vendemos ni cedemos sus datos. Solo los compartimos con los proveedores que nos prestan servicios (por ejemplo, el alojamiento de la plataforma), bajo obligación de confidencialidad, o cuando una autoridad lo requiera conforme a ley.</li>
+    <li><strong>Sus derechos:</strong> puede ejercer en cualquier momento sus derechos de acceso, rectificación, cancelación y oposición, así como revocar su consentimiento, escribiendo a <strong>[CORREO DE PROTECCIÓN DE DATOS]</strong> con una copia de su documento de identidad. Si considera que no atendimos su solicitud, puede acudir a la Autoridad Nacional de Protección de Datos Personales.</li>
+</ul>
+
+<h4>5. Cambios en estos términos</h4>
+<p>La Empresa puede actualizar estos términos. Los cambios se publicarán en la plataforma y, si son importantes, se le avisará por correo electrónico.</p>
+
+<h4>6. Aceptación</h4>
+<p>Al marcar la casilla de aceptación y completar su registro, usted declara haber leído estos términos, aceptarlos y autorizar el tratamiento de sus datos personales, incluidos los datos sensibles, para las finalidades descritas.</p>
+HTML;
+
+    /**
+     * Crea un borrador con los campos de defaultTemplate().
+     *
+     * @return int Id del formulario creado (0 si la plantilla no es válida)
+     */
+    public function createDefaultForm(): int
+    {
+        [$normalized, $errors] = $this->normalizeFieldsDefinition(self::defaultTemplate(), []);
+        if (!empty($errors)) {
+            error_log('Proikos: plantilla de inscripción no válida: '.implode(' ', $errors));
+
+            return 0;
+        }
+        $formId = $this->saveForm([
+            'title' => 'Formulario de inscripción (predeterminado)',
+            'description' => 'Complete sus datos para crear su cuenta.',
+        ]);
+        $this->saveFields($formId, $normalized);
+
+        return $formId;
     }
 
     /**
@@ -2265,6 +2442,9 @@ JS;
         $username = $this->resolveUsername($settings, $fields, $values);
         $password = $this->resolvePassword($form, $fields, $values);
         $language = $values['language'] ?? api_get_interface_language();
+        if (!empty($mapped['user.language']) && in_array($mapped['user.language'], api_get_languages()['folder'], true)) {
+            $language = $mapped['user.language'];
+        }
         $codeReference = $settings['code_reference'] ?: null;
         $sendMail = !empty($settings['send_credentials_email']) || self::PASSWORD_AUTO === $settings['password_mode'];
 

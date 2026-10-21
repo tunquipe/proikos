@@ -22,7 +22,9 @@
             <em class="fa fa-wpforms fa-4x text-muted"></em>
             <h4>Aún no hay formularios de inscripción</h4>
             <p class="text-muted">Cree un formulario con los datos que necesita recoger además de los datos principales del usuario.</p>
-            <a href="{{ base_url }}?action=add" class="btn btn-primary"><em class="fa fa-plus"></em> Nuevo formulario</a>
+            <a href="{{ base_url }}?action=create_default&pk_reg_admin_sec_token={{ token }}" class="btn btn-primary"><em class="fa fa-magic"></em> Usar el formulario predeterminado</a>
+            <a href="{{ base_url }}?action=add" class="btn btn-default"><em class="fa fa-plus"></em> Formulario en blanco</a>
+            <p class="text-muted small" style="margin-top: 10px;">El predeterminado trae datos personales, domicilio, salud y documentos; después puede quitar, cambiar o agregar campos.</p>
         </div>
     {% else %}
         <div class="table-responsive">

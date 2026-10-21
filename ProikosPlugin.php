@@ -137,6 +137,11 @@ class ProikosPlugin extends Plugin
     {
         require_once __DIR__.'/src/RegistrationFormManager.php';
         \src\RegistrationFormManager::createTables();
+        // En una instalación nueva se deja listo el formulario predeterminado (borrador).
+        $registrationForms = new \src\RegistrationFormManager($this);
+        if (empty($registrationForms->getForms())) {
+            $registrationForms->createDefaultForm();
+        }
         require_once __DIR__.'/src/AppearanceManager.php';
         \src\AppearanceManager::ensureTable();
 

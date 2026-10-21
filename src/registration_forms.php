@@ -38,14 +38,22 @@ $loadForm = function () use ($manager, $formId, $redirect, $baseUrl) {
 };
 
 // Acciones que modifican datos desde un enlace: requieren token.
-$linkActions = ['delete', 'duplicate', 'publish', 'unpublish', 'set_registration', 'unset_registration'];
+$linkActions = ['delete', 'duplicate', 'publish', 'unpublish', 'set_registration', 'unset_registration', 'create_default'];
 if (in_array($action, $linkActions, true)) {
     if (!Security::check_token('get', null, $tokenPrefix)) {
         Display::addFlash(Display::return_message(get_lang('NotAllowed'), 'error'));
         $redirect($baseUrl);
     }
-    $form = 'unset_registration' === $action ? null : $loadForm();
+    $form = in_array($action, ['unset_registration', 'create_default'], true) ? null : $loadForm();
     switch ($action) {
+        case 'create_default':
+            $newId = $manager->createDefaultForm();
+            if ($newId) {
+                Display::addFlash(Display::return_message('Se creó el formulario predeterminado como borrador. Quite, cambie o agregue los campos que necesite y luego publíquelo. Antes de publicar, edite el campo «Términos y condiciones»: reemplace los datos entre [CORCHETES] y revise el texto con su asesor legal.', 'confirmation'));
+                $redirect($baseUrl.'?action=builder&id='.$newId);
+            }
+            Display::addFlash(Display::return_message('No se pudo crear el formulario predeterminado.', 'error'));
+            break;
         case 'delete':
             $manager->deleteForm($formId);
             Display::addFlash(Display::return_message('Formulario eliminado.', 'confirmation'));
@@ -399,6 +407,10 @@ switch ($action) {
         $actionLinks .= Display::url(
             Display::return_icon('add.png', 'Nuevo formulario', [], ICON_SIZE_MEDIUM),
             $baseUrl.'?action=add'
+        );
+        $actionLinks .= Display::url(
+            Display::return_icon('new_template.png', 'Nuevo formulario predeterminado (datos personales, domicilio, salud y documentos)', [], ICON_SIZE_MEDIUM),
+            $baseUrl.'?action=create_default&'.$tokenPrefix.'_sec_token='.$token
         );
 
         $tpl->assign('forms', $forms);
