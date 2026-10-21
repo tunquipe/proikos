@@ -12,6 +12,7 @@
     --pk-muted: #6b7a8c;
     --pk-soft: #f6f8fb;
     --pk-danger: #d93250;
+    --pk-section: var(--pk-accent);
     width: 100%;
     text-align: left;
 }
@@ -29,15 +30,18 @@
     border: 1px solid #e3e9f0;
     border-radius: 12px;
 }
+/* Encabezado de sección: banda tintada de borde a borde en la parte superior de la tarjeta */
 .proikos-reg-form .pk-rf-section {
-    margin: 0 0 18px;
-    padding: 0 0 12px;
-    border-bottom: 1px solid #edf1f5;
+    margin: -20px -20px 18px;
+    padding: 14px 20px;
+    background: color-mix(in srgb, var(--pk-section) 10%, #fff);
+    border-bottom: 1px solid color-mix(in srgb, var(--pk-section) 22%, #fff);
+    border-radius: 11px 11px 0 0;
 }
 .proikos-reg-form .pk-rf-section h4 {
     margin: 0;
     padding-left: 10px;
-    border-left: 4px solid var(--pk-accent);
+    border-left: 4px solid var(--pk-section);
     font-size: 16px;
     font-weight: 700;
     line-height: 1.3;
@@ -71,6 +75,7 @@
 @media (max-width: 767px) {
     .proikos-reg-form .pk-rf-row > .pk-rf-col { flex: 1 1 100%; }
     .proikos-reg-form .pk-rf-block { padding: 16px 14px 2px; }
+    .proikos-reg-form .pk-rf-section { margin: -16px -14px 16px; padding: 12px 14px; }
     .custompage .width-register:has(.proikos-reg-form) {
         width: 100%;
         padding: 20px 16px;
@@ -174,7 +179,9 @@
 .proikos-reg-form .pk-rf-group .form-control:disabled {
     color: #a3afbd;
     background: var(--pk-soft);
-    border-color: #e3e9f0;
+    /* style.css del plugin pinta todo .btn.disabled de gris oscuro con !important */
+    background-color: var(--pk-soft) !important;
+    border-color: #e3e9f0 !important;
     opacity: 1;
     cursor: not-allowed;
 }
@@ -584,4 +591,117 @@
 }
 body.pk-rf-modal-open {
     overflow: hidden;
+}
+
+/* ---------- Paso a paso ---------- */
+.proikos-reg-form .pk-rf-block[hidden] {
+    display: none;
+}
+.proikos-reg-form .pk-rf-steps {
+    display: flex;
+    margin: 0 0 22px;
+    padding: 0;
+    list-style: none;
+}
+.proikos-reg-form .pk-rf-steps li {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    padding: 0 4px;
+    text-align: center;
+    color: var(--pk-muted);
+    cursor: default;
+}
+/* Línea que une cada paso con el anterior */
+.proikos-reg-form .pk-rf-steps li + li::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    right: calc(50% + 20px);
+    left: calc(-50% + 20px);
+    height: 2px;
+    background: var(--pk-border);
+    transition: background-color .2s ease;
+}
+.proikos-reg-form .pk-rf-steps li.pk-done + li::before {
+    background: var(--pk-accent);
+}
+.proikos-reg-form .pk-rf-step-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--pk-muted);
+    background: #fff;
+    border: 2px solid var(--pk-border);
+    border-radius: 50%;
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+}
+.proikos-reg-form .pk-rf-steps li.pk-active .pk-rf-step-num {
+    color: #fff;
+    background: var(--pk-accent);
+    border-color: var(--pk-accent);
+    box-shadow: 0 0 0 4px rgba(0, 138, 209, .15);
+}
+.proikos-reg-form .pk-rf-steps li.pk-done {
+    cursor: pointer;
+}
+.proikos-reg-form .pk-rf-steps li.pk-done .pk-rf-step-num {
+    font-size: 0;
+    color: var(--pk-accent);
+    border-color: var(--pk-accent);
+}
+.proikos-reg-form .pk-rf-steps li.pk-done .pk-rf-step-num::after {
+    content: '\f00c';
+    font-family: FontAwesome;
+    font-size: 13px;
+}
+.proikos-reg-form .pk-rf-step-label {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.proikos-reg-form .pk-rf-steps li.pk-active .pk-rf-step-label {
+    color: var(--pk-text);
+}
+.proikos-reg-form .pk-rf-wizard-nav {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 6px;
+}
+.proikos-reg-form .pk-rf-wizard-nav .pk-rf-next,
+.proikos-reg-form .pk-rf-wizard-nav .pk-rf-submit {
+    flex: 1 1 auto;
+    margin: 0;
+}
+.proikos-reg-form .pk-rf-wizard-nav .pk-rf-prev {
+    flex: 0 0 auto;
+}
+.proikos-reg-form .pk-rf-wizard-nav .btn {
+    height: 44px;
+    padding: 0 18px;
+    font-weight: 600;
+    line-height: 42px;
+    border-radius: 8px;
+}
+@media (max-width: 480px) {
+    /* En pantallas angostas solo se rotula el paso actual */
+    .proikos-reg-form .pk-rf-step-label {
+        display: none;
+    }
+    .proikos-reg-form .pk-rf-steps li.pk-active .pk-rf-step-label {
+        display: block;
+    }
 }

@@ -72,14 +72,14 @@ if (in_array($action, $linkActions, true)) {
             if (!empty($warnings)) {
                 Display::addFlash(Display::return_message(implode('<br>', $warnings), 'error', false));
             } elseif ($manager->setRegistrationForm($formId)) {
-                Display::addFlash(Display::return_message('"'.Security::remove_XSS($form['title']).'" es ahora el formulario de registro de la plataforma.', 'confirmation'));
+                Display::addFlash(Display::return_message('El botón «Registro de usuario» del inicio de sesión ahora abre "'.Security::remove_XSS($form['title']).'".', 'confirmation'));
             } else {
-                Display::addFlash(Display::return_message('Solo un formulario publicado puede ser el formulario de registro.', 'warning'));
+                Display::addFlash(Display::return_message('Solo un formulario publicado y completo puede usarse en el botón «Registro de usuario».', 'warning'));
             }
             break;
         case 'unset_registration':
             $manager->unsetRegistrationForm();
-            Display::addFlash(Display::return_message('La plataforma vuelve a usar el formulario de registro original.', 'confirmation'));
+            Display::addFlash(Display::return_message('El botón «Registro de usuario» vuelve a abrir el registro original de la plataforma.', 'confirmation'));
             break;
     }
     $redirect($baseUrl);
@@ -105,9 +105,35 @@ switch ($action) {
         $formValidator->addText('title', 'Título', true, ['maxlength' => 255]);
         $formValidator->addTextarea('description', ['Descripción', 'Se muestra encima del formulario.'], ['rows' => 3]);
         $formValidator->addCheckBox('status', 'Estado', 'Publicado (visible para el público)');
+        $formValidator->addCheckBox(
+            'use_for_register',
+            ['Botón «Registro de usuario»', 'Solo un formulario a la vez. Debe estar publicado y tener los datos principales (nombres, apellidos, correo y, si la escribe el usuario, contraseña).'],
+            'Usar este formulario en el botón «Registro de usuario» del inicio de sesión'
+        );
         $formValidator->addText('submit_label', 'Texto del botón de envío', false, ['maxlength' => 60]);
+        $formValidator->addCheckBox(
+            'wizard',
+            ['Presentación', 'Cada sección es un paso: el usuario completa una sección, pulsa «Siguiente» y al final envía. Requiere al menos dos secciones.'],
+            'Mostrar el formulario paso a paso (una sección por paso)'
+        );
 
         $formValidator->addHeader('Cuenta de usuario');
+
+        // Campos que pueden dar el nombre de usuario o la contraseña.
+        $accountFieldOptions = ['' => 'Seleccione un campo'];
+        foreach ($fields as $field) {
+            if (!$field['is_core'] && in_array($field['type'], ['text', 'number', 'tel', 'email'], true)) {
+                $accountFieldOptions[$field['field_key']] = $field['label'].' ('.$field['field_key'].')';
+            }
+        }
+        $accountFieldHelp = $form ? 'Solo campos de texto, número o teléfono. Debe ser obligatorio.' : 'Disponible después de crear los campos del formulario.';
+
+        $formValidator->addRadio('username_mode', 'Nombre de usuario', [
+            RegistrationFormManager::USERNAME_EMAIL => 'El correo electrónico del usuario',
+            RegistrationFormManager::USERNAME_FIELD => 'El valor de un campo del formulario (ej. número de documento, o un campo «Nombre de usuario» que el usuario escribe)',
+        ]);
+        $formValidator->addSelect('username_field', ['Campo usado como nombre de usuario', $accountFieldHelp], $accountFieldOptions);
+
         $passwordOptions = [
             RegistrationFormManager::PASSWORD_MANUAL => 'El usuario escribe su contraseña (con confirmación y reglas de seguridad de Chamilo)',
             RegistrationFormManager::PASSWORD_AUTO => 'Chamilo genera la contraseña y la envía por correo',
@@ -115,17 +141,7 @@ switch ($action) {
         ];
         $formValidator->addRadio('password_mode', 'Contraseña', $passwordOptions);
 
-        $passwordFieldOptions = ['' => 'Seleccione un campo'];
-        foreach ($fields as $field) {
-            if (!$field['is_core'] && in_array($field['type'], ['text', 'number', 'tel', 'email'], true)) {
-                $passwordFieldOptions[$field['field_key']] = $field['label'].' ('.$field['field_key'].')';
-            }
-        }
-        $formValidator->addSelect(
-            'password_field',
-            ['Campo usado como contraseña', $form ? 'Solo campos de texto, número o teléfono. Debe ser obligatorio.' : 'Disponible después de crear los campos del formulario.'],
-            $passwordFieldOptions
-        );
+        $formValidator->addSelect('password_field', ['Campo usado como contraseña', $accountFieldHelp], $accountFieldOptions);
         $formValidator->addCheckBox('send_credentials_email', 'Correo de bienvenida', 'Enviar al usuario un correo con sus datos de acceso');
         $formValidator->addCheckBox('auto_login', 'Después del registro', 'Iniciar sesión automáticamente');
         $formValidator->addText('redirect_url', ['URL de redirección', 'Opcional. Por defecto: catálogo de cursos.'], false);
@@ -145,13 +161,16 @@ switch ($action) {
             if (RegistrationFormManager::PASSWORD_FIELD === ($values['password_mode'] ?? '') && empty($values['password_field'])) {
                 return ['password_field' => 'Seleccione el campo que se usará como contraseña.'];
             }
+            if (RegistrationFormManager::USERNAME_FIELD === ($values['username_mode'] ?? '') && empty($values['username_field'])) {
+                return ['username_field' => 'Seleccione el campo que se usará como nombre de usuario.'];
+            }
 
             return true;
         });
 
         $defaults = $form
-            ? array_merge($form['settings'], ['title' => $form['title'], 'description' => $form['description'], 'status' => $form['status']])
-            : array_merge(RegistrationFormManager::defaultSettings(), ['status' => 0]);
+            ? array_merge($form['settings'], ['title' => $form['title'], 'description' => $form['description'], 'status' => $form['status'], 'use_for_register' => $form['is_registration']])
+            : array_merge(RegistrationFormManager::defaultSettings(), ['status' => 0, 'use_for_register' => 0]);
         $formValidator->setDefaults($defaults);
 
         if ($formValidator->validate()) {
@@ -165,6 +184,20 @@ switch ($action) {
                     $manager->setStatus($savedId, false);
                     Display::addFlash(Display::return_message('Se guardó como borrador:<br>'.implode('<br>', $warnings), 'warning', false));
                 }
+            }
+            // Botón «Registro de usuario» del inicio de sesión.
+            $saved = $manager->getForm($savedId);
+            if (!empty($values['use_for_register'])) {
+                if (!$saved['is_registration']) {
+                    if ($manager->setRegistrationForm($savedId)) {
+                        Display::addFlash(Display::return_message('El botón «Registro de usuario» del inicio de sesión ahora abre este formulario.', 'confirmation'));
+                    } else {
+                        Display::addFlash(Display::return_message('No se pudo usar en el botón «Registro de usuario»: el formulario debe estar publicado y completo. Agregue los datos principales y publíquelo.', 'warning'));
+                    }
+                }
+            } elseif ($saved['is_registration']) {
+                $manager->unsetRegistrationForm();
+                Display::addFlash(Display::return_message('El botón «Registro de usuario» vuelve a abrir el registro original de la plataforma.', 'confirmation'));
             }
             $redirect($baseUrl.'?action='.($form ? 'list' : 'builder&id='.$savedId));
         }
@@ -228,6 +261,8 @@ switch ($action) {
         $tpl->assign('builder_data', json_encode([
             'fields' => array_values($fields),
             'catalog' => RegistrationFormManager::builderCatalog(),
+            // De dónde salen el usuario y la contraseña (se configura en el formulario).
+            'account' => array_intersect_key($form['settings'], array_flip(['username_mode', 'username_field', 'password_mode', 'password_field'])),
         ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT));
         $tpl->assign('action_url', $baseUrl.'?action=builder&id='.$formId);
         $content = $tpl->fetch('proikos/view/proikos_registration_builder.tpl');

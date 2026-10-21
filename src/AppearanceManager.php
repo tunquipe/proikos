@@ -45,6 +45,134 @@ class AppearanceManager
      * Esquema de controles de la barra lateral, agrupados por sección.
      * Tipos: color, image, select, range, toggle, text, textarea, code.
      */
+    /**
+     * Común a los estilos modernos del menú: opciones centradas en la
+     * cabecera, submenús redondeados con sombra y avatar con aro.
+     */
+    const MENU_STYLE_BASE = <<<'CSS'
+/* Menú moderno — base */
+.navbar-default .navbar-nav > li > a {
+    position: relative;
+    margin: 17px 2px;
+    padding: 8px 14px;
+    line-height: 20px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    border-radius: 999px;
+    transition: background-color .15s ease, color .15s ease;
+}
+.navbar-default .navbar-nav > li.avatar-user > a.dropdown-toggle {
+    margin: 13px 0 13px 8px;
+    padding: 4px 8px 4px 4px;
+    background-color: transparent;
+}
+.avatar-user > a.dropdown-toggle img.img-circle {
+    width: 36px;
+    height: 36px;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px rgba(15, 35, 60, .12), 0 2px 6px rgba(15, 35, 60, .12);
+}
+.navbar-nav > li > .dropdown-menu {
+    margin-top: 6px;
+    padding: 6px;
+    border: 1px solid rgba(15, 35, 60, .08);
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(15, 35, 60, .16);
+}
+.navbar-nav > li > .dropdown-menu > li > a {
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+.navbar-nav > li > .dropdown-menu > li > a:hover,
+.navbar-nav > li > .dropdown-menu > li > a:focus {
+    background-color: rgba(0, 138, 209, .08);
+}
+@media (max-width: 767px) {
+    .navbar-default .navbar-nav > li > a {
+        margin: 2px 0;
+        padding: 10px 14px;
+        border-radius: 8px;
+    }
+}
+CSS;
+
+    /** Forma y colores por defecto de cada estilo moderno del menú. */
+    const MENU_STYLES = [
+        'pill' => <<<'CSS'
+/* Menú moderno — pastillas */
+.navbar-default .navbar-nav > li > a {
+    color: #33475b;
+}
+.navbar-default .navbar-nav > li > a:hover,
+.navbar-default .navbar-nav > li > a:focus {
+    color: #006fa8;
+    background-color: rgba(0, 138, 209, .12);
+}
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus,
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-nav > .open > a:hover,
+.navbar-default .navbar-nav > .open > a:focus {
+    color: #fff;
+    background-color: #008ad1;
+    box-shadow: 0 4px 12px rgba(0, 138, 209, .3);
+}
+CSS,
+        'underline' => <<<'CSS'
+/* Menú moderno — línea inferior */
+.navbar-default .navbar-nav > li > a {
+    color: #33475b;
+    border-radius: 0;
+}
+.navbar-default .navbar-nav > li > a::after {
+    content: '';
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: -2px;
+    height: 3px;
+    border-radius: 3px;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transition: transform .2s ease;
+}
+.navbar-default .navbar-nav > li > a:hover,
+.navbar-default .navbar-nav > li > a:focus,
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus,
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-nav > .open > a:hover,
+.navbar-default .navbar-nav > .open > a:focus {
+    color: #006fa8;
+    background-color: transparent;
+}
+.navbar-default .navbar-nav > li > a:hover::after,
+.navbar-default .navbar-nav > .active > a::after {
+    transform: scaleX(1);
+}
+.navbar-default .navbar-nav > li.avatar-user > a::after {
+    display: none;
+}
+@media (max-width: 767px) {
+    .navbar-default .navbar-nav > li > a::after {
+        left: 0;
+        right: auto;
+        top: 8px;
+        bottom: 8px;
+        width: 3px;
+        height: auto;
+        transform: scaleY(0);
+    }
+    .navbar-default .navbar-nav > li > a:hover::after,
+    .navbar-default .navbar-nav > .active > a::after {
+        transform: scaleY(1);
+    }
+}
+CSS,
+    ];
+
     public static function schema(): array
     {
         $fonts = [];
@@ -57,7 +185,8 @@ class AppearanceManager
                 'title' => 'Logo e identidad',
                 'icon' => 'fa-picture-o',
                 'controls' => [
-                    'logo' => ['type' => 'image', 'label' => 'Logo del portal', 'help' => 'PNG, SVG, JPG o WEBP. Se usa en la cabecera, login y registro.'],
+                    'logo' => ['type' => 'image', 'label' => 'Logo del portal', 'help' => 'Medida recomendada: 300 × 170 px. PNG, SVG, JPG o WEBP. Se usa en el login, el registro y la recuperación de contraseña.'],
+                    'header_logo' => ['type' => 'image', 'label' => 'Logo de la cabecera (menú)', 'help' => 'Medida recomendada: 300 × 100 px (horizontal, más ancho que alto). PNG, SVG, JPG o WEBP. Se usa en la barra del menú; si no se sube, se usa el logo del portal.'],
                     'logo_width' => ['type' => 'range', 'label' => 'Ancho del logo en la cabecera', 'min' => 80, 'max' => 400, 'step' => 5, 'unit' => 'px'],
                     'favicon' => ['type' => 'image', 'label' => 'Ícono de la pestaña (favicon)', 'help' => 'PNG o ICO cuadrado, 32×32 o 64×64.'],
                 ],
@@ -87,11 +216,18 @@ class AppearanceManager
                 'title' => 'Contenido de las páginas',
                 'icon' => 'fa-columns',
                 'controls' => [
-                    'breadcrumb_bg' => ['type' => 'color', 'label' => 'Barra de título (ej. "Mis cursos")'],
-                    'breadcrumb_text' => ['type' => 'color', 'label' => 'Texto de la barra de título'],
+                    'breadcrumb_bg' => ['type' => 'color', 'label' => 'Barra de ruta / breadcrumb (ej. "Mis cursos")'],
+                    'breadcrumb_text' => ['type' => 'color', 'label' => 'Texto del breadcrumb'],
                     'panel_heading_bg' => ['type' => 'color', 'label' => 'Encabezados del menú lateral (ej. "Perfil")'],
                     'panel_heading_text' => ['type' => 'color', 'label' => 'Texto de los encabezados laterales'],
                     'panel_border' => ['type' => 'color', 'label' => 'Borde de los paneles'],
+                    'course_card_bg' => ['type' => 'color', 'label' => 'Fondo de las tarjetas de curso'],
+                    'course_card_hover_bg' => ['type' => 'color', 'label' => 'Fondo de las tarjetas al pasar el mouse', 'help' => 'Solo en las tarjetas de cursos de una sesión.'],
+                    'course_card_border' => ['type' => 'color', 'label' => 'Borde de las tarjetas de curso'],
+                    'course_card_hover_border' => ['type' => 'color', 'label' => 'Borde de las tarjetas al pasar el mouse'],
+                    'course_card_title' => ['type' => 'color', 'label' => 'Título de las tarjetas de curso'],
+                    'course_card_image' => ['type' => 'image', 'label' => 'Imagen decorativa de las tarjetas', 'help' => 'Se muestra a la derecha de la tarjeta, en lugar de la trama del tema.'],
+                    'course_card_hide_image' => ['type' => 'toggle', 'label' => 'Quitar imagen decorativa', 'default' => false],
                 ],
             ],
             'header' => [
@@ -107,6 +243,11 @@ class AppearanceManager
                 'title' => 'Menú',
                 'icon' => 'fa-bars',
                 'controls' => [
+                    'menu_style' => ['type' => 'select', 'label' => 'Estilo del menú', 'options' => [
+                        '' => 'Clásico del tema (bloques)',
+                        'pill' => 'Moderno: pastillas redondeadas',
+                        'underline' => 'Moderno: línea inferior',
+                    ]],
                     'menu_text' => ['type' => 'color', 'label' => 'Texto del menú'],
                     'menu_hover_bg' => ['type' => 'color', 'label' => 'Fondo al pasar el mouse'],
                     'menu_hover_text' => ['type' => 'color', 'label' => 'Texto al pasar el mouse'],
@@ -145,6 +286,7 @@ class AppearanceManager
                     'login_register_color' => ['type' => 'color', 'label' => 'Botón "Registro de usuario"'],
                     'login_title' => ['type' => 'text', 'label' => 'Título', 'placeholder' => 'Bienvenidos a …', 'live' => 'login_title'],
                     'login_description' => ['type' => 'textarea', 'label' => 'Descripción', 'live' => 'login_description'],
+                    'login_hide_description' => ['type' => 'toggle', 'label' => 'Ocultar descripción', 'default' => false],
                     'login_message' => ['type' => 'textarea', 'label' => 'Mensaje inferior', 'live' => 'login_message'],
                     'login_character' => ['type' => 'image', 'label' => 'Imagen del panel izquierdo'],
                     'login_hide_character' => ['type' => 'toggle', 'label' => 'Ocultar imagen del panel', 'default' => false],
@@ -159,9 +301,12 @@ class AppearanceManager
                     'register_bg_image' => ['type' => 'image', 'label' => 'Imagen de fondo'],
                     'register_card_bg' => ['type' => 'color', 'label' => 'Fondo del formulario'],
                     'register_title_color' => ['type' => 'color', 'label' => 'Color del título'],
+                    'register_title_size' => ['type' => 'range', 'label' => 'Tamaño del título', 'min' => 16, 'max' => 40, 'step' => 1, 'unit' => 'px'],
                     'register_label_color' => ['type' => 'color', 'label' => 'Color de etiquetas'],
                     'register_input_border' => ['type' => 'color', 'label' => 'Borde de los campos'],
                     'register_section_color' => ['type' => 'color', 'label' => 'Títulos de sección'],
+                    'register_section_bg' => ['type' => 'color', 'label' => 'Fondo del encabezado de sección', 'help' => 'Si se deja vacío, se usa un tono suave del color de los títulos de sección.'],
+                    'register_steps_color' => ['type' => 'color', 'label' => 'Pasos (formulario paso a paso)', 'help' => 'Círculos y línea de avance. Si se deja vacío, se usa el color del botón de envío.'],
                     'register_btn_bg' => ['type' => 'color', 'label' => 'Botón de envío'],
                     'register_btn_text' => ['type' => 'color', 'label' => 'Texto del botón'],
                 ],
@@ -465,18 +610,41 @@ class AppearanceManager
         $add('.sidebar .panel-default .panel-heading a, .sidebar .panel-default .panel-heading .panel-title', ['color' => $get('panel_heading_text')]);
         $add('.panel-default, .panel-default > .panel-heading', ['border-color' => $get('panel_border')]);
 
+        // Tarjetas de curso (lista clásica y cursos dentro de una sesión)
+        $cardImage = !empty($s['course_card_hide_image']) ? 'none' : $url('course_card_image');
+        $add('.classic-courses .panel-default, .session.panel-body .sessions-items .courses', [
+            'background-color' => $get('course_card_bg'),
+            'background-image' => $cardImage,
+            'border-color' => $get('course_card_border'),
+        ]);
+        // El tema redefine el fondo completo al pasar el mouse; se repiten imagen y color.
+        $add('.session.panel-body .sessions-items .courses:hover', [
+            'background-color' => $get('course_card_hover_bg') ?: $get('course_card_bg'),
+            'background-image' => $cardImage,
+        ]);
+        $add('.classic-courses .panel-default:hover, .session.panel-body .sessions-items .courses:hover', [
+            'border-color' => $get('course_card_hover_border'),
+        ]);
+        $add('.classic-courses .course-items-title, .classic-courses .course-items-title a, .session.panel-body .sessions-items .courses h4 a', [
+            'color' => $get('course_card_title'),
+        ]);
+
         // Cabecera
         $add('#cm-header', [
             'background' => $get('header_bg'),
             'border-bottom-color' => $get('header_border'),
             'box-shadow' => isset($s['header_shadow']) && false === $s['header_shadow'] ? 'none' : null,
         ]);
-        $add('#cm-header .logo_campus img, #cm-header .pk-site-logo', [
+        $add('#cm-header .logo_campus img, #cm-header .pk-header-logo', [
             'width' => $px('logo_width'),
             'height' => $px('logo_width') ? 'auto' : null,
         ]);
 
-        // Menú
+        // Menú: primero la forma del estilo elegido; los colores del
+        // administrador van después y, con la misma especificidad, mandan.
+        if (isset(self::MENU_STYLES[$s['menu_style'] ?? ''])) {
+            $css[] = self::MENU_STYLE_BASE."\n".self::MENU_STYLES[$s['menu_style']];
+        }
         $add('.navbar-default .navbar-nav > li > a', [
             'color' => $get('menu_text'),
             'font-size' => $px('menu_font_size'),
@@ -535,7 +703,9 @@ class AppearanceManager
         foreach (['logo', 'font_body', 'font_headings', 'login_title', 'login_description', 'login_message', 'login_character'] as $key) {
             if (!empty($s[$key])) {
                 $add('.custompage .width-login', ['height' => 'auto', 'min-height' => '590px']);
-                $add('.custompage .width-login > form > .row', ['display' => 'flex', 'flex-wrap' => 'wrap']);
+                $add('.custompage .width-login > form', ['margin-bottom' => '0']);
+                // La fila ocupa toda la altura mínima de la tarjeta; si no, queda una franja blanca abajo.
+                $add('.custompage .width-login > form > .row', ['display' => 'flex', 'flex-wrap' => 'wrap', 'min-height' => '590px']);
                 $add('.custompage .width-login #vegas', ['height' => '100%', 'border-bottom-left-radius' => '10px']);
                 break;
             }
@@ -543,6 +713,40 @@ class AppearanceManager
         $add('.custompage #vegas .character', [
             'display' => !empty($s['login_hide_character']) ? 'none' : null,
         ]);
+        $add('.custompage .width-login #vegas .description', [
+            'display' => !empty($s['login_hide_description']) ? 'none' : null,
+        ]);
+        // Imagen propia del panel: ocupa todo el ancho y queda pegada al borde inferior.
+        if (!empty($s['login_character']) && empty($s['login_hide_character'])) {
+            $add('.custompage .width-login #vegas', [
+                'flex-direction' => 'column',
+                'flex-wrap' => 'nowrap',
+                'justify-content' => 'flex-start',
+                'align-items' => 'stretch',
+                'overflow' => 'hidden',
+            ]);
+            $add('.custompage .width-login #vegas .character', [
+                'width' => '100%',
+                'margin-top' => 'auto',
+                'font-size' => '0',
+                'line-height' => '0',
+            ]);
+            $add('.custompage .width-login #vegas .character img', [
+                'display' => 'block !important',
+                'width' => '100%',
+                'max-width' => '100%',
+                'height' => 'auto',
+            ]);
+            // Sin descripción, el logo se centra en el espacio libre sobre la imagen.
+            if (!empty($s['login_hide_description'])) {
+                $add('.custompage .width-login #vegas .logo', [
+                    'flex' => '1 1 auto',
+                    'display' => 'flex',
+                    'align-items' => 'center',
+                    'justify-content' => 'center',
+                ]);
+            }
+        }
 
         // Registro
         $add('.custompage .container-login:has(.width-register)', [
@@ -552,13 +756,26 @@ class AppearanceManager
             'background-position' => $url('register_bg_image') ? 'center' : null,
         ]);
         $add('.custompage .width-register', ['background' => $get('register_card_bg')]);
-        $add('.custompage .width-register h3.title', ['color' => $get('register_title_color')]);
+        $add('.custompage .width-register h3.title', [
+            'color' => $get('register_title_color'),
+            'font-size' => $px('register_title_size'),
+        ]);
+        // Indicador del formulario paso a paso (usa la variable --pk-accent del formulario).
+        $stepsColor = $get('register_steps_color') ?: $get('register_btn_bg');
+        $add('.proikos-reg-form .pk-rf-steps', ['--pk-accent' => $stepsColor]);
+        $add('.proikos-reg-form .pk-rf-steps li.pk-active .pk-rf-step-num', [
+            'box-shadow' => $stepsColor ? '0 0 0 4px color-mix(in srgb, '.$stepsColor.' 18%, transparent)' : null,
+        ]);
+        // El sufijo «(vista previa)» acompaña al tamaño elegido.
+        $add('.custompage .width-register h3.title small', ['font-size' => $px('register_title_size') ? '55%' : null]);
         $add('.custompage .width-register label, .custompage .width-register .control-label', ['color' => $get('register_label_color')]);
         $add('.custompage .width-register .form-control, .custompage .width-register .form-control.bootstrap-select .dropdown-toggle.btn-default', [
             'border-color' => $get('register_input_border'),
         ]);
         $add('.custompage .width-register .pk-rf-section h4', ['color' => $get('register_section_color')]);
-        $add('.custompage .width-register .pk-rf-section', ['border-bottom-color' => $get('register_section_color')]);
+        // La banda, su borde y la barra lateral de cada sección salen de este color.
+        $add('.custompage .width-register .proikos-reg-form', ['--pk-section' => $get('register_section_color')]);
+        $add('.custompage .width-register .proikos-reg-form .pk-rf-section', ['background' => $get('register_section_bg')]);
         $add('.width-register .panel-user', ['background-color' => $get('register_section_color') ? $get('register_section_color').' !important' : null]);
         $add('.custompage .width-register .btn-primary', [
             'background-color' => $get('register_btn_bg'),
@@ -594,6 +811,7 @@ class AppearanceManager
     {
         return array_filter([
             'logo' => $s['logo'] ?? '',
+            'header_logo' => $s['header_logo'] ?? '',
             'login_title' => $s['login_title'] ?? '',
             'login_description' => $s['login_description'] ?? '',
             'login_message' => $s['login_message'] ?? '',

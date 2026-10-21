@@ -2,7 +2,7 @@
     <div class="alert {% if has_registration %}alert-success{% else %}alert-info{% endif %}">
         {% if has_registration %}
             <em class="fa fa-check-circle"></em>
-            La plataforma usa un formulario dinámico para el registro de usuarios:
+            El botón <strong>«Registro de usuario»</strong> del inicio de sesión abre el formulario marcado abajo:
             <a href="{{ registration_url }}" target="_blank">{{ registration_url }}</a>
             <a href="{{ base_url }}?action=unset_registration&pk_reg_admin_sec_token={{ token }}"
                class="btn btn-default btn-xs"
@@ -11,8 +11,9 @@
             </a>
         {% else %}
             <em class="fa fa-info-circle"></em>
-            Actualmente se usa el formulario de registro original. Publique un formulario y márquelo como
-            <strong>formulario de registro</strong> para reemplazarlo.
+            El botón <strong>«Registro de usuario»</strong> del inicio de sesión abre el registro original.
+            Para usar uno de estos formularios, pulse <strong>Usar</strong> en la columna «Registro de usuario»
+            (el formulario debe estar publicado).
         {% endif %}
     </div>
 
@@ -30,6 +31,7 @@
                 <tr>
                     <th>Formulario</th>
                     <th class="text-center">Estado</th>
+                    <th class="text-center" title="Formulario que abre el botón «Registro de usuario» del inicio de sesión">Registro de usuario</th>
                     <th class="text-center">Campos</th>
                     <th class="text-center">Inscritos</th>
                     <th>Última modificación</th>
@@ -42,7 +44,7 @@
                         <td>
                             <strong>{{ item.title|e }}</strong>
                             {% if item.is_registration %}
-                                <span class="label label-success"><em class="fa fa-star"></em> Formulario de registro</span>
+                                <span class="label label-success"><em class="fa fa-user-plus"></em> Botón «Registro de usuario»</span>
                             {% endif %}
                             {% if item.status == 1 %}
                                 <div class="pk-rf-link">
@@ -55,6 +57,23 @@
                                 <span class="label label-primary">Publicado</span>
                             {% else %}
                                 <span class="label label-default">Borrador</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if item.is_registration %}
+                                <span class="label label-success"><em class="fa fa-check"></em> En uso</span>
+                                <div>
+                                    <a href="{{ base_url }}?action=unset_registration&pk_reg_admin_sec_token={{ token }}" class="small"
+                                       onclick="return confirm('El botón «Registro de usuario» volverá a abrir el registro original. ¿Continuar?');">Quitar</a>
+                                </div>
+                            {% elseif item.status == 1 %}
+                                <a href="{{ base_url }}?action=set_registration&id={{ item.id }}&pk_reg_admin_sec_token={{ token }}"
+                                   class="btn btn-success btn-xs"
+                                   onclick="return confirm('El botón «Registro de usuario» del inicio de sesión abrirá este formulario. ¿Continuar?');">
+                                    <em class="fa fa-user-plus"></em> Usar
+                                </a>
+                            {% else %}
+                                <span class="text-muted small" title="Publique el formulario para poder usarlo">Publíquelo primero</span>
                             {% endif %}
                         </td>
                         <td class="text-center">{{ item.total_fields }}</td>
@@ -81,14 +100,6 @@
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-right">
                                     {% if item.status == 1 %}
-                                        {% if not item.is_registration %}
-                                            <li>
-                                                <a href="{{ base_url }}?action=set_registration&id={{ item.id }}&pk_reg_admin_sec_token={{ token }}"
-                                                   onclick="return confirm('Este formulario reemplazará el registro de usuarios de la plataforma. ¿Continuar?');">
-                                                    <em class="fa fa-star"></em> Usar como formulario de registro
-                                                </a>
-                                            </li>
-                                        {% endif %}
                                         <li>
                                             <a href="{{ base_url }}?action=unpublish&id={{ item.id }}&pk_reg_admin_sec_token={{ token }}"
                                                {% if item.is_registration %}onclick="return confirm('Al pasar a borrador dejará de ser el formulario de registro. ¿Continuar?');"{% endif %}>

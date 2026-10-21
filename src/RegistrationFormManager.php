@@ -39,6 +39,9 @@ class RegistrationFormManager
     const PASSWORD_AUTO = 'auto';
     const PASSWORD_FIELD = 'field';
 
+    const USERNAME_EMAIL = 'email';
+    const USERNAME_FIELD = 'field';
+
     /** Campos principales de Chamilo: siempre presentes, no se pueden eliminar. */
     const CORE_FIELDS = ['firstname', 'lastname', 'email', 'password'];
 
@@ -418,12 +421,15 @@ JS;
         return [
             'password_mode' => self::PASSWORD_MANUAL,
             'password_field' => '',
+            'username_mode' => self::USERNAME_EMAIL,
+            'username_field' => '',
             'send_credentials_email' => true,
             'auto_login' => true,
             'redirect_url' => '',
             'success_message' => '',
             'submit_label' => 'Registrarme',
             'code_reference' => '',
+            'wizard' => false,
         ];
     }
 
@@ -516,6 +522,9 @@ JS;
         if (!in_array($settings['password_mode'], [self::PASSWORD_MANUAL, self::PASSWORD_AUTO, self::PASSWORD_FIELD], true)) {
             $settings['password_mode'] = self::PASSWORD_MANUAL;
         }
+        if (!in_array($settings['username_mode'], [self::USERNAME_EMAIL, self::USERNAME_FIELD], true)) {
+            $settings['username_mode'] = self::USERNAME_EMAIL;
+        }
         if (self::PASSWORD_AUTO === $settings['password_mode']) {
             // El usuario no conoce su contraseña: hay que enviársela.
             $settings['send_credentials_email'] = true;
@@ -593,7 +602,8 @@ JS;
     public function setRegistrationForm($formId): bool
     {
         $form = $this->getForm($formId);
-        if (!$form || self::STATUS_PUBLISHED !== $form['status']) {
+        if (!$form || self::STATUS_PUBLISHED !== $form['status']
+            || !empty($this->checkFormConsistency($form, $this->getFields($form['id'])))) {
             return false;
         }
         Database::query("UPDATE ".self::TABLE_FORM." SET is_registration = 0");
@@ -1077,6 +1087,18 @@ JS;
             }
         }
 
+        if (self::USERNAME_FIELD === $settings['username_mode']) {
+            $found = false;
+            foreach ($fields as $field) {
+                if ($field['field_key'] === $settings['username_field'] && !$field['is_core'] && 'section' !== $field['type']) {
+                    $found = $field['required'];
+                }
+            }
+            if (!$found) {
+                $warnings[] = 'El nombre de usuario se toma de un campo que no existe o no es obligatorio. Revise la configuración del formulario.';
+            }
+        }
+
         return $warnings;
     }
 
@@ -1115,7 +1137,8 @@ JS;
         );
 
         // El layout inline reemplaza la clase del <form>: se usa un contenedor propio.
-        $formValidator->addHtml('<div class="proikos-reg-form">');
+        $wizard = !empty($form['settings']['wizard']);
+        $formValidator->addHtml('<div class="proikos-reg-form"'.($wizard ? ' data-pk-wizard="1"' : '').'>');
         if (!empty($form['description'])) {
             $formValidator->addHtml('<div class="pk-rf-description">'.nl2br(Security::remove_XSS($form['description'])).'</div>');
         }
@@ -1139,7 +1162,9 @@ JS;
                 continue;
             }
             if ('section' === $field['type']) {
-                $formValidator->addHtml(($blockOpen ? '</div></div>' : '').'<div class="pk-rf-block"><div class="pk-rf-section"><h4>'.Security::remove_XSS($field['label']).'</h4>');
+                $formValidator->addHtml(($blockOpen ? '</div></div>' : '')
+                    .'<div class="pk-rf-block" data-pk-step="'.htmlspecialchars(strip_tags($field['label']), ENT_QUOTES).'">'
+                    .'<div class="pk-rf-section"><h4>'.Security::remove_XSS($field['label']).'</h4>');
                 if (!empty($field['config']['help'])) {
                     $formValidator->addHtml('<p>'.nl2br($field['config']['help']).'</p>');
                 }
@@ -1184,6 +1209,9 @@ JS;
         $formValidator->setConstants(['pk_reg_form_sec_token' => Security::get_existing_token('pk_reg_form')]);
         $formValidator->addButton('pk_submit', $settings['submit_label'], 'check', 'primary', 'btn-block');
         $formValidator->addHtml('</div>');
+        if ($wizard) {
+            $formValidator->addHtml('<script>'.self::WIZARD_JS.'</script>');
+        }
         $renderer->setElementTemplate(
             '<div class="form-group pk-rf-submit {error_class}">{element}<!-- BEGIN error --><span class="help-inline help-block">{error}</span><!-- END error --></div>',
             'pk_submit'
@@ -1685,6 +1713,160 @@ JS;
 JS;
 
     /**
+     * Paso a paso: cada tarjeta (pk-rf-block) es un paso. Antes de avanzar se
+     * validan los campos visibles del paso; el envío y la validación del
+     * servidor no cambian. Si el servidor devuelve errores, se abre el primer
+     * paso que los tenga.
+     */
+    const WIZARD_JS = <<<'JS'
+(function () {
+    var root = document.querySelector('.proikos-reg-form[data-pk-wizard]:not([data-ready])');
+    if (!root) { return; }
+    root.setAttribute('data-ready', '1');
+    var steps = Array.prototype.slice.call(root.querySelectorAll('.pk-rf-block'));
+    var submit = root.querySelector('.pk-rf-submit');
+    var form = root.closest('form');
+    if (steps.length < 2 || !submit || !form) { return; }
+    var last = steps.length - 1;
+    var current = 0;
+
+    function boton(html, clase) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'btn ' + clase;
+        b.innerHTML = html;
+        return b;
+    }
+
+    // Indicador de pasos
+    var nav = document.createElement('ol');
+    nav.className = 'pk-rf-steps';
+    steps.forEach(function (step, i) {
+        var li = document.createElement('li');
+        li.innerHTML = '<span class="pk-rf-step-num"></span><span class="pk-rf-step-label"></span>';
+        li.querySelector('.pk-rf-step-num').textContent = i + 1;
+        li.querySelector('.pk-rf-step-label').textContent = step.getAttribute('data-pk-step') || ('Paso ' + (i + 1));
+        li.addEventListener('click', function () { ir(i); });
+        nav.appendChild(li);
+    });
+    steps[0].parentNode.insertBefore(nav, steps[0]);
+
+    // Botones: Anterior / Siguiente, y el de envío solo en el último paso
+    var prev = boton('<i class="fa fa-arrow-left" aria-hidden="true"></i> Anterior', 'btn-default pk-rf-prev');
+    var next = boton('Siguiente <i class="fa fa-arrow-right" aria-hidden="true"></i>', 'btn-primary pk-rf-next');
+    var bar = document.createElement('div');
+    bar.className = 'pk-rf-wizard-nav';
+    submit.parentNode.insertBefore(bar, submit);
+    bar.appendChild(prev);
+    bar.appendChild(next);
+    bar.appendChild(submit);
+
+    function campos(step) {
+        return Array.prototype.slice.call(step.querySelectorAll('input, select, textarea')).filter(function (el) {
+            return !el.disabled && el.willValidate;
+        });
+    }
+    function limpiar(el) {
+        var group = el.closest('.pk-rf-group');
+        if (!group || !group.hasAttribute('data-pk-wz-error')) { return; }
+        group.classList.remove('has-error');
+        group.removeAttribute('data-pk-wz-error');
+        var msg = group.querySelector('.pk-rf-wz-error');
+        if (msg) { msg.remove(); }
+    }
+    function marcar(el) {
+        var group = el.closest('.pk-rf-group');
+        if (!group || group.querySelector('.pk-rf-error')) { return; }
+        group.classList.add('has-error');
+        group.setAttribute('data-pk-wz-error', '1');
+        var msg = document.createElement('span');
+        msg.className = 'help-block pk-rf-error pk-rf-wz-error';
+        msg.textContent = el.validationMessage;
+        group.appendChild(msg);
+    }
+    function enfocar(el) {
+        var target = el;
+        // Listas de Chamilo (bootstrap-select): la lista nativa está oculta.
+        if (el.tagName === 'SELECT' && el.parentNode.querySelector('.dropdown-toggle')) {
+            target = el.parentNode.querySelector('.dropdown-toggle');
+        }
+        (el.closest('.pk-rf-group') || el).scrollIntoView({block: 'center', behavior: 'smooth'});
+        try { target.focus({preventScroll: true}); } catch (e) { target.focus(); }
+    }
+    function valido(i) {
+        var primero = null;
+        campos(steps[i]).forEach(function (el) {
+            if (!el.checkValidity()) {
+                marcar(el);
+                primero = primero || el;
+            }
+        });
+        if (primero) {
+            mostrar(i);
+            enfocar(primero);
+        }
+        return !primero;
+    }
+    function mostrar(i) {
+        var cambia = i !== current;
+        current = i;
+        steps.forEach(function (step, n) { step.hidden = n !== i; });
+        Array.prototype.forEach.call(nav.children, function (li, n) {
+            li.classList.toggle('pk-active', n === i);
+            li.classList.toggle('pk-done', n < i);
+        });
+        prev.style.display = i === 0 ? 'none' : '';
+        next.style.display = i === last ? 'none' : '';
+        submit.style.display = i === last ? '' : 'none';
+        if (cambia && nav.getBoundingClientRect().top < 0) {
+            nav.scrollIntoView({block: 'start', behavior: 'smooth'});
+        }
+    }
+    // Hacia atrás siempre; hacia adelante solo si los pasos intermedios son válidos.
+    function ir(i) {
+        for (var n = current; n < i; n++) {
+            if (!valido(n)) { return; }
+        }
+        mostrar(i);
+    }
+
+    prev.addEventListener('click', function () { ir(current - 1); });
+    next.addEventListener('click', function () { ir(current + 1); });
+    // Antes del envío se revisan todos los pasos (el navegador no puede
+    // señalar un campo inválido que está en un paso oculto).
+    submit.addEventListener('click', function (e) {
+        for (var n = 0; n <= last; n++) {
+            if (!valido(n)) {
+                e.preventDefault();
+                return;
+            }
+        }
+    }, true);
+    form.addEventListener('keydown', function (e) {
+        var t = e.target;
+        if (e.key === 'Enter' && current < last && t.tagName === 'INPUT' && t.type !== 'submit' && t.type !== 'button') {
+            e.preventDefault();
+            ir(current + 1);
+        }
+    });
+    form.addEventListener('input', function (e) { limpiar(e.target); });
+    form.addEventListener('change', function (e) { limpiar(e.target); });
+
+    // Errores del servidor: se abre el primer paso que los tenga.
+    var inicio = 0;
+    if (!submit.classList.contains('has-error')) {
+        for (var n = 0; n <= last; n++) {
+            if (steps[n].querySelector('.has-error')) { inicio = n; break; }
+        }
+    } else {
+        inicio = last;
+    }
+    current = -1;
+    mostrar(inicio);
+})();
+JS;
+
+    /**
      * Opciones agrupadas por la opción del padre de una lista del Ubigeo en
      * cascada, o null si el campo no depende de otro.
      */
@@ -1772,15 +1954,12 @@ JS;
         }
 
         // Nombre de usuario resultante
-        if (!isset($errors['f_email'])) {
-            $username = $this->resolveUsername($fields, $values);
-            $usernameElement = 'f_email';
-            foreach ($fields as $field) {
-                if ('user.username' === $field['config']['map_to']) {
-                    $usernameElement = self::elementName($field);
-                }
-            }
-            if (!isset($errors[$usernameElement]) && '' !== $username) {
+        $usernameElement = $this->usernameElement($settings, $fields);
+        if (!isset($errors[$usernameElement])) {
+            $username = $this->resolveUsername($settings, $fields, $values);
+            if ('' === $username && self::USERNAME_FIELD === $settings['username_mode']) {
+                $errors['pk_submit'] = 'El formulario no está configurado correctamente (nombre de usuario).';
+            } elseif ('' !== $username) {
                 if (api_strlen($username) > USERNAME_MAX_LENGTH) {
                     $errors[$usernameElement] = 'El nombre de usuario no puede superar '.USERNAME_MAX_LENGTH.' caracteres.';
                 } elseif (preg_match(USERNAME_PURIFIER, $username)) {
@@ -2005,12 +2184,32 @@ JS;
         return Database::num_rows(Database::query($sql)) > 0;
     }
 
-    private function resolveUsername(array $fields, array $values): string
+    /**
+     * Elemento del formulario que da el nombre de usuario: el campo elegido en
+     * la configuración, el vinculado a «Chamilo: nombre de usuario» o el correo.
+     */
+    private function usernameElement(array $settings, array $fields): string
     {
         foreach ($fields as $field) {
-            if ('user.username' === $field['config']['map_to']) {
-                $value = (string) $this->getSubmittedValue($field, $values);
-                if ('' !== $value) {
+            $matches = self::USERNAME_FIELD === $settings['username_mode']
+                ? $field['field_key'] === $settings['username_field'] && !$field['is_core']
+                : 'user.username' === $field['config']['map_to'];
+            if ($matches) {
+                return self::elementName($field);
+            }
+        }
+
+        return 'f_email';
+    }
+
+    private function resolveUsername(array $settings, array $fields, array $values): string
+    {
+        $element = $this->usernameElement($settings, $fields);
+        foreach ($fields as $field) {
+            if ('f_email' !== $element && self::elementName($field) === $element) {
+                $value = trim((string) $this->getSubmittedValue($field, $values));
+                // Con un campo elegido no hay respaldo: vacío es un error de configuración.
+                if ('' !== $value || self::USERNAME_FIELD === $settings['username_mode']) {
                     return $value;
                 }
             }
@@ -2063,7 +2262,7 @@ JS;
         $firstname = trim((string) $values['f_firstname']);
         $lastname = trim((string) $values['f_lastname']);
         $email = trim((string) $values['f_email']);
-        $username = $this->resolveUsername($fields, $values);
+        $username = $this->resolveUsername($settings, $fields, $values);
         $password = $this->resolvePassword($form, $fields, $values);
         $language = $values['language'] ?? api_get_interface_language();
         $codeReference = $settings['code_reference'] ?: null;

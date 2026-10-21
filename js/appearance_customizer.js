@@ -134,9 +134,12 @@
         if (originals) {
             return;
         }
-        originals = {logos: [], texts: {}, character: []};
+        originals = {logos: [], headerLogos: [], texts: {}, character: []};
         document.querySelectorAll('.pk-site-logo').forEach(function (img) {
             originals.logos.push([img, img.getAttribute('data-default-src') || img.getAttribute('src')]);
+        });
+        document.querySelectorAll('.pk-header-logo').forEach(function (img) {
+            originals.headerLogos.push([img, img.getAttribute('data-default-src') || img.getAttribute('src')]);
         });
         document.querySelectorAll('[data-pk-live]').forEach(function (node) {
             originals.texts[node.getAttribute('data-pk-live')] = originals.texts[node.getAttribute('data-pk-live')] || [];
@@ -175,6 +178,9 @@
         rememberOriginals();
         originals.logos.forEach(function (pair) {
             pair[0].src = vars.logo || pair[1];
+        });
+        originals.headerLogos.forEach(function (pair) {
+            pair[0].src = vars.header_logo || vars.logo || pair[1];
         });
         originals.character.forEach(function (pair) {
             pair[0].src = vars.login_character || pair[1];

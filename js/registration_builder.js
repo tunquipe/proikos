@@ -21,6 +21,21 @@
     var openUid = null;
 
     var fields = (data.fields || []).map(normalize);
+    var account = data.account || {};
+
+    function fieldLabel(key) {
+        var found = fields.filter(function (f) { return f.field_key === key; })[0];
+        return found ? (found.label || key) : key;
+    }
+
+    // Clave del campo que da el nombre de usuario (misma regla que el servidor).
+    function usernameKey() {
+        if (account.username_mode === 'field') {
+            return account.username_field;
+        }
+        var mapped = fields.filter(function (f) { return f.config.map_to === 'user.username'; })[0];
+        return mapped ? mapped.field_key : 'email';
+    }
 
     function normalize(field) {
         var item = $.extend(true, {
@@ -183,8 +198,24 @@
         if (core) {
             $title.append(' <span class="label label-info">Dato principal</span>');
         }
-        if (field.required) {
+        var passwordHidden = field.type === 'password' && account.password_mode && account.password_mode !== 'manual';
+        if (field.required && !passwordHidden) {
             $title.append(' <span class="label label-danger">Obligatorio</span>');
+        }
+        if (passwordHidden) {
+            var source = account.password_mode === 'field' ? fieldLabel(account.password_field) : '';
+            $title.append($('<span class="label label-default"></span>')
+                .attr('title', 'Se cambia en la configuración del formulario')
+                .append('<em class="fa fa-eye-slash"></em> ')
+                .append(document.createTextNode(source
+                    ? 'No se muestra: la contraseña es «' + source + '»'
+                    : 'No se muestra: Chamilo genera la contraseña')));
+        }
+        if (field.field_key && field.field_key === usernameKey()) {
+            $title.append(' <span class="label label-success" title="Se cambia en la configuración del formulario"><em class="fa fa-user"></em> Usuario</span>');
+        }
+        if (account.password_mode === 'field' && field.field_key && field.field_key === account.password_field) {
+            $title.append(' <span class="label label-success" title="Se cambia en la configuración del formulario"><em class="fa fa-key"></em> Contraseña</span>');
         }
         if (field.config.map_to) {
             $title.append(' <span class="label label-warning"><em class="fa fa-link"></em></span>');
