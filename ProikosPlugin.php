@@ -493,8 +493,34 @@ class ProikosPlugin extends Plugin
     {
         $pluginName = $this->get_name();
         Database::getManager()
-            ->createQuery('DELETE FROM ChamiloCourseBundle:CTool t WHERE t.category = :category AND t.link LIKE :link')
-            ->execute(['category' => 'plugin', 'link' => $pluginName.'/academic_result.php%']);
+            ->createQuery('DELETE FROM ChamiloCourseBundle:CTool t WHERE t.category = :category AND (t.link LIKE :link OR t.link = :startLink)')
+            ->execute([
+                'category' => 'plugin',
+                'link' => $pluginName.'/academic_result.php%',
+                // Generic link created by Plugin::course_install() before it was overridden.
+                'startLink' => $pluginName.'/start.php',
+            ]);
+    }
+
+    /**
+     * Called by Chamilo when a course is created. Replaces the generic
+     * "proikos/start.php" link with the academic results tool.
+     */
+    public function course_install($courseId, $addToolLink = true)
+    {
+        if ($addToolLink && 'true' === $this->get(self::TOOL_ENABLED)) {
+            $this->createAcademicResultLink($courseId);
+        }
+    }
+
+    private function createAcademicResultLink($courseId)
+    {
+        return $this->createLinkToCourseTool(
+            $this->get_lang('AcademicResults'),
+            $courseId,
+            'results.png',
+            $this->get_name().'/academic_result.php'
+        );
     }
     public function performActionsAfterConfigure(): ProikosPlugin
     {
@@ -504,14 +530,8 @@ class ProikosPlugin extends Plugin
 
         if ('true' === $this->get(self::TOOL_ENABLED)) {
             $courses = $em->createQuery('SELECT c.id FROM ChamiloCoreBundle:Course c')->getResult();
-            $pluginName = $this->get_name();
             foreach ($courses as $course) {
-                $this->createLinkToCourseTool(
-                    $this->get_lang('AcademicResults'),
-                    $course['id'],
-                    'results.png',
-                    $pluginName.'/academic_result.php'
-                );
+                $this->createAcademicResultLink($course['id']);
             }
         }
 
