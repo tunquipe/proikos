@@ -94,6 +94,7 @@ class ProikosPlugin extends Plugin
             [
                 'tool_enable' => 'boolean',
                 'enable_limit_user_quotas' => 'boolean',
+                'enable_smowl' => 'boolean',
                 'enable_link_smowl_exercise' => 'boolean',
                 'highest_score_exercise'  => 'boolean',
                 'cache_data_admin'  => 'text',
@@ -131,6 +132,15 @@ class ProikosPlugin extends Plugin
         static $result = null;
 
         return $result ? $result : $result = new self();
+    }
+
+    /**
+     * Monitorización SMOWL disponible: plugin activo y ajuste enable_smowl encendido.
+     */
+    public static function isSmowlEnabled(): bool
+    {
+        return 'true' === api_get_plugin_setting('proikos', 'tool_enable')
+            && 'true' === api_get_plugin_setting('proikos', 'enable_smowl');
     }
 
     public function install()
