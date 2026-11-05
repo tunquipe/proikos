@@ -1015,8 +1015,8 @@ if ($action) {
             // Inicializar caché
             $cacheManager = new ProikosCacheManager();
 
-            if (api_is_platform_admin()) {
-                // Admins: 2 horas (consultan mucho, datos cambian poco)
+            if (!api_is_contractor_admin() && (api_is_platform_admin() || api_is_drh())) {
+                // Admins y DRH comparten caché: 2 horas (consultan mucho, datos cambian poco)
                 $cacheManager->setCacheLifetime($cacheLifetimeAdmin);
             } else if (api_is_contractor_admin()) {
                 $cacheManager->setCacheLifetime($cacheLifetimeManager);

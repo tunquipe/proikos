@@ -18,6 +18,49 @@ class ProikosCacheManager
 
         // Verificar y crear directorio con manejo de errores
         $this->initializeCacheDirectory();
+
+        // La carpeta cache/ del plugin está versionada en git: tras un despliegue
+        // queda a nombre del usuario que hizo el pull y el servidor web no puede
+        // escribir en ella, con lo que el caché quedaba desactivado sin avisar.
+        // En ese caso usar la carpeta de caché de Chamilo (app/cache), que
+        // siempre es escribible por el servidor web.
+        if (!$this->enabled && function_exists('api_get_path')) {
+            $this->enabled = true;
+            $this->cacheDir = rtrim(api_get_path(SYS_ARCHIVE_PATH), '/') . '/proikos_cache/';
+            $this->initializeCacheDirectory();
+        }
+    }
+
+    /**
+     * Directorio de caché en uso (también aloja exports/ con los Excel generados)
+     */
+    public function getCacheDir()
+    {
+        return $this->cacheDir;
+    }
+
+    /**
+     * Directorio escribible para los Excel generados. cache/exports/ también
+     * viene de git, así que si no es escribible se usa app/cache.
+     */
+    public function getExportDir()
+    {
+        $dirs = [$this->cacheDir . 'exports/'];
+        if (function_exists('api_get_path')) {
+            $dirs[] = rtrim(api_get_path(SYS_ARCHIVE_PATH), '/') . '/proikos_cache/exports/';
+        }
+
+        foreach ($dirs as $dir) {
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0777, true);
+                @file_put_contents($dir . 'index.html', '');
+            }
+            if (is_dir($dir) && is_writable($dir)) {
+                return $dir;
+            }
+        }
+
+        return $dirs[0];
     }
 
     /**
@@ -368,7 +411,7 @@ class ProikosCacheManager
 
             // También limpiar los Excel ya generados en disco (cache/exports/*.xlsx),
             // de lo contrario el export sigue devolviendo el archivo viejo.
-            $exportFiles = glob($this->cacheDir . 'exports/export_*.xlsx');
+            $exportFiles = glob($this->getExportDir() . 'export_*.xlsx');
             if ($exportFiles !== false) {
                 foreach ($exportFiles as $exportFile) {
                     if (@unlink($exportFile)) {

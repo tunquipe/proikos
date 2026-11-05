@@ -1,0 +1,4 @@
+# Caché del reporte Data (se genera en el servidor)
+cache/data_*.json
+cache/exports/*.xlsx
+cache/exports/*.lock

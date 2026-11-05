@@ -25,8 +25,8 @@ if (empty($cacheLifetimeManager) || !is_numeric($cacheLifetimeManager)) {
 // Inicializar gestor de caché
 $cacheManager = new ProikosCacheManager();
 
-if (api_is_platform_admin()) {
-    // Admins: 2 horas (consultan mucho, datos cambian poco)
+if (!api_is_contractor_admin() && (api_is_platform_admin() || api_is_drh())) {
+    // Admins y DRH comparten caché: 2 horas (consultan mucho, datos cambian poco)
     $cacheManager->setCacheLifetime($cacheLifetimeAdmin);
 } else if (api_is_contractor_admin()) {
     $cacheManager->setCacheLifetime($cacheLifetimeManager);
@@ -35,6 +35,8 @@ if (api_is_platform_admin()) {
 }
 
 //$cacheManager->setCacheLifetime(3600); // 1 hora
+
+$message = null;
 
 // Verificar si el caché está habilitado
 if (!$cacheManager->isEnabled()) {
@@ -51,7 +53,6 @@ $htmlHeadXtra[] = '<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue
 
 $tool_name = 'Data';
 $actionLinks = null;
-$message = null;
 
 $action = $_GET['action'] ?? null;
 $dni = $_GET['keyword'] ?? null;
@@ -247,7 +248,7 @@ if (isset($action)) {
             $exportParams = ['keyword' => $dni, 'courseId' => $courseId, 'sessionId' => $sessionId, 'ruc' => $ruc, 'dateFrom' => $dateFrom, 'dateTo' => $dateTo];
             $paramsHash = md5(serialize($exportParams));
             $exportToken = 'export_' . $currentUserId . '_' . $today . '_' . $paramsHash;
-            $exportDir = __DIR__ . '/../cache/exports/';
+            $exportDir = $cacheManager->getExportDir();
             $exportFile = $exportDir . $exportToken . '.xlsx';
             if (file_exists($exportFile)) {
                 @unlink($exportFile);
@@ -267,7 +268,7 @@ if (isset($action)) {
             $exportParams = ['keyword' => $dni, 'courseId' => $courseId, 'sessionId' => $sessionId, 'ruc' => $ruc, 'dateFrom' => $dateFrom, 'dateTo' => $dateTo];
             $paramsHash = md5(serialize($exportParams));
             $exportToken = 'export_' . $currentUserId . '_' . $today . '_' . $paramsHash;
-            $exportDir = __DIR__ . '/../cache/exports/';
+            $exportDir = $cacheManager->getExportDir();
             $exportFile = $exportDir . $exportToken . '.xlsx';
             $lockFile = $exportFile . '.lock';
 
@@ -376,7 +377,7 @@ if (isset($action)) {
                 die('Acceso no autorizado');
             }
 
-            $exportDir = __DIR__ . '/../cache/exports/';
+            $exportDir = $cacheManager->getExportDir();
             $exportFile = $exportDir . $token . '.xlsx';
 
             if (!file_exists($exportFile)) {
@@ -470,9 +471,8 @@ if ($isAdmin) {
             ]
         );
 
-    $plugin = ProikosPlugin::create();
-    $myRuc = $plugin::getUserRucCompany();
-    $myRucFiles = $cacheInfo['by_ruc'][$myRuc] ?? 0;
+    // role_files cuenta los archivos de su RUC (mismo prefijo que usa el caché)
+    $myRucFiles = $cacheInfo['role_files'] ?? 0;
 
     $actionLinks .= ' <span id="cache-info" class="label label-info" style="cursor: help; padding: 5px 10px;" title="' .
         $cacheInfo['current_user_role'] . ' | Archivos de tu RUC: ' . $myRucFiles . '">' .
