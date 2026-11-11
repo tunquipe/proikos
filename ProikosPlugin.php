@@ -1358,6 +1358,15 @@ class ProikosPlugin extends Plugin
         $qb->andWhere($qb->expr()->eq('s.category', ':categoryID'))
             ->setParameter('categoryID', $categoryID);
 
+        // Excluir en SQL las sesiones ya finalizadas: si se dejan para el filtro en PHP,
+        // ocupan el LIMIT de la paginación y dejan fuera a las sesiones más recientes.
+        $qb->andWhere(
+            $qb->expr()->orX(
+                $qb->expr()->isNull('s.displayEndDate'),
+                $qb->expr()->gte('s.displayEndDate', ':nowUtc')
+            )
+        )->setParameter('nowUtc', api_get_utc_datetime());
+
         if (!empty($date)) {
             $qb->andWhere(
                 $qb->expr()->orX(
@@ -1390,6 +1399,8 @@ class ProikosPlugin extends Plugin
 
         if ($getCount) {
             $qb->select('count(s)');
+        } else {
+            $qb->orderBy('s.displayEndDate', 'ASC')->addOrderBy('s.id', 'ASC');
         }
 
         $qb = self::hideFromSessionCatalogCondition($qb);
