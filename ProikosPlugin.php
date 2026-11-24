@@ -5008,10 +5008,8 @@ EOT;
                 if ($puntaje_total == 0) {
                     $status = '<span class="label label-warning">' . $this->get_lang('Registered') . '</span>';
                     $status_id = 1;
-                } else if ($examen_de_entrada == 0 || $examen_de_salida == 0 || $taller == 0) {
-                    $status = '<span class="label label-danger">' . $this->get_lang('Failed') . '</span>';
-                    $status_id = 0;
                 } else if ($puntaje_total >= 70) {
+                    // El estado depende solo del promedio ponderado: un 0 en un examen no desaprueba por sí solo.
                     $status = '<span class="label label-success">' . $this->get_lang('Approved') . '</span>';
                     $status_id = 2;
                 } else {
